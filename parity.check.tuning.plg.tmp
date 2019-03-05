@@ -1,0 +1,81 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE PLUGIN [
+<!ENTITY name "parity.check.tuning">
+<!ENTITY author "Dave Walker (itimpi)">
+<!ENTITY version "2019.03.05">
+<!ENTITY md5 "251058376c6050208b7ab3e10ea091a3">
+<!ENTITY launch "Settings/Scheduler">
+<!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
+<!ENTITY github "itimpi/parity.check.tuning">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/plugins/&name;.plg">
+<!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
+]>
+<PLUGIN name="&name;" 
+	author="&author;" 
+	version="&version;" 
+	launch="&launch;" pluginURL="&pluginURL;" 
+	icon="music" 
+	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
+
+<CHANGES>
+###2019.02.12
+- First version (still under development)
+</CHANGES>
+
+<FILE Run="/bin/bash">
+  <INLINE>
+    # Remove old 'source' files
+      rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2&gt;/dev/null | grep -v '&version;')
+  </INLINE>
+</FILE>
+
+<!--
+The 'install' script.
+-->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      #Verify Unraid Version
+      source /etc/unraid-version
+      VER=${version:0:3}
+      if [[ "$VER" -le "6.7" ]]; then
+        echo "Unraid version 6.7 or higher is required"
+       exit 1
+    fi 
+  </FILE>
+  
+<!--
+The 'source' file.
+-->
+  <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
+    <URL>https://raw.github.com/&github;/master/archive/&name;-&version;-x86_64-1.txz</URL>
+    <MD5>&md5;</MD5>
+  </FILE>
+  
+<!--
+The 'post-install' script
+-->
+<FILE Run="/bin/bash">
+  <INLINE>
+    echo ""
+    echo "----------------------------------------------------"
+    echo " &name; has been installed."
+    echo " Copyright 2019, Dave Walker (itimpi)"
+    echo " Version: &version;"
+    echo "----------------------------------------------------"
+    echo ""
+  </INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+  <INLINE>
+    removepkg &name;-&version;-x86_64-1
+    rm -rf &plugdir;
+    rm -rf /boot/config/plugins/&name;
+    /usr/local/sbin/update_cron
+</INLINE>
+</FILE>
+
+</PLUGIN>

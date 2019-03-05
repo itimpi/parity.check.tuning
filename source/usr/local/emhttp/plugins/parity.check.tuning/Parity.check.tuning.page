@@ -1,0 +1,216 @@
+Menu="Scheduler:1b"
+Title="Parity Check Tuning"
+Tag="gear"
+---
+<?PHP
+/* Copyright 22019, Dave Walker (itimpi).
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * Limetech is given expliit permission to use this code in any way they like.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$parityTuningPlugin='parity.check.tuning';
+require_once "/usr/local/emhttp/plugins/$parityTuningPlugin/$parityTuningPlugin.helpers.php";
+?>
+
+<script>
+
+function presetParityTuning(form) {
+  var parityTuningDisabled = (form.parityTuningActive.value == "no");
+  form.parityTuningFrequency.disabled    = parityTuningDisabled;
+  form.parityTuningManual.disabled       = parityTuningDisabled;
+  form.parityTuningFrequency.disabled    = parityTuningDisabled;
+  form.parityTuningResumeHour.disabled   = parityTuningDisabled;
+  form.parityTuningResumeMinute.disabled = parityTuningDisabled;
+  form.parityTuningPauseHour.disabled    = parityTuningDisabled;
+  form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
+}
+
+$.fn.toggleAttr = function(attr) {
+  this.each(function() {
+        var $this = $(this);
+        $this.attr(attr) ? $this.removeAttr(attr) : $this.attr(attr,true);
+    });
+}
+
+</script>
+
+<form   markdown="1" 
+    name    ="parityTuning"
+    method  ="POST" 
+    action  ="/update.php" 
+    target  ="progressFrame"
+    onSubmit="presetParityTuning(this)">
+        
+<input type="hidden" name="#file"    value="<?=$parityTuningCfgFile?>">
+<input type="hidden" name="#command" value="<?=$parityTuningPhpFile?>">
+
+
+Run parity checks in increments on a schedule:
+<? $nm = 'parityTuningActive';?>
+: <select name="<?=$nm?>" size='1' class='narrow' onchange="presetParityTuning()">
+    <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
+    <?=mk_option($parityTuningCfg[$nm], "no", "No")?>
+  </select>
+* Note that setting this setting to <strong>no</strong> disables the parity tuning feature
+
+> Specify whether parity checks should be run in increments spread over several days.<br>If you have set this to 'no' then you get the default system behavior of parity checks running without a break to completion unless you manualy stop/pause them them.
+
+Run parity check increments:
+<? $nm = 'parityTuningFrequency';?>
+: <select name="<?=$nm?>" size='1' class='narrow'>
+    <?=mk_option($parityTuningCfg[$nm], "daily", "Daily")?>
+  </select>
+
+> The frequency at which parity check increments should be run.<br>At the moment only a daily option is allowed, but depending on User feedback other increment intervals may be added.
+
+Run manually started parity checks in increments:
+<? $nm = 'parityTuningManual';?>
+: <select name="<?=$nm?>" size='1' class='narrow'>
+          size='1' class='narrow'>
+          <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
+  </select>
+  *Reserved
+
+> Should manually started parity checks also be run in increments<br>At the moment Yes is the only option as further testing is required to determine if it is possible to reliably distinguish manula parity checks from scheduled ones.
+
+Parity check resume time:
+<? $nm = 'parityTuningResumeHour';?>
+: <select name="<?=$nm?>" size='1' class='narrow'>
+           size="1" class="narrow">
+           <?for ($d=0; $d<=23; $d++):?>
+              <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
+           <?endfor;?>
+    </select>
+    <? $nm = 'parityTuningResumeMinute';?>
+    <select name="<?=$nm?>" size='1' class='narrow'>
+      <?for ($d=0; $d<=55; $d+=5):?>
+        <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
+      <?endfor;?>
+    </select>&nbsp;&nbsp;HH:MM
+
+
+> The time at which a paused parity check should be resumed.<br>Typically this would be set to be an idle time overnight.<br>If no parity check has been paused then this setting will have no effect
+
+Parity Check pause time:
+<? $nm = 'parityTuningPauseHour';?>
+: <select name="<?=$nm?>" size='1' class='narrow'>
+      <?for ($d=0; $d<=23; $d++):?>
+        <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
+      <?endfor;?>
+    </select>
+    <? $nm = 'parityTuningPauseMinute';?>
+    <select name="<?=$nm?>" size='1' class='narrow'>
+      <?for ($d=0; $d<=55; $d+=5):?>
+          <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
+      <?endfor;?>
+    </select>&nbsp;&nbsp;HH:MM
+    
+> The time at which a running parity check should be paused.<br>Typically this would be set to be an time when you want other activity to not be affected by a running parity check.<br>If no parity check is running  then this setting will have no effect
+
+Debug Logging:
+<? $nm = 'parityTuningDebug';?>
+: <select name="<?=$nm?>" size='1' class='narrow'>
+    <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
+  </select>
+  
+> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter
+
+ :
+: <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
+</form>
+
+<?
+/********************************************************************************
+ * The following is a reverse-engineered from the ArrayOperations.page file to  *
+ * make the parity Stop/Pause/Resume buttons available from here as well.   *
+ ********************************************************************************/
+?> 
+<form markdown="1" 
+      name="arrayOps"
+      method="POST"
+      action="/update.htm"
+      target="progressFrame">
+<script>
+function stopParity(form,text) {
+  $(form).append('<input type="hidden" name="cmdNoCheck" value="Cancel">');
+<?if ($confirm['stop']):?>
+  swal({title:'Proceed?',
+        text:'This will stop the running '+text+' operation',
+        type:'warning',
+        showCancelButton:true},function(p){if (p) form.submit(); else $('input[name="cmdNoCheck"]').remove();});
+<?else:?>
+  form.submit();
+<?endif;?>
+}
+function pauseParity(form) {
+  $(form).append('<input type="hidden" name="cmdNoCheck" value="Pause">');
+  $('#pauseButton').val('Resume').prop('onclick',null).off('click').click(function(){resumeParity(form);});
+  <? // parityTuningLogger("Manual request to pause parity checking");?>
+  form.submit();
+}
+function resumeParity(form) {
+  $(form).append('<input type="hidden" name="cmdCheck" value="Resume">');
+  $('#pauseButton').val('Pause').prop('onclick',null).off('click').click(function(){pauseParity(form);});
+  <? // parityTuningLogger("Manual request to resume parity checking");?>
+  form.submit();
+}
+</script>
+
+<? 
+$pos = $var['mdResyncPos'];
+if ($pos != 0) 
+{
+  $resync=$var['mdResync'];  
+  if (! $resync) 
+  {
+    $status = "Paused";
+    $val    = "Resume";
+    $click  = "resumeParity";
+  } else {
+    $status = "Running";
+    $val    = "Pause";
+    $click  = "pauseParity";
+  }
+ 
+  $action = $var['mdResyncAction'];
+  switch ($action) 
+  {
+    case 'check':   $msg = 'Read-Check';
+                break;
+    case 'check P': $msg = 'Parity-Check';
+                break;
+   case 'recon':    $msg = 'Parity-Sync/Data-Rebuild';
+            break;
+   case 'clear':    $msg = 'Clearing';
+                    break;
+   default:        $msg = "Unrecognized action $action";
+                    parityTuningLoggerDebug("unrecognized mdResyncAction=$action");
+                    parityTuningLoggerDebug("             mdResync=$resync");
+                    parityTuningLoggerDebug("             mdResyncPos=$pos");
+                    break;
+  }
+
+  $size= $var['mdResyncSize'];
+  $percent = sprintf ("%.1f%%", ($pos / $size) * 100);
+
+  echo "$msg in progress ($status at $percent%):";
+  echo ": <input type=\"button\"";
+  echo "        id=\"pauseButton\"";
+  echo "        value=\"$val\""; 
+  echo "        onclick=\"$click\"(this.form)>";
+  echo " <input type=\"button\"";
+  echo "        id=\"cancelButton\""; 
+  echo "        value=\"Cancel\"";
+  echo "        onclick=stopParity(this.form,\"$action\")";
+  echo "&nbsp;click to <strong>Cancel</strong> or <strong>$val</strong> the $msg:";
+}
+?>
+
+</form>
