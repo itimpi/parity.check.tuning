@@ -24,7 +24,7 @@
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
 // Handle generating and activating/deactivating the cron jobs for this plugin
-if (is_null($args)) {
+if (empty($argv)) {
   parityTuningLoggerDebug("ERROR: No action specified");
   exit(0);
 }
@@ -82,8 +82,8 @@ switch ($command) {
         exit();
 }
 
-if ($vars == null) {
-    parityTuningLoggerDebug ("reading in \'vars\' to get array state");
+if (empty($vars)) {
+    parityTuningLoggerDebug ("reading array state");
     $vars = parse_ini_file ("/var/local/emhttp/var.ini");
 }
 

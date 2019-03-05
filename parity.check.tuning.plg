@@ -7,7 +7,7 @@
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY github "itimpi/parity.check.tuning">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/plugins/&name;.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&name;.plg">
 <!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
 ]>
 <PLUGIN name="&name;" 
@@ -40,7 +40,8 @@ The 'install' script.
       if [[ "$VER" -le "6.7" ]]; then
         echo "Unraid version 6.7 or higher is required"
        exit 1
-    fi 
+      fi 
+    </INLINE>
   </FILE>
   
 <!--
@@ -75,7 +76,7 @@ The 'remove' script.
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&name;
     /usr/local/sbin/update_cron
-</INLINE>
+  </INLINE>
 </FILE>
 
 </PLUGIN>

@@ -6,7 +6,7 @@
 
 <Plugin>True</Plugin>
 
-<PluginURL>https://raw.githubusercontent.com/itimpi/parity.check.tuning/master/parity.check.tuning.plg</PluginURL>
+<PluginURL>/boot/parity.check.tuning.plg</PluginURL>
 
 <PluginAuthor>Dave walker (itimpi)</PluginAuthor>
 

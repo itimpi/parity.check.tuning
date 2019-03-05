@@ -55,3 +55,7 @@ reference/user.scripts/scripts/viewDockerLogSize/description
 reference/user.scripts/scripts/viewDockerLogSize/script
 reference/user.scripts/user.scripts-2019.01.13a-x86_64-1.txz
 reference/Wrappers.php
+reference/plugin
+test.php
+reference/ca.mover.tuning.plg
+reference/ArrayOperation.page
