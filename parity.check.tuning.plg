@@ -49,7 +49,7 @@ The 'source' file.
 -->
   <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
     <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.txz</URL>
-    <MD5>&md5;</MD5>
+    <-- <MD5>&md5;</MD5> ..>
   </FILE>
   
 <!--
@@ -57,6 +57,7 @@ The 'post-install' script
 -->
 <FILE Run="/bin/bash">
   <INLINE>
+    /boot/config/plugins/&name/&name/php "updatecron"
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
