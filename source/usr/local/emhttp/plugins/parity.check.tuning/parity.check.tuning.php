@@ -32,7 +32,7 @@ if (empty($argv)) {
 // Check for valid argument action options
 $command = trim($argv[1]);
 switch ($command) {
-    case "cron":
+    case "updatecron":
         if ($parityTuningCfg['parityTuningActive'] == "no") {
         {
             parityTuningLoggerDebug("plugin disabled");
@@ -74,7 +74,7 @@ switch ($command) {
         parityTuningLoggerDebug ("Error: Unrecognised option \'$command\'");  
         parityTuningLoggerDebug ("Usage: parity.check.tuning.php \<action\>");
         parityTuningLoggerDebug ("currently recognised values for \<action\> are:");
-        parityTuningLoggerDebug (" cron");
+        parityTuningLoggerDebug (" updatecron");
         parityTuningLoggerDebug (" pause");
         parityTuningLoggerDebug (" resume");
         parityTuningLoggerDebug (" stopping");

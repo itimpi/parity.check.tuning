@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
   
-// Set up some useful variables!
+// Set up some useful variables
 $emhttpDir             = "/usr/local/emhttp";
 $parityTuningPlugin    = "parity.check.tuning";
 $parityTuningPluginDir = "$emhttpDir/plugins/$parityTuningPlugin";

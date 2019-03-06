@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2019.03.06">
-<!ENTITY md5 "c38b56733bed8f5cc7f6ee96048b8ee4">
+<!ENTITY md5 "a0122398941667af0eb735a80af1541c">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY github "itimpi/parity.check.tuning">
@@ -48,7 +48,7 @@ The 'install' script.
 The 'source' file.
 -->
   <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-    <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.tgz</URL>
+    <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.txz</URL>
     <MD5>&md5;</MD5>
   </FILE>
   
