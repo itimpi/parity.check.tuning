@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.03.05">
-<!ENTITY md5 "251058376c6050208b7ab3e10ea091a3">
+<!ENTITY version "2019.03.06">
+<!ENTITY md5 "c38b56733bed8f5cc7f6ee96048b8ee4">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY github "itimpi/parity.check.tuning">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/plugins/&name;.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&name;.plg">
 <!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
 ]>
 <PLUGIN name="&name;" 
@@ -18,8 +18,8 @@
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
 <CHANGES>
-###2019.02.12
-- First version (still under development)
+###2019.03.05
+- First version
 </CHANGES>
 
 <FILE Run="/bin/bash">
@@ -40,14 +40,15 @@ The 'install' script.
       if [[ "$VER" -le "6.7" ]]; then
         echo "Unraid version 6.7 or higher is required"
        exit 1
-    fi 
+      fi 
+    </INLINE>
   </FILE>
   
 <!--
 The 'source' file.
 -->
   <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-    <URL>https://raw.github.com/&github;/master/archive/&name;-&version;-x86_64-1.txz</URL>
+    <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.tgz</URL>
     <MD5>&md5;</MD5>
   </FILE>
   
@@ -75,7 +76,7 @@ The 'remove' script.
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&name;
     /usr/local/sbin/update_cron
-</INLINE>
+  </INLINE>
 </FILE>
 
 </PLUGIN>

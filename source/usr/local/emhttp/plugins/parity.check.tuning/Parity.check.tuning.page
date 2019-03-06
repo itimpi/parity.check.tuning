@@ -45,12 +45,10 @@ $.fn.toggleAttr = function(attr) {
     name    ="parityTuning"
     method  ="POST" 
     action  ="/update.php" 
-    target  ="progressFrame"
-    onSubmit="presetParityTuning(this)">
+    target  ="progressFrame">
         
 <input type="hidden" name="#file"    value="<?=$parityTuningCfgFile?>">
-<input type="hidden" name="#command" value="<?=$parityTuningPhpFile?>">
-
+<input name="#argv"    value="crn">
 
 Run parity checks in increments on a schedule:
 <? $nm = 'parityTuningActive';?>

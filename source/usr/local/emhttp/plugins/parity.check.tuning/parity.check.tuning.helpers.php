@@ -55,7 +55,19 @@ function parityTuningLoggerDebug($string) {
   };
 }
 
+function startsWith($haystack, $beginning, $caseInsensitivity = false){
+    if ($caseInsensitivity)
+        return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
+    else
+        return strncmp($haystack, $beginning, strlen($beginning)) === 0;
+}
 
+function endsWith($haystack, $ending, $caseInsensitivity = false){
+    if ($caseInsensitivity)
+        return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
+    else
+        return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
+}
 
 # Setup any cron jobs required for this plugin according to user preferences
 function parityTuningSetupCron() {
