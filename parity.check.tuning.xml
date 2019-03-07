@@ -11,5 +11,4 @@ A simple plugin to allow a parity check to be split into increments that are run
 </Description>
 <Support>https://forums.unraid.net/topic/78394-plugin-parity-check-tuning/</Support>
 <Icon>https://github.com/itimpi/parity.check.tuning/blob/master/source/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.png</Icon>
-<IconFA>refresh</IconFA>
 </Containers>
