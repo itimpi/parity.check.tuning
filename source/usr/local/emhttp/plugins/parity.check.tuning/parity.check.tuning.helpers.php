@@ -17,10 +17,10 @@
 // Set up some useful variables
 $emhttpDir             = '/usr/local/emhttp';
 $parityTuningPlugin    = 'parity.check.tuning';
-$parityTuningPluginDir = '/usr/local/emhttp/plugins/parity.check.tuning';
-$parityTuningConfigDir = '/boot/config/plugins/parity.check.tuning';
-$parityTuningCfgFile   = '/boot/config/plugins/parity.check.tuning.cfg';
-$parityTuningPhpFile   = '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php';
+$parityTuningPluginDir = "$emhttpDir/plugins/$parityTuningPlugin";
+$parityTuningConfigDir = "/boot/config/plugins/$parityTuningPlugin";
+$parityTuningCfgFile   = "$parityTuningConfigDir/$parityTuningPlugin.cfg";
+$parityTuningPhpFile   = "$parityTuningPluginDir/$parityTuningPlugin.php";
 
 // useful for testing outside Gui
 if (! function_exists("mk_option"))  require_once "/usr/local/emhttp/webGui/include/Helpers.php";

@@ -50,7 +50,7 @@ $.fn.toggleAttr = function(attr) {
     target  ="progressFrame">
         
 <input type="hidden" name="#file"    value="<?=$parityTuningCfgFile?>">
-<input type="hidden" name="#command" value="<?=$parityTuningPluginDir?>/<?=$parityTuningPlugin?>.updatecron?>">
+<input type="hidden" name="#command" value="<?=$parityTuningPluginDir?>/<?=$parityTuningPlugin?>.updatecron">
 
 Run parity checks in increments on a schedule:
 <? $nm = 'parityTuningActive';?>

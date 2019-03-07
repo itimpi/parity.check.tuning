@@ -55,16 +55,16 @@ switch ($command) {
             }
         } else {
             // Create the cron file for this plugin
-            $handle = fopen ("$parityTuningCronFile", "w");
-            fwrite($handle, "\n# Generated cron schedules for $plugin\n");
+            $handle = fopen ($parityTuningCronFile, "w");
+            fwrite($handle, "\n# Generated cron schedules for $parityTuningPlugin\n");
             fwrite($handle, $parityTuningCfg['parityTuningResumeMinute']  . " " . 
                             ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningResumeHour']) 
-                            . " * * * /usr/bin/php -f $parityTuningPhpFile \"resume\"\n");
+                            . " * * * /usr/bin/php -f $parityTuningPhpFile.resume\n");
             fwrite($handle, $parityTuningCfg['parityTuningPauseMinute'] . " " . 
                             ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningPauseHour'])
-                            . " * * * /usr/bin/php -f $parityTuningPhpFile \"pause\"\n\n");
+                            . " * * * /usr/bin/php -f $parityTuningPhpFile.pause\n\n");
             fclose($handle);
-            parityTuningLoggerDebug("Updated cron settings for this plugin");
+            parityTuningLoggerDebug('updated cron settings for this plugin');
         }
         exec("/usr/local/sbin/update_cron");
         exit (0);
