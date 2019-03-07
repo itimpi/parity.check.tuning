@@ -1,15 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Containers>
-<Plugin>True</Plugin>
-<PluginURL>https://raw.githubusercontent.com/itimpi/parity.check.tuning/master/parity.check.tuning.plg</PluginURL>
-<PluginAuthor>Dave walker (itimpi)</PluginAuthor>
-<Beta>True</Beta>
-<Category>Tools:System</Category>
-<Name>Parity Check Tuning</Name>
-<Description>
-A simple plugin to allow a parity check to be split into increments that are run on a pre-defined schedule across a number of days.  This allows parity checks that take a long time to complete to be run only at times when the Unraid server would normally be idle
-</Description>
-<Support>https://forums.unraid.net/topic/78394-plugin-parity-check-tuning/</Support>
-<Icon>https://github.com/itimpi/parity.check.tuning/blob/master/source/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.png</Icon>
-<IconFA>refresh</IconFA>
-</Containers>
