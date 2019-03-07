@@ -43,62 +43,43 @@ unlink("$pkg.txz");
 unlink("$pkg.md5");
 echo "\nPackage $pkg created\n";
 
-// Now update .plg file with package version and MD5 value and cjanges text
-insertChanges("$plugin.plg");
-// There should be nothing to change in the .xml template but allow for it in case.
-insertChanges("$plugin.xml");
+// Now update .plg file with package version and MD5 value and changes text
+
+echo "\nPLG\n";
+
+if (! file_exists("$plugin.plg")) {
+    echo "INFO: Could not find $filename\n";
+    return;
+} 
+
+if (! file_exists('changes')) {
+    echo "INFO: Could not find \'changes\' file\n";
+    return;
+}
+
+$in = file("$plugin.plg");
+$out = fopen("$plugin.plg.tmp", 'w');
+$skipping = false;
+foreach ($in as $inl)
+{
+    if (startsWith($inl,'<!ENTITY versn ')) {
+        echo 'Updating VERSION to "' . $ver . "\"\n";
+        fputs($out,substr($inl,0,16) . $ver . "\">\n");
+    } elseif (startsWith($inl,'<!ENTITY md5 ')) {
+        echo 'Updating MD5 to "' . strtok($md5, " ") . "\"\n";
+        fputs($out,substr($inl,0, 13) . '"' . strtok ($md5, " ") . "\">\n");
+    } elseif (! $skipping) {
+        fputs ($out, $inl);
+    }
+}
+copy ("$plugin.plg", "archives/$plugin-$ver.plg");
+unlink ("$plugin.plg");
+rename ("$plugin.plg.tmp", "$plugin.plg");
+
+
 chdir ($cwd);
 exit (0);
 
-// Insert change.txt file into .plg or .xml files (if they exist at all)
-function insertChanges($filename) {
-    global $md5;
-    global $ver;
-    $basename = substr($filename, 0, strlen($filename) - 3);
-    $extname =  substr($filename, -3);
-    echo "\n" . strtoupper($extname) . " file ($filename)\n";
-    
-    if (! file_exists($filename)) {
-        echo "INFO: Could not find $filename\n";
-        return;
-    } 
-    
-    if (! file_exists('changes')) {
-        echo "INFO: Could not find \'changes\' file\n";
-        return;
-    }
-
-    $in = file($filename);
-    $out = fopen("$filename.tmp", 'w');
-    $skipping = false;
-    foreach ($in as $inl)
-    {
-        if (startsWith($inl,'<!ENTITY versn ')) {
-            echo 'Updating VERSION to "' . $ver . "\"\n";
-            fputs($out,substr($inl,0,16) . $ver . "\">\n");
-        } elseif (startsWith($inl,'<!ENTITY md5 ')) {
-            echo 'Updating MD5 to "' . strtok($md5, " ") . "\"\n";
-            fputs($out,substr($inl,0, 13) . '"' . strtok ($md5, " ") . "\">\n");
-        } elseif (startsWith ($inl,'<CHANGES>',true)) {
-            echo 'Updating ' . substr($inl, 1, 7) . " from 'changes' file\n"; 
-            fputs($out, $inl);
-            $changes=file("changes");
-            foreach($changes as $chg)  fputs($out, $chg);
-            $skipping = true;      
-            fputs($out,'</' . substr($inl,1));
-        } elseif (startsWith ($inl,'</CHANGES>', true)) {
-            $skipping = false;
-        } elseif (startsWith ($inl,'<Date>')) {
-            echo "Updating Date to $ver\n";
-            fputs($out, '<Date>' . $ver . "</Date>\n");
-        } elseif (! $skipping) {
-            fputs ($out, $inl);
-        }
-    }
-    copy ($filename, "archives/$basename-$ver.$extname");
-    unlink ($filename);
-    rename ("$filename.tmp", $filename);
-}
 
 function startsWith($haystack, $beginning, $caseInsensitivity = false)
 {

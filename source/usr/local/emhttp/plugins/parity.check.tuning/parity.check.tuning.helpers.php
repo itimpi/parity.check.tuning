@@ -21,7 +21,6 @@ $parityTuningPluginDir = '/usr/local/emhttp/plugins/parity.check.tuning';
 $parityTuningConfigDir = '/boot/config/plugins/parity.check.tuning';
 $parityTuningCfgFile   = '/boot/config/plugins/parity.check.tuning.cfg';
 $parityTuningPhpFile   = '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php';
-$parityTuningStateFile = '/boot/config/plugins/parity.check.yuning/parity.check.tuuning.state';
 
 // useful for testing outside Gui
 if (! function_exists("mk_option"))  require_once "/usr/local/emhttp/webGui/include/Helpers.php";
@@ -38,7 +37,7 @@ if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg['parityTuningResumeHour']   = "0";
     $parityTuningCfg['parityTuningResumeMinute'] = "15";
     $parityTuningCfg['parityTuningPauseHour']    = "3";
-    $parityTuningCfg['parityTuningPauseMinute']  = "40";    
+    $parityTuningCfg['parityTuningPauseMinute']  = "30";    
     $parityTuningCfg['ParityTuningDebug']        = "yes";
 }
 

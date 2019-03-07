@@ -22,13 +22,15 @@ require "/usr/local/emhttp/plugins/$parityTuningPlugin/$parityTuningPlugin.helpe
 <script>
 
 function presetParityTuning(form) {
-  var parityTuningDisabled = (form.parityTuningActive.value == "no");
+  var parityTuningDisabled = (form.parityTuningActive.value != "yes");
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
   form.parityTuningManual.disabled       = parityTuningDisabled;
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
-  form.parityTuningResumeHour.disabled   = parityTuningDisabled;
+  form.parityTuningResumeHour.disabled   = (form.parityTuningFrequency.value == "hourly" 
+                                            ? true : parityTuningDisabled);
   form.parityTuningResumeMinute.disabled = parityTuningDisabled;
-  form.parityTuningPauseHour.disabled    = parityTuningDisabled;
+  form.parityTuningPauseHour.disabled    = (form.parityTuningFrequency.value == "hourly" 
+                                            ? true : parityTuningDisabled);
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
 }
 
@@ -48,11 +50,11 @@ $.fn.toggleAttr = function(attr) {
     target  ="progressFrame">
         
 <input type="hidden" name="#file"    value="<?=$parityTuningCfgFile?>">
-<input  name="#command" value="<?=$parityTuningPluginDir?>/<?=$parityTuningPlugin?>.updatecron>">
+<input type="hidden" name="#command" value="<?=$parityTuningPluginDir?>/<?=$parityTuningPlugin?>.updatecron?>">
 
 Run parity checks in increments on a schedule:
 <? $nm = 'parityTuningActive';?>
-: <select name="<?=$nm?>" size='1' class='narrow' onchange="presetParityTuning()">
+: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this)">
     <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
     <?=mk_option($parityTuningCfg[$nm], "no", "No")?>
   </select>
@@ -62,8 +64,9 @@ Run parity checks in increments on a schedule:
 
 Run parity check increments:
 <? $nm = 'parityTuningFrequency';?>
-: <select name="<?=$nm?>" size='1' class='narrow'>
+: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this)">
     <?=mk_option($parityTuningCfg[$nm], "daily", "Daily")?>
+    <?if ($parityTuningCfg['parityTuningDebug'] === 'yes') echo mk_option($parityTuningCfg[$nm], "hourly", "Hourly");?>
   </select>
 
 > The frequency at which parity check increments should be run.<br>At the moment only a daily option is allowed, but depending on User feedback other increment intervals may be added.
@@ -75,7 +78,7 @@ Run manually started parity checks in increments:
   </select>
   *Reserved
 
-> Should manually started parity checks also be run in increments<br>At the moment Yes is the only option as further testing is required to determine if it is possible to reliably distinguish manula parity checks from scheduled ones.
+> Should manually started parity checks also be run in increments<br>At the moment Yes is the only option as further testing is required to determine if it is possible to reliably distinguish manula parity ./par checks from scheduled ones.
 
 Parity check resume time:
 <? $nm = 'parityTuningResumeHour';?>
@@ -114,6 +117,7 @@ Debug Logging:
 <? $nm = 'parityTuningDebug';?>
 : <select name="<?=$nm?>" size='1' class='narrow'>
     <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
+    <?=mk_option($parityTuningCfg[$nm], "no", "No")?>
   </select>
   
 > Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter

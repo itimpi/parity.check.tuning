@@ -23,6 +23,10 @@
 
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
+// Some useful variables
+$parityTuningStateFile = '/boot/config/plugins/parity.check.tuning/parity.check.tuning.state';
+$parityTuningCronFile  = '/boot/config/plugins/parity.check.tuning/parity.check.tuning.cron';
+
 // Handle generating and activating/deactivating the cron jobs for this plugin
 if (empty($argv)) {
   parityTuningLoggerDebug("ERROR: No action specified");
@@ -42,7 +46,7 @@ switch ($command) {
         if ($parityTuningCfg['parityTuningActive'] == "no") {
         {
             parityTuningLoggerDebug("plugin disabled");
-            if (!file_exists("$parityTuningConfigDir/$plugin.cron")) {
+            if (!file_exists("$parityTuningCronFile")) {
                 parityTuningLoggerDebug("No cron present so no action required");
                 exit(0);
             }
@@ -51,10 +55,14 @@ switch ($command) {
             }
         } else {
             // Create the cron file for this plugin
-            $handle = fopen ("$parityTuningConfigDir/$plugin.cron", "w");
+            $handle = fopen ("$parityTuningCronFile", "w");
             fwrite($handle, "\n# Generated cron schedules for $plugin\n");
-            fwrite($handle, $parityTuningCfg['parityTuningResumeMinute'] . " " . $parityTuningCfg['parityTuningResumeHour']  . " * * * /usr/bin/php -f $pluginDir/$plugin.php \"resume\"\n");
-            fwrite($handle, $parityTuningCfg['parityTuningPauseMinute'] . " " . $parityTuningCfg['parityTuningPauseHour']  . " * * * /usr/bin/php -f $pluginDir/$plugin.php \"pause\"\n\n");
+            fwrite($handle, $parityTuningCfg['parityTuningResumeMinute']  . " " . 
+                            ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningResumeHour']) 
+                            . " * * * /usr/bin/php -f $parityTuningPhpFile \"resume\"\n");
+            fwrite($handle, $parityTuningCfg['parityTuningPauseMinute'] . " " . 
+                            ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningPauseHour'])
+                            . " * * * /usr/bin/php -f $parityTuningPhpFile \"pause\"\n\n");
             fclose($handle);
             parityTuningLoggerDebug("Updated cron settings for this plugin");
         }
@@ -100,7 +108,7 @@ if ($vars['mdState'] != "STARTED") {
     exit();
 }
 
-$statefile = "$parityTuningConfigDir/$parityTuningPlugin.state";
+
 switch ($command) {
     case 'resume':
         if (! $vars['mdResyncPos']) {
