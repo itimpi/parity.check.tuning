@@ -16,7 +16,7 @@ Tag="gear"
  */
 
 $parityTuningPlugin='parity.check.tuning';
-require_once "/usr/local/emhttp/plugins/$parityTuningPlugin/$parityTuningPlugin.helpers.php";
+require "/usr/local/emhttp/plugins/$parityTuningPlugin/$parityTuningPlugin.helpers.php";
 ?>
 
 <script>
@@ -48,7 +48,7 @@ $.fn.toggleAttr = function(attr) {
     target  ="progressFrame">
         
 <input type="hidden" name="#file"    value="<?=$parityTuningCfgFile?>">
-<input name="#argv"    value="updatecorn">
+<input  name="#command" value="<?=$parityTuningPluginDir?>/<?=$parityTuningPlugin?>.updatecron>">
 
 Run parity checks in increments on a schedule:
 <? $nm = 'parityTuningActive';?>
@@ -71,8 +71,7 @@ Run parity check increments:
 Run manually started parity checks in increments:
 <? $nm = 'parityTuningManual';?>
 : <select name="<?=$nm?>" size='1' class='narrow'>
-          size='1' class='narrow'>
-          <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
+      <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
   </select>
   *Reserved
 
@@ -81,10 +80,9 @@ Run manually started parity checks in increments:
 Parity check resume time:
 <? $nm = 'parityTuningResumeHour';?>
 : <select name="<?=$nm?>" size='1' class='narrow'>
-           size="1" class="narrow">
-           <?for ($d=0; $d<=23; $d++):?>
-              <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
-           <?endfor;?>
+     <?for ($d=0; $d<=23; $d++):?>
+         <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d))?>
+      <?endfor;?>
     </select>
     <? $nm = 'parityTuningResumeMinute';?>
     <select name="<?=$nm?>" size='1' class='narrow'>

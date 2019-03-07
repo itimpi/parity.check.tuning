@@ -43,8 +43,9 @@ unlink("$pkg.txz");
 unlink("$pkg.md5");
 echo "\nPackage $pkg created\n";
 
-// Now update .plg and .xml files with package version and MD5 information
+// Now update .plg file with package version and MD5 value and cjanges text
 insertChanges("$plugin.plg");
+// There should be nothing to change in the .xml template but allow for it in case.
 insertChanges("$plugin.xml");
 chdir ($cwd);
 exit (0);
@@ -72,9 +73,9 @@ function insertChanges($filename) {
     $skipping = false;
     foreach ($in as $inl)
     {
-        if (startsWith($inl,'<!ENTITY version ')) {
+        if (startsWith($inl,'<!ENTITY versn ')) {
             echo 'Updating VERSION to "' . $ver . "\"\n";
-            fputs($out,substr($inl,0,18) . $ver . "\">\n");
+            fputs($out,substr($inl,0,16) . $ver . "\">\n");
         } elseif (startsWith($inl,'<!ENTITY md5 ')) {
             echo 'Updating MD5 to "' . strtok($md5, " ") . "\"\n";
             fputs($out,substr($inl,0, 13) . '"' . strtok ($md5, " ") . "\">\n");

@@ -11,4 +11,4 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-/usr/bin/php -f "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "stopping"
+/usr/bin/php "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "stopping"

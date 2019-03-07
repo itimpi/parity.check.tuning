@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#! /usr/bin/php
 <?PHP
 /*
  * Script that is run to carry out support tasks for the parity.check.tuning plugin.
@@ -28,11 +28,17 @@ if (empty($argv)) {
   parityTuningLoggerDebug("ERROR: No action specified");
   exit(0);
 }
+/*
+if (count($argv)) {
+    parityTuningLOggerDebug("No option provided - forcing updatecron");
+    $argv[1] = 'updatecron';
+}
+*/
 
 // Check for valid argument action options
 $command = trim($argv[1]);
 switch ($command) {
-    case "updatecron":
+    case 'updatecron':
         if ($parityTuningCfg['parityTuningActive'] == "no") {
         {
             parityTuningLoggerDebug("plugin disabled");
@@ -55,31 +61,32 @@ switch ($command) {
         exec("/usr/local/sbin/update_cron");
         exit (0);
 
-    case "resume":
+    case 'resume':
         parityTuningLoggerDebug ("Resume requested");
         break;
-    case "pause":
+    case 'pause':
         parityTuningLoggerDebug("Pause requested");
         break;
-    case "cancel":
+    case 'cancel':
         parityTuningLoggerDebug("Cancel requested");
         break;    
-    case "started":
+    case 'started':
         parityTuningLoggerDebug("Array startied event detected");
         break;
-    case "stopping":
+    case 'stopping':
         parityTuningLoggerDebug("Array stopping event detected");
         break;
     default:
-        parityTuningLoggerDebug ("Error: Unrecognised option \'$command\'");  
-        parityTuningLoggerDebug ("Usage: parity.check.tuning.php \<action\>");
-        parityTuningLoggerDebug ("currently recognised values for \<action\> are:");
-        parityTuningLoggerDebug (" updatecron");
-        parityTuningLoggerDebug (" pause");
-        parityTuningLoggerDebug (" resume");
-        parityTuningLoggerDebug (" stopping");
-        parityTuningLoggerDebug (" started");
-        for ($i = 0; $i < count($argv) ; i++)  parityTuningLoggerDebug('argv[' . $i . '] = ' . $argv[$i]);
+        parityTuningLoggerDebug ('Error: Unrecognised option \'' . $command . '\'');  
+        parityTuningLoggerDebug ('Usage: parity.check.tuning.php <action>');
+        parityTuningLoggerDebug ('currently recognised values for <action> are:');
+        parityTuningLoggerDebug (' updatecron');
+        parityTuningLoggerDebug (' pause');
+        parityTuningLoggerDebug (' resume');
+        parityTuningLoggerDebug (' stopping');
+        parityTuningLoggerDebug (' started');
+        parityTuningSaveState('unknown');
+        for ($i = 0; $i < count($argv) ; $i++)  parityTuningLoggerDebug('argv[' . $i . '] = ' . $argv[$i]);
         exit();
 }
 
@@ -96,11 +103,21 @@ if ($vars['mdState'] != "STARTED") {
 $statefile = "$parityTuningConfigDir/$parityTuningPlugin.state";
 switch ($command) {
     case 'resume':
-        if (strstr ($vars['mdSyncAction'], "check") != "check") {
-            parityTuningLoggerDebug ("Parity check resuming");
+        if (! $vars['mdResyncPos']) {
+            parityTuningLoggerDebug('Resume requested - but no parity sync active so doing nothing');
+            exit(0);
+        }
+        if (! $vars['mdResync']) {
+            parityTuningLoggerDebug('Resume requested - but no paused parity sync');
+            exit(0);
+        }  
+        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
+            parityTuningLoggerDebug ("Parity check being resumed");
             parityTuningPerformOp ("cmdCheck", "Resume");
             parityTuningLogger ("Parity check resumed");
+            exit(0);
         }
+        parityTuningUnknownState ('pause');
         exit(0);
         
     case 'pause':
@@ -108,9 +125,18 @@ switch ($command) {
             parityTuningLoggerDebug("Pause requested - but no parity sync active so doing nothing");
             exit(0);
         }
-        parityTuningLoggerDebug ("Parity check being paused");
-        parityTuningPerformOp ("cmdNoCheck", "Cancel");
-        parityTuningLogger ("Parity check paused");        
+        if (! $vars['mdResync'] === 0) {
+            parityTuningLoggerDebug('Pause requested - but parity sync already paused!');
+            exit(0);
+        }
+        parityCheckLoggerDebug ('mdResyncAction = ' . $vars['mdSyncAction']);
+        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
+            parityTuningLoggerDebug ("Parity check being paused");
+            parityTuningPerformOp ("cmdNoCheck", "Pause");
+            parityTuningLogger ("Parity check paused");
+            exit (0);
+        }
+        parityTuningUnknownState ('pause');
         exit(0);
         
     case 'cancel':
@@ -118,12 +144,17 @@ switch ($command) {
             parityTuningLoggerDebug("Cancel requested - but no parity sync active so doing nothing");
             exit(0);
         }
-        parityTuningLoggerDebug ("Parity check being cancelled");
-        parityTuningPerformOp ("cmdNoCheck", "Cancel");
-        parityTuningLogger ("Parity check cancelled");        
+        parityCheckLoggerDebug ('mdResyncAction = ' . $vars['mdSyncAction']);
+        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
+            parityTuningLoggerDebug ("Parity check being cancelled");
+            parityTuningPerformOp ("cmdNoCheck", "Cancel");
+            parityTuningLogger ("Parity check cancelled");
+            exit(0);
+        }
+        parityTuningUnknownState ('cancel');
         exit(0);
         
-    case 'stopping':
+    case 'stopping':        
         if (file_exists($statefile)) {
             unlink($statefile);
             parityTuningLoggerDebug("Removed existing state file %statefile");
@@ -133,12 +164,8 @@ switch ($command) {
             exit(0);
         } 
         # Save state information about the array aimed at later implementing handling pause/resume
-        # working across array stop/start.  Not sure what we will need so at the moment guessing!
-        $_POST = parse_ini_file("/var/local/emhttp/var.ini");
-        $_POST['#file'] = $statefile;
-        parityTuningLoggerDebug("Saving array state to $statefile");
-        include "/usr/local/emhttp/update.php";
-        parityTuningLoggerDebug("Saved array state");
+        # working across array stop/start.  Not sure what we will need so at the moment guessing!;
+        parityTuningSaveState();
         exit(0);
         
     case 'started' :
@@ -157,7 +184,6 @@ switch ($command) {
         # Should not be possible to get to this point!
         parityTunninglogger ("Error: Program error|");
         exit(1);
-
 }
 
 // Should not be possible to reach this point!
@@ -172,15 +198,27 @@ function parityTuningPerformOp($cmdName, $cmdValue) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,"http://localhost/update.htm");
     curl_setopt($ch, CURLOPT_POST, 1);
-//    curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query(array(
-//          'name='', "$cmdName" => "$cmdValue")));
-//          name="arrayOps"
-//          method="POST"
-//          action="/update.htm"
-//      target="progressFrame">
+    curl_setopt($ch, CURLOPT_POSTFIELDS, array('name' => 'arrayOps', 
+                                               "$cmdName" => "$cmdValue",
+                                               'action' => '/update.htm',
+                                               'target' => 'progressFrame'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Receive server response ...
     $server_output = curl_exec($ch);
     echo "\nServer Output:\n$server_ouput\n\n";
     curl_close($ch);
+}
+
+function parityTuningSaveState($op = "") {
+    global $parityTuningStateFile;
+    $f = $parityTuningStateFile . ((empty($op)) ? ('') : '-' . $op . '-' . date("Y.m.d-H.i.s"));
+    parityTuningLoggerDebug('Saving array state to ' . $f);
+    $_POST = parse_ini_file("/var/local/emhttp/var.ini");
+    $_POST['#file'] = $f;
+    include "/usr/local/emhttp/update.php";
+}
+
+function parityTuningUnknownState($op) {
+    parityTuningLoggerDebug ('Array state not recognised');
+    parityTuningSaveState ($op);
 }
 ?>

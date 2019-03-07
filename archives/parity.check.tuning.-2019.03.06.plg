@@ -1,10 +1,11 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name "parity.check.tuning">
+<!ENTITY name "Parity Check Tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.03.06">
+<!ENTITY ver "2019.03.06">
 <!ENTITY md5 "a0122398941667af0eb735a80af1541c">
 <!ENTITY launch "Settings/Scheduler">
+<!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY github "itimpi/parity.check.tuning">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&name;.plg">
@@ -12,7 +13,7 @@
 ]>
 <PLUGIN name="&name;" 
 	author="&author;" 
-	version="&version;" 
+	version="&ver;" 
 	launch="&launch;" pluginURL="&pluginURL;" 
 	icon="music" 
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
@@ -25,7 +26,7 @@
 <FILE Run="/bin/bash">
   <INLINE>
     # Remove old 'source' files
-      rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2&gt;/dev/null | grep -v '&version;')
+      rm -f $(ls /boot/config/plugins/&plugin;/&plugin;*.txz 2&gt;/dev/null | grep -v '&ver;')
   </INLINE>
 </FILE>
 
@@ -47,9 +48,8 @@ The 'install' script.
 <!--
 The 'source' file.
 -->
-  <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-    <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.txz</URL>
-    <-- <MD5>&md5;</MD5> ..>
+  <FILE Name="/boot/config/plugins/&plugin;/&plugin;-&ver;-x86_64-1.txz" Run="upgradepkg --install-new">
+    <URL>https://raw.github.com/&github;/master/archives/&plugin;-&ver;.txz</URL>
   </FILE>
   
 <!--
@@ -57,12 +57,12 @@ The 'post-install' script
 -->
 <FILE Run="/bin/bash">
   <INLINE>
-    /boot/config/plugins/&name/&name/php "updatecron"
+    /usr/local/emhttp/plugins/&plugin;/&plugin;.php "updatecron"
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
     echo " Copyright 2019, Dave Walker (itimpi)"
-    echo " Version: &version;"
+    echo " Version: &ver;"
     echo "----------------------------------------------------"
     echo ""
   </INLINE>
@@ -73,9 +73,9 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
   <INLINE>
-    removepkg &name;-&version;-x86_64-1
+    removepkg &plugin;-&ver;-x86_64-1
     rm -rf &plugdir;
-    rm -rf /boot/config/plugins/&name;
+    rm -rf /boot/config/plugins/&plugin;
     /usr/local/sbin/update_cron
   </INLINE>
 </FILE>

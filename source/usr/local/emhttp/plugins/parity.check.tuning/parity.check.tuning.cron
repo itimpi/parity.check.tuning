@@ -1,4 +1,0 @@
-
-# Generated  cron schedule for parity.check.tuning
-20 * * * * * /usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php pause > /dev/null 2>&1
-20 * * * * * /usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php resume > /dev/null 2>&1

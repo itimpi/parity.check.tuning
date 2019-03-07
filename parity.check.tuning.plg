@@ -1,31 +1,36 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name "parity.check.tuning">
+<!ENTITY name "Parity Check Tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.03.06">
-<!ENTITY md5 "a0122398941667af0eb735a80af1541c">
+<!ENTITY versn "2019.03.07">
+<!ENTITY md5 "bd3c8ddec0f9f1539d08f7f92defb21e">
 <!ENTITY launch "Settings/Scheduler">
+<!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY github "itimpi/parity.check.tuning">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&name;.plg">
-<!ENTITY emhttp "/usr/local/emhttp/plugins/&name;">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&plugin;.plg">
+<!ENTITY emhttp "/usr/local/emhttp/plugins/&plugin;">
 ]>
 <PLUGIN name="&name;" 
 	author="&author;" 
-	version="&version;" 
-	launch="&launch;" pluginURL="&pluginURL;" 
+	version="&versn;" 
+	launch="&launch;" 
+	pluginURL="&pluginURL;" 
 	icon="music" 
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
 <CHANGES>
-###2019.03.05
-- First version
+###2019.03.06
+- First test version
+
+###2019.03.07
+- Version for alpha testing
 </CHANGES>
 
 <FILE Run="/bin/bash">
   <INLINE>
     # Remove old 'source' files
-      rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2&gt;/dev/null | grep -v '&version;')
+      rm -f $(ls /boot/config/plugins/&plugin;/&plugin;*.txz 2&gt;/dev/null | grep -v '&versn;')
   </INLINE>
 </FILE>
 
@@ -37,9 +42,9 @@ The 'install' script.
       #Verify Unraid Version
       source /etc/unraid-version
       VER=${version:0:3}
-      if [[ "$VER" -le "6.7" ]]; then
+      if [[ "$VER" &lt; "6.7" ]]; then
         echo "Unraid version 6.7 or higher is required"
-       exit 1
+        exit 1
       fi 
     </INLINE>
   </FILE>
@@ -47,9 +52,8 @@ The 'install' script.
 <!--
 The 'source' file.
 -->
-  <FILE Name="/boot/config/plugins/&name;/&name;-&version;-x86_64-1.txz" Run="upgradepkg --install-new">
-    <URL>https://raw.github.com/&github;/master/archives/&name;-&version;.txz</URL>
-    <-- <MD5>&md5;</MD5> ..>
+  <FILE Name="/boot/config/plugins/&plugin;/&plugin;-&versn;.txz" Run="upgradepkg --install-new">
+    <URL>https://raw.github.com/&github;/master/archives/&plugin;-&versn;.txz</URL>
   </FILE>
   
 <!--
@@ -57,12 +61,12 @@ The 'post-install' script
 -->
 <FILE Run="/bin/bash">
   <INLINE>
-    /boot/config/plugins/&name/&name/php "updatecron"
+    /usr/local/emhttp/plugins/&plugin;/&plugin;.php "updatecron"
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
     echo " Copyright 2019, Dave Walker (itimpi)"
-    echo " Version: &version;"
+    echo " Version: &versn;"
     echo "----------------------------------------------------"
     echo ""
   </INLINE>
@@ -73,9 +77,9 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
   <INLINE>
-    removepkg &name;-&version;-x86_64-1
+    removepkg &plugin;-&versn;-x86_64-1
     rm -rf &plugdir;
-    rm -rf /boot/config/plugins/&name;
+    rm -rf /boot/config/plugins/&plugin;
     /usr/local/sbin/update_cron
   </INLINE>
 </FILE>
