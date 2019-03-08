@@ -57,9 +57,9 @@ $out = fopen("$plugin.plg.tmp", 'w');
 $skipping = false;
 foreach ($in as $inl)
 {
-    if (startsWith($inl,'<!ENTITY versn ')) {
+    if (startsWith($inl,'<!ENTITY version ')) {
         echo 'Updating VERSION to "' . $ver . "\"\n";
-        fputs($out,substr($inl,0,16) . $ver . "\">\n");
+        fputs($out,substr($inl,0,18) . $ver . "\">\n");
     } elseif (startsWith($inl,'<!ENTITY md5 ')) {
         echo 'Updating MD5 to "' . strtok($md5, " ") . "\"\n";
         fputs($out,substr($inl,0, 13) . '"' . strtok ($md5, " ") . "\">\n");
