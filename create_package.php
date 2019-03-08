@@ -52,11 +52,6 @@ if (! file_exists("$plugin.plg")) {
     return;
 } 
 
-if (! file_exists('changes')) {
-    echo "INFO: Could not find \'changes\' file\n";
-    return;
-}
-
 $in = file("$plugin.plg");
 $out = fopen("$plugin.plg.tmp", 'w');
 $skipping = false;
