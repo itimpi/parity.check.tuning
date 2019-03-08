@@ -122,7 +122,12 @@ Debug Logging:
 <?
 /********************************************************************************
  * The following is a reverse-engineered from the ArrayOperations.page file to  *
- * make the parity Stop/Pause/Resume buttons available from here as well.   *
+ * make the parity Stop/Pause/Resume buttons available from here as well if     *
+ * there is a parity check either running or in a paused state.                 *
+ *                                                                              *
+ * It would be theoretically possible to extend this to also starting a sync    *
+ * but a provisional decision has been made to not provide this.  It can be     *
+ * added if user feedback suggest it would be useful.                           *
  ********************************************************************************/
 ?> 
 <form name="arrayOps"
@@ -152,6 +157,7 @@ function resumeParity(form) {
 </script>
 
 <? 
+// Simulate the Pause/Resume/Cancel buttons is there is a parity check running or paused.
 $pos = $var['mdResyncPos'];
 if ($pos != 0) 
 {
@@ -170,15 +176,16 @@ if ($pos != 0)
   $action = $var['mdResyncAction'];
   switch ($action) 
   {
-    case 'check':   $msg = 'Read-Check';
-                break;
+    case 'check':   
+                    $msg = 'Read-Check';
+                    break;
     case 'check P': $msg = 'Parity-Check';
-                break;
+                    break;
    case 'recon':    $msg = 'Parity-Sync/Data-Rebuild';
-            break;
+                    break;
    case 'clear':    $msg = 'Clearing';
                     break;
-   default:        $msg = "Unrecognized action $action";
+   default:         $msg = "Unrecognized action $action";
                     parityTuningLoggerDebug("unrecognized mdResyncAction=$action");
                     parityTuningLoggerDebug("             mdResync=$resync");
                     parityTuningLoggerDebug("             mdResyncPos=$pos");
@@ -192,11 +199,11 @@ if ($pos != 0)
   echo ": <input type=\"button\"";
   echo "        id=\"pauseButton\"";
   echo "        value=\"$val\""; 
-  echo "        onclick=\"$click\"(this.form)>";
+  echo "        onclick=\"$click(this.form)\">";
   echo " <input type=\"button\"";
   echo "        id=\"cancelButton\""; 
   echo "        value=\"Cancel\"";
-  echo "        onclick=stopParity(this.form,\"$action\")";
+  echo "        onclick=\"stopParity(this.form,'$action')\">";
   echo "&nbsp;click to <strong>Cancel</strong> or <strong>$val</strong> the $msg:";
 }
 ?>

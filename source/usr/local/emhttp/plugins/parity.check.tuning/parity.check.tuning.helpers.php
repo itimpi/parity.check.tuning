@@ -62,7 +62,7 @@ function parityTuningLogger($string) {
 function parityTuningLoggerDebug($string) {
   global $parityTuningCfg;
   if ($parityTuningCfg['parityTuningDebug'] === "yes") {
-    parityTuningLogger("DEBUG " . $string);
+    parityTuningLogger("DEBUG: " . $string);
   };
 }
 
