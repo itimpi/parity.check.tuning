@@ -16,10 +16,9 @@
 	version="&versn;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
-	icon="music" 
+	icon="music"
+	min="6.7.0-rc1"
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
-
-<minVER>6.7</MinVer>
 
 <CHANGES>
 ###2019.03.06
