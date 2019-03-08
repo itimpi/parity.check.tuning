@@ -34,13 +34,6 @@ function presetParityTuning(form) {
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
 }
 
-$.fn.toggleAttr = function(attr) {
-  this.each(function() {
-        var $this = $(this);
-        $this.attr(attr) ? $this.removeAttr(attr) : $this.attr(attr,true);
-    });
-}
-
 </script>
 
 <form   markdown="1" 
@@ -54,7 +47,7 @@ $.fn.toggleAttr = function(attr) {
 
 Run parity checks in increments on a schedule:
 <? $nm = 'parityTuningActive';?>
-: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this)">
+: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg[$nm], "yes", "Yes")?>
     <?=mk_option($parityTuningCfg[$nm], "no", "No")?>
   </select>
@@ -64,7 +57,7 @@ Run parity checks in increments on a schedule:
 
 Run parity check increments:
 <? $nm = 'parityTuningFrequency';?>
-: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this)">
+: <select name="<?=$nm?>" size='1' class='narrow' onblur="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg[$nm], "daily", "Daily")?>
     <?if ($parityTuningCfg['parityTuningDebug'] === 'yes') echo mk_option($parityTuningCfg[$nm], "hourly", "Hourly");?>
   </select>
@@ -125,40 +118,35 @@ Debug Logging:
  :
 : <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
 </form>
-
+<span id='test'></span>
 <?
 /********************************************************************************
  * The following is a reverse-engineered from the ArrayOperations.page file to  *
  * make the parity Stop/Pause/Resume buttons available from here as well.   *
  ********************************************************************************/
 ?> 
-<form markdown="1" 
-      name="arrayOps"
+<form name="arrayOps"
       method="POST"
       action="/update.htm"
       target="progressFrame">
 <script>
+
 function stopParity(form,text) {
   $(form).append('<input type="hidden" name="cmdNoCheck" value="Cancel">');
-<?if ($confirm['stop']):?>
-  swal({title:'Proceed?',
-        text:'This will stop the running '+text+' operation',
-        type:'warning',
-        showCancelButton:true},function(p){if (p) form.submit(); else $('input[name="cmdNoCheck"]').remove();});
-<?else:?>
-  form.submit();
-<?endif;?>
+  <?if ($confirm['stop']):?>
+    swal({title:'Proceed?',text:'This will stop the running '+text+' operation',type:'warning',showCancelButton:true},function(p){if (p) form.submit(); else $('input[name="cmdNoCheck"]').remove();});
+  <?else:?>
+    form.submit();
+  <?endif;?>
 }
 function pauseParity(form) {
   $(form).append('<input type="hidden" name="cmdNoCheck" value="Pause">');
   $('#pauseButton').val('Resume').prop('onclick',null).off('click').click(function(){resumeParity(form);});
-  <? // parityTuningLogger("Manual request to pause parity checking");?>
   form.submit();
 }
 function resumeParity(form) {
   $(form).append('<input type="hidden" name="cmdCheck" value="Resume">');
   $('#pauseButton').val('Pause').prop('onclick',null).off('click').click(function(){pauseParity(form);});
-  <? // parityTuningLogger("Manual request to resume parity checking");?>
   form.submit();
 }
 </script>

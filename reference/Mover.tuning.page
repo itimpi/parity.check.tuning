@@ -1,0 +1,99 @@
+Menu="Scheduler:2a"
+Title="Mover Tuning"
+Tag="gear"
+---
+<?
+if (empty($disks['cache']) || $disks['cache']['status']=='DISK_NP') {
+  echo "<p class='notice'>No Cache disk present!</p>";
+} elseif ($var['shareCacheEnabled']!='yes') {
+  echo "<p class='notice'>Cache disk not enabled!</p>";
+} elseif ($var['shareUser']=='-') {
+  echo "<p class='notice'>User shares not enabled!</p>";
+}
+$plugin='ca.mover.tuning';
+$cfg = parse_plugin_cfg($plugin);
+$cronDisabled = ($cfg['force'] == "no") ? "disabled" : "";
+?>
+<script>
+$.fn.toggleAttr = function(attr) {
+  this.each(function() {
+		var $this = $(this);
+		$this.attr(attr) ? $this.removeAttr(attr) : $this.attr(attr,true);
+	});
+}
+
+function updateCron() {
+  var cron = $("#cronSchedule").val();
+	var cronEnabled = $("#forceCron").val();
+	$.post("/plugins/ca.mover.tuning/updateCron.php",{cronEnabled:cronEnabled,cron:cron});
+}
+</script>
+<form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="updateCron();">
+<input type="hidden" name="#file" value="<?=$plugin?>/<?=$plugin?>.cfg">
+Disable Mover running on a schedule:
+: <select name='moverDisabled' size='1' class='narrow'>
+<?=mk_option($cfg['moverDisabled'],"no","No")?>
+<?=mk_option($cfg['moverDisabled'],"yes","Yes")?>
+</select>
+*Note that setting this to yes effectively disables this plugin
+
+> This will prevent mover from running at the schedule set in Mover Settings.  You will only be able to run mover by manually invoking it.
+
+Only move at this threshold of used cache space:
+: <select name="threshold" size="1" class='narrow'>
+<?for ($t=0;$t<100;$t+=5):?>
+<?=mk_option($cfg['threshold'], $t, "$t %")?>
+<?endfor;?>
+</select>
+
+> Set to the amount of disk space used on the cache drive for mover to run.
+
+Let scheduled mover run during a parity check / rebuild:
+: <select name='parity' size='1' class='narrow'>
+  <?=mk_option($cfg['parity'],'yes','Yes')?>
+	<?=mk_option($cfg['parity'],'no','No')?>
+</select>
+
+> If a parity check or disk rebuild is in progress, this will prevent mover from running
+
+Force turbo write on during mover:
+: <select name='enableTurbo' size='1' class='narrow'>
+<?=mk_option($cfg['enableTurbo'],"no","No")?>
+<?=mk_option($cfg['enableTurbo'],"yes","Yes")?>
+</select>
+
+> Forces unRaid to switch to turbo write mode (reconstruct write) when mover is running
+
+Log when not moving due to rules:
+: <select name='logging' size='1' class='narrow'>
+<?=mk_option($cfg['logging'],"no",'No')?>
+<?=mk_option($cfg['logging'],"yes","Yes")?>
+</select>
+
+> Enables or disables logging from this plugin
+
+Force move of all files on a schedule:
+: <select name='force' size='1' id='forceCron' class='narrow' onchange=$(".mycron").toggleAttr("disabled");>
+<?=mk_option($cfg['force'],"no",'No')?>
+<?=mk_option($cfg['force'],"yes","Yes")?>
+</select>
+
+Cron Schedule to force move of all files:
+: <input type='text' id='cronSchedule' name='cron' size='1' class='narrow mycron' <?=$cronDisabled?> value='<?=$cfg['cron']?>'>
+
+Allow force mover schedule to run during a parity check/rebuild:
+: <select name='forceParity' size='1' class='narrow mycron' <?=$cronDisabled?>>
+<?=mk_option($cfg['forceParity'],"yes","Yes")?>
+<?=mk_option($cfg['forceParity'],"no","No")?>
+</select>
+
+> Setting a cron schedule to force a move will run mover on that schedule.
+> <br>Example: In Mover Settings you would have a schedule of Hourly.  During that schedule the rules above are followed.  The cron schedule for a force move could be set to <strong>30 03 * * *</strong> which would force all files to be moved at 3:30 AM every day regardless of the rules
+> <br>Note that no error checking is done on the cron schedule.  It must be a valid entry.
+
+
+&nbsp;
+: <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
+<a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7M7CBCVU732XG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></a></center>
+</form>
+<span id='test'></span>

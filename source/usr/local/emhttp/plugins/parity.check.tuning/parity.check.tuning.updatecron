@@ -1,4 +1,4 @@
-#!/bin/sh
+#! /bin/sh
 #
 # Copyright 22019, Dave Walker (itimpi).
 #
@@ -11,5 +11,4 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-/usr/bin/php -f "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "updatecron"
- 
+/usr/bin/php -f "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "updatecron" 

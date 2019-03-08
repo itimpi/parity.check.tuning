@@ -19,10 +19,8 @@
 	icon="music" 
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
-<minVER>6.7</MinVer>
-
 <CHANGES>
-###2019.03.06
+###2019.03.08
 - First test version
 
 ###2019.03.07
@@ -35,7 +33,6 @@
       rm -f $(ls /boot/config/plugins/&plugin;/&plugin;*.txz 2&gt;/dev/null | grep -v '&versn;')
   </INLINE>
 </FILE>
-
   
 <!--
 The 'source' file.

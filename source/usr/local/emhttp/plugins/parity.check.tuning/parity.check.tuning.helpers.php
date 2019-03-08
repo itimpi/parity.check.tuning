@@ -24,6 +24,16 @@ $parityTuningPhpFile   = "$parityTuningPluginDir/$parityTuningPlugin.php";
 
 // useful for testing outside Gui
 if (! function_exists("mk_option"))  require_once "/usr/local/emhttp/webGui/include/Helpers.php";
+if (empty($var)) {
+    // parityTuningLoggerDebug ("reading array state");
+    $var = parse_ini_file ("/var/local/emhttp/var.ini");
+}
+
+// Read array status variable directly from /proc/mdstat
+function get_mdstat_value ($key) {
+    $cmd = "cat /proc/mdstat | grep \"$key=\"";
+    return substr (exec ($cmd), strlen($key));
+}
 
 // Get configuration information
 if (file_exists($parityTuningCfgFile)) {
@@ -50,7 +60,8 @@ function parityTuningLogger($string) {
 
 # Write message to syslog if debug logging not switched off (or not defined)
 function parityTuningLoggerDebug($string) {
-  if ($parityTuningCfg['parityTuningDebug'] != "no") {
+  global $parityTuningCfg;
+  if ($parityTuningCfg['parityTuningDebug'] === "yes") {
     parityTuningLogger("DEBUG " . $string);
   };
 }
