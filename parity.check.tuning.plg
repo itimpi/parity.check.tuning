@@ -52,7 +52,7 @@ The 'post-install' script
     # Rreplace the standard mdcmd one with our custom version
     if [ -f /usr/local/sbin/mdcmd]; then
       mv -f /usr/local/sbin/mdcmd /usr/local/sbin/mdcmd.orig
-      ln -s /usr/local/emhttp/plugins/&plugin;/&plugin.mdcmd /usr/local/sbin/mdcmd
+      ln -s /usr/local/emhttp/plugins/&plugin;/&plugin;.mdcmd /usr/local/sbin/mdcmd
     fi
     echo ""
     echo "----------------------------------------------------"
