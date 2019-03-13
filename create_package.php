@@ -42,7 +42,7 @@ copy("$pkg.md5", "archives/$pkg.md5");
 unlink("$pkg.txz");
 unlink("$pkg.md5");
 echo "\nPackage $pkg created\n";
-cd ($cwd);
+chdir ($cwd);
 // Now update .plg file with package version and MD5 value and changes text
 
 echo "\nPLG\n";
