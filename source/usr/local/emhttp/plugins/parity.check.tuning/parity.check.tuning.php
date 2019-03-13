@@ -1,15 +1,15 @@
-#! /usr/bin/php
+#!/usr/bin/php
 <?PHP
 /*
  * Script that is run to carry out support tasks for the parity.check.tuning plugin.
  *
  * It can be triggered in a variety of ways such as an Unraid event; a cron job;
- * a page file; or from another script.
+ * a page file command; or from another script.
  *
  * It takes a single parameter descrbing the action required.   If no explicit
- * action is specified then it merely updates the cron jobs for this plugin.
+ * action is specified then it merely updates the cron jobs for this plugin.$vars
  *
- * Copyright 22019, Dave Walker (itimpi).
+ * Copyright 2019, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -24,8 +24,10 @@
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
 // Some useful variables
-$parityTuningStateFile = '/boot/config/plugins/parity.check.tuning/parity.check.tuning.state';
-$parityTuningCronFile  = '/boot/config/plugins/parity.check.tuning/parity.check.tuning.cron';
+$parityTuningStateFile    = "$parityTuningBootDir/$parityTuningPlugin.state";
+$parityTuningCronFile     = "$parityTuningBootDir/$parityTuningPlugin.cron";
+$parityTuningProgressFile = "$parityTuningBootDir/$parityTuningPlugin.progress";
+$parityTuningHistoryFile  = "$parityTuningBootDir/$parityTuningPlugin.history";
 
 // Handle generating and activating/deactivating the cron jobs for this plugin
 if (empty($argv)) {
@@ -42,16 +44,38 @@ if (count($argv)) {
 // Check for valid argument action options
 $command = trim($argv[1]);
 switch ($command) {
+
+    case 'tidy':
+        // This code is used to 'housekeep' the plugin's folder on the flash drvie
+        // removing any old stte files to avoid them building up forever.
+        // TODO: complete this functionality
+        
+        exit (0);
+        $dir = opendir($parityTuningBootDir);
+        while (($file = readdir($dir)) != false) {
+            if (startswith($file,$parityTuningStateFile)) {
+                $modified = filemtime($file);
+                $today = date();
+                $diff = date_diff($today, $modified, TRUE);
+                if ($diff['d'] > 7) {
+                }
+            }
+        }
+        closedir($dir);
+        exit (0);
+        
     case 'updatecron':
+        // This is called any time that the user has updated the settings for this plugin to reset any cron schedules.
+        
         if ($parityTuningCfg['parityTuningActive'] == "no") {
         {
             parityTuningLoggerDebug("plugin disabled");
             if (!file_exists("$parityTuningCronFile")) {
-                parityTuningLoggerDebug("No cron present so no action required");
+                parityTuningLoggerDebug('No cron present so no action required');
                 exit(0);
             }
             @unlink ($cronfile);
-            parityTuningLoggerDebug("Removed cron settings for this plugin");
+            parityTuningLoggerDebug('Removed cron settings for this plugin');
             }
         } else {
             // Create the cron file for this plugin
@@ -59,104 +83,157 @@ switch ($command) {
             fwrite($handle, "\n# Generated cron schedules for $parityTuningPlugin\n");
             fwrite($handle, $parityTuningCfg['parityTuningResumeMinute']  . " " . 
                             ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningResumeHour']) 
-                            . " * * * /usr/bin/php -f $parityTuningPhpFile.resume\n");
+                            . " * * * $parityTuningPhpFile \"resume\"\n");
             fwrite($handle, $parityTuningCfg['parityTuningPauseMinute'] . " " . 
                             ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningPauseHour'])
-                            . " * * * /usr/bin/php -f $parityTuningPhpFile.pause\n\n");
+                            . " * * * $parityTuningPhpFile \"pause\"\n");
+            fwrite($handle, "19 0 * * * $parityTuningPhpFile \"tidy\"\n\n");
             fclose($handle);
-            parityTuningLoggerDebug('updated cron settings for this plugin');
+            parityTuningLoggerDebug("updated cron settings in $parityTuningCronFile");
         }
         exec("/usr/local/sbin/update_cron");
         exit (0);
 
+    case 'mdcmd':
+        // This case is aimed at telling when a scheduled call to /mdcmd was made so that we can
+        // detect if a parity check was started on a schedule or whether it was manually started.
+        // TODO:  This functionality works but is likely to need more work before it fully complete
+       
+        parityTuningLoggerDebug('detected that mdadm had been called from ' . $argv['2'] . ' with command :');
+        $cmd = 'mdcmd '; for ($i = 3; $i < count($argv) ; $i++)  $cmd .= $argv[$i] . ' ';
+        parityTuningLoggerDebug($cmd);
+        switch ($argv[2]) {
+        case 'crond':
+            parityTuningLoggerDebug('...as a scheduled task');
+            switch ($argv[3]) {
+            case 'check':
+                    if ($argv[4] == "RESUME") {
+                        parityTuningLoggerDebug ("... to resume parity check");
+                    } else {
+                        parityTuningProgressWrite ("STARTED");
+                    }
+                    break;                    
+            case 'nocheck':
+                    if ($argv[4] == 'PAUSE') {
+                        parityTuningLoggerDebug ("... to pause parity check");
+                    } else {
+                        parityTuningProgressWrite ("CANCELLED");
+                        parityTuningProgressAnaylze();
+                    }
+                    break;
+            default:
+                    parityTuningLoggerDebug('option not currently recognised');
+                    break;
+            }  // end of 'crond' switch
+            break;
+        default:
+            parityTuningLoggerDebug('...as an un-scheduled task');
+            break;
+        } // End of 'action' switch
+        exit (0);
+        
     case 'resume':
-        parityTuningLoggerDebug ("Resume requested");
-        break;
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        parityTuningLoggerDebug ('Resume requested');
+        break;        
     case 'pause':
-        parityTuningLoggerDebug("Pause requested");
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        parityTuningLoggerDebug('Pause requested');
         break;
+        
     case 'cancel':
-        parityTuningLoggerDebug("Cancel requested");
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        parityTuningLoggerDebug('Cancel requested');
         break;    
     case 'started':
-        parityTuningLoggerDebug("Array startied event detected");
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        parityTuningLoggerDebug('Array startied event detected');
         break;
     case 'stopping':
-        parityTuningLoggerDebug("Array stopping event detected");
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        parityTuningLoggerDebug('Array stopping event detected');
         break;
     default:
+        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
         parityTuningLoggerDebug ('Error: Unrecognised option \'' . $command . '\'');  
         parityTuningLoggerDebug ('Usage: parity.check.tuning.php <action>');
         parityTuningLoggerDebug ('currently recognised values for <action> are:');
         parityTuningLoggerDebug (' updatecron');
+        parityTuningLoggerDebug (' mdcmd');
+        parityTuningLoggerDebug (' tidy');
         parityTuningLoggerDebug (' pause');
         parityTuningLoggerDebug (' resume');
         parityTuningLoggerDebug (' stopping');
         parityTuningLoggerDebug (' started');
+        parityTuningLoggerDebug ('Command Line was:');
+        $cmd = ''; for ($i = 0; $i < count($argv) ; $i++) $cmd .= $argv[$i] . ' ';
+        parityTuningLoggerDebug($cmd);
         parityTuningSaveState('unknown');
-        for ($i = 0; $i < count($argv) ; $i++)  parityTuningLoggerDebug('argv[' . $i . '] = ' . $argv[$i]);
-        exit();
+        exit(0);
 }
 
-if (empty($vars)) {
-    parityTuningLoggerDebug ("reading array state");
-    $vars = parse_ini_file ("/var/local/emhttp/var.ini");
+if (! $var['mdState'] === 'STARTED') {
+    parityTuningLoggerDebug ('mdState=' . $var['mdState']);
+    parityTuningLogger('Array not started so no action taken');
+    exit(0);
 }
 
-if ($vars['mdState'] != "STARTED") {
-    parityTuningLog("Array not started");
-    exit();
-}
+// We now attempt to carry out any requests that might involve the array
 
+$active = ($var['mdResync'] > 0);
+$pos    = $var['mdResyncPos'];
+$size   = $var['mdResyncSize'];
+$action = $var['mdResyncAction'];
+$completed = sprintf ("(%.1f%% completed)", ($pos/$size*100));
 
 switch ($command) {
     case 'resume':
-        if (! $vars['mdResyncPos']) {
-            parityTuningLoggerDebug('Resume requested - but no parity sync active so doing nothing');
+        if ($pos == 0) {
+            parityTuningLogger('Resume requested - but no parity sync active so doing nothing');
             exit(0);
         }
-        if (! $vars['mdResync']) {
-            parityTuningLoggerDebug('Resume requested - but no paused parity sync');
+        if ($active) {
+            parityTuningLogger('Resume requested - but parity sync already running');
             exit(0);
         }  
-        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
-            parityTuningLoggerDebug ("Parity check being resumed");
-            parityTuningPerformOp ("cmdCheck", "Resume");
-            parityTuningLogger ("Parity check resumed");
+        if (startsWith($action, 'check')) {
+            parityTuningLoggerDebug ("Parity check resume request sent " . $completed );
+            exec('/usr/local/sbin/mdcmd "check" "RESUME"');
+//TODO            parityTuningProgressWrite("RESUME");
             exit(0);
         }
         parityTuningUnknownState ('pause');
         exit(0);
         
     case 'pause':
-        if (! $vars['mdResyncPos']) {
-            parityTuningLoggerDebug("Pause requested - but no parity sync active so doing nothing");
+        if ($pos == 0) {
+            parityTuningLogger("Pause requested - but no parity sync active so doing nothing");
             exit(0);
         }
-        if (! $vars['mdResync'] === 0) {
-            parityTuningLoggerDebug('Pause requested - but parity sync already paused!');
+        if (! $active) {
+            parityTuningLogger('Pause requested - but parity sync already paused!');
             exit(0);
         }
-        parityCheckLoggerDebug ('mdResyncAction = ' . $vars['mdSyncAction']);
-        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
-            parityTuningLoggerDebug ("Parity check being paused");
-            parityTuningPerformOp ("cmdNoCheck", "Pause");
-            parityTuningLogger ("Parity check paused");
+        if (startswith($action, 'check')) {
+            parityTuningLoggerDebug ("Parity check  pause request sent " . $completed);
+            exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
+//TODO            parityTuningProgessWrite("PAUSE");
             exit (0);
         }
         parityTuningUnknownState ('pause');
         exit(0);
         
     case 'cancel':
-        if (! $vars['mdResyncPos']) {
-            parityTuningLoggerDebug("Cancel requested - but no parity sync active so doing nothing");
+        // Not sure we should ever get here in normal operation as only Pause/Resume events expected
+        // Included for completeness
+        if ($pos == 0) {
+            parityTuningLogger("Cancel requested - but no parity sync active so doing nothing");
             exit(0);
         }
-        parityCheckLoggerDebug ('mdResyncAction = ' . $vars['mdSyncAction']);
-        if (strstr ($vars['mdSyncAction'], 'check') != 'check') {
-            parityTuningLoggerDebug ("Parity check being cancelled");
-            parityTuningPerformOp ("cmdNoCheck", "Cancel");
-            parityTuningLogger ("Parity check cancelled");
+        parityTuningLoggerDebug ('mdResyncAction=' . $var['mdResyncAction']);
+        if (starteWith($action, 'check')) {
+            parityTuningLoggerDebug ("Parity check cancel request sent " . $completed);
+            exec('/usr/local/sbin/mdcmd "nocheck"');
             exit(0);
         }
         parityTuningUnknownState ('cancel');
@@ -167,10 +244,12 @@ switch ($command) {
             unlink($statefile);
             parityTuningLoggerDebug("Removed existing state file %statefile");
         }
-        if (! $vars['mdResyncPos']) {
+        if ($pos == 0) {
             parityTuningLoggerDebug ("no check in progress so no state saved");
             exit(0);
         } 
+        parityTuningLoggerDebug ('Array stopping while check was in progress ' . $completed); 
+        
         # Save state information about the array aimed at later implementing handling pause/resume
         # working across array stop/start.  Not sure what we will need so at the moment guessing!;
         parityTuningSaveState();
@@ -191,31 +270,37 @@ switch ($command) {
     default:
         # Should not be possible to get to this point!
         parityTunninglogger ("Error: Program error|");
-        exit(1);
+        exit(0);
 }
 
 // Should not be possible to reach this point!
 echo "\nexiting\n";
 exit(0);
 
-//  We now try and issue the commands to carry out the desired array operation
+// Write an entry to the progress file that is used to track increments
 
-function parityTuningPerformOp($cmdName, $cmdValue) {
-    parityTuningLoggerDebug("PerformOp requested: cmdName=$cmdName, cmdValue=$cmdValue");
-    exit(0);
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL,"http://localhost/update.htm");
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, array('name' => 'arrayOps', 
-                                               "$cmdName" => "$cmdValue",
-                                               'action' => '/update.htm',
-                                               'target' => 'progressFrame'));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Receive server response ...
-    $server_output = curl_exec($ch);
-    echo "\nServer Output:\n$server_ouput\n\n";
-    curl_close($ch);
+function parityTuningProgressWrite($msg) {
+    global $var;
+    global $parityTuningProgressFile;
+    
+    $file = fopen($parityTuningProgessFile, 'a');
+    fwrite ($file, date('Y.m.d:H.i.s') . '|' . $msg . '|' . $var['mdRescyncPos']); 
+    fclose($file);
 }
 
+// Process the progress file (if present) to create a history record.
+// Having done so remove it as its presence implies a check in progress.
+function parityTuningProgressAnalyze() {
+    global $parityTuningProgessFile;
+    if (!file_exists($parityTuningProgressFile)) {
+        return;
+    }
+    unlink ($parityTuningProgressFile);
+}
+
+// Save the array state
+// If no 'op' is specified then save the file with no timestamp added.
+// If 'op' IS specified then add the op and a timestamp to the name to help tie it to the syslog
 function parityTuningSaveState($op = "") {
     global $parityTuningStateFile;
     $f = $parityTuningStateFile . ((empty($op)) ? ('') : '-' . $op . '-' . date("Y.m.d-H.i.s"));
@@ -225,6 +310,7 @@ function parityTuningSaveState($op = "") {
     include "/usr/local/emhttp/update.php";
 }
 
+// A catcher for the cases where unexpected conditions arise.
 function parityTuningUnknownState($op) {
     parityTuningLoggerDebug ('Array state not recognised');
     parityTuningSaveState ($op);

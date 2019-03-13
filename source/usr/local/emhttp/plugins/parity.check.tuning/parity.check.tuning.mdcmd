@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# This is a custom version of the Unraid standard 'mdcmd' command that 
+# adds the capability to detect exactly when certain events were initiated.
+# This is to try and detect the cases where a parity check was initiated
+# manually rather than as a standard scheduled task.  All original functionality
+# is retained so it should not affect normal operation.
+#
+# Copyright 2019, Dave Walker (itimpi).
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License version 2,
+# as published by the Free Software Foundation.
+#
+# Limetech is given expliit permission to use this code in any way they like.
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+#
+if [ $# -eq 0 ]; then
+  echo "usage: mdcmd <command> [arg ... ]"
+  exit 1;
+fi;
+
+if [ $1 == "status" ]; then
+  cat /proc/mdstat
+else
+  # Original action unchanged
+  echo $* >/proc/mdcmd
+  
+  # additional code to detect calls we are interested in
+  PPPID=`ps h -o ppid= $PPID 2>/dev/null`
+  P_COMMAND=`ps h -o %c $PPPID 2>/dev/null`
+  php -f /usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php "mdcmd" $P_COMMAND $*
+
+fi

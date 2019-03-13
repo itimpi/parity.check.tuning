@@ -21,10 +21,10 @@
 
 <CHANGES>
 ###2019.03.08
-- First test version
-
-###2019.03.07
 - Version for alpha testing
+
+###2019.03.13
+- First official Beta version
 </CHANGES>
 
 <FILE Run="/bin/bash">
@@ -49,6 +49,11 @@ The 'post-install' script
 <FILE Run="/bin/bash">
   <INLINE>
     /usr/local/emhttp/plugins/&plugin;/&plugin;.php "updatecron"
+    # Rreplace the standard mdcmd one with our custom version
+    if [ -f /usr/local/sbin/mdcmd]; then
+      mv -f /usr/local/sbin/mdcmd /usr/local/sbin/mdcmd.orig
+      ln -s /usr/local/emhttp/plugins/&plugin;/&plugin.mdcmd /usr/local/sbin/mdcmd
+    fi
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
@@ -64,6 +69,19 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
   <INLINE>
+    # We need to replace our customised mdcmd with the original version
+    if [ -h /usr/local/sbin/mdcmd ]; then
+      if [ -e /usr/local/sbin/mdcmd.orig ]; then
+        rm /usr/local/sbin/mdcmd
+        mv /usr/local/sbin/mdcmd.orig /usr/local/sbin/mdcmd
+      else
+        # Should not be possible to get here but lets play safe!
+        echo ""
+        echo "-------------------------------------"
+        echo "ERROR:  saved mdcmd command not found"
+        echo "-------------------------------------"
+      fi
+    fi
     removepkg &plugin;-&version;
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&plugin;

@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tining plugin
  *
- * Copyright 22019, Dave Walker (itimpi).
+ * Copyright 2019, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -15,12 +15,13 @@
  */
   
 // Set up some useful variables
-$emhttpDir             = '/usr/local/emhttp';
-$parityTuningPlugin    = 'parity.check.tuning';
-$parityTuningPluginDir = "$emhttpDir/plugins/$parityTuningPlugin";
-$parityTuningConfigDir = "/boot/config/plugins/$parityTuningPlugin";
-$parityTuningCfgFile   = "$parityTuningConfigDir/$parityTuningPlugin.cfg";
-$parityTuningPhpFile   = "$parityTuningPluginDir/$parityTuningPlugin.php";
+$emhttpDir              = '/usr/local/emhttp';
+$parityTuningPlugin     = 'parity.check.tuning';
+// $parityTuningPluginDir = "plugins/$parityTuningPlugin";
+$parityTuningBootDir    = "/boot/config/plugins/$parityTuningPlugin";
+$parityTuningCfgFile    = "$parityTuningBootDir/$parityTuningPlugin.cfg";
+$parityTuningEmhttpDir  = "$emhttpDir/plugins/$parityTuningPlugin";
+$parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 
 // useful for testing outside Gui
 if (! function_exists("mk_option"))  require_once "/usr/local/emhttp/webGui/include/Helpers.php";
@@ -30,6 +31,7 @@ if (empty($var)) {
 }
 
 // Read array status variable directly from /proc/mdstat
+// Should not need this as we get the same answer from $var more efficiently
 function get_mdstat_value ($key) {
     $cmd = "cat /proc/mdstat | grep \"$key=\"";
     return substr (exec ($cmd), strlen($key));
@@ -48,14 +50,13 @@ if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg['parityTuningResumeMinute'] = "15";
     $parityTuningCfg['parityTuningPauseHour']    = "3";
     $parityTuningCfg['parityTuningPauseMinute']  = "30";    
-    $parityTuningCfg['ParityTuningDebug']        = "yes";
+    $parityTuningCfg['ParityTuningDebug']        = "no";
 }
 
 # Write message to syslog
 function parityTuningLogger($string) {
   $string = str_replace("'","",$string);
-  $msg = "parity.check.tuning: $string";
-  shell_exec("logger \'$msg\'");
+  shell_exec('logger -t "Parity Check Tuning" "' . $string . '"');
 }
 
 # Write message to syslog if debug logging not switched off (or not defined)

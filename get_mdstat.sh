@@ -1,6 +1,8 @@
-#! /bin/sh
+#| /bin/sh
+# Script to run a get /proc/mdstat variables we are interested in
+# (useful during testing)
 #
-# Copyright 22019, Dave Walker (itimpi).
+# Copyright 2019, Dave Walker (itimpi).
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 2,
@@ -10,6 +12,6 @@
 #
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
+#
 
-/usr/bin/php "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "pause"
- 
+cat /proc/mdstat | grep "mdResync"
