@@ -41,7 +41,7 @@ function get_mdstat_value ($key) {
 if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
 }  else {
-    // If no config file exists set up defailts
+    // If no config file exists set up defaults
     $parityTuningCfg = array('ParityTuningDebug' => "yes");
     $parityTuningCfg['ParityTuningActive']       = "no";
     $parityTuningCfg['parityTuningFrequency']    = "daily";

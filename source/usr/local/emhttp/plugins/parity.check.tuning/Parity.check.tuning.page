@@ -24,12 +24,13 @@ require "/usr/local/emhttp/plugins/$parityTuningPlugin/$parityTuningPlugin.helpe
 function presetParityTuning(form) {
   var parityTuningDisabled = (form.parityTuningActive.value == "no");
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
+  form.parityTuningManual.disabled       = true;
+  form.parityTuningFrequency.disabled    = parityTuningDisabled;
   if (form.parityTuningDebug.value == "no") {
     form.parityTuningFrequency.disabled = false;
     form.parityTuningFrequency.value = "daily";
+    form.parityTuningFrequency.disabled = true;
   }
-  form.parityTuningManual.disabled       = true;
-  form.parityTuningFrequency.disabled    = parityTuningDisabled;
   form.parityTuningResumeHour.disabled   = (form.parityTuningFrequency.value == "hourly" 
                                             ? true : parityTuningDisabled);
   form.parityTuningResumeMinute.disabled = parityTuningDisabled;
@@ -73,9 +74,8 @@ Run parity checks in increments on a schedule:
      <?=mk_option($parityTuningCfg[$nm], "yes", "Yes") . "\n"?>
      <?=mk_option($parityTuningCfg[$nm], "no", "No") . "\n"?>
   </select>
-* Note that setting this setting to <strong>no</strong> disables the parity tuning feature
 
-> Specify whether parity checks should be run in increments spread over several days.<br><br>If you have set this to 'no' then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them them.
+> This plugin is designed to allow you to limit parity checks to running at times that will not inconvenience you.<br>Setting this option to <strong>Yes</strong> specifies that parity checks should be run in increments spread over several days.<br><br>If you have set this to <strong>No</strong> then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them them.<br><br>As an example of what this plugin can do assume:<br>- You have a parity check you have scheduled to start on the first of every month at midnight<br>- Your past experience has shown that if parity check the runs uninterrupted it takes 30 hours to complete.<br>- You set this plugin to use 3 hour increments starting at midnight and finishing at 3.00 A.M.<br>- The parity check will now actually take 10 days elapsed time (10 x 3 = 30) so the parity check will complete on 10th of the month.<br>- You have scheduled these increments to run starting at midnight and finishing at 3:00 A.M. when you know the system is not being used.<br>- You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.<br>- The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an incrmenet comes around.
 
 Run parity check increments:
 <? $nm = 'parityTuningFrequency';?>
@@ -84,7 +84,7 @@ Run parity check increments:
      <?=mk_option($parityTuningCfg[$nm], "hourly", "Hourly") . "\n"?>
   </select>
 
-> The frequency at which parity check increments should be run.<br><In normal operation it is expected that only the daily option will be wanted.   Any user looking for other increments should make a Use Case for this as there is no obvious reason for other intervals.<br><br>As long as the debug logging option is enabled then you will also be offered an Hourly option (this helps with any testing), although it is not envisaged that a user would actually use this in normal operation.
+> The frequency at which parity check increments should be run.<br><br>In normal operation it is expected that only the <strong>Daily</strong> option will be wanted so this is the only option allowed if debug logging is not active.   Any user looking for other increment frequencies should make a Use Case for this as so far no obvious reasons for having other intervals between parity check increments have been identified.<br><br>As a special case if the debug logging option is set to <strong>Yes</strong> then you will also be offered an <strong>Hourly</strong> option for the increment frequency (this helps with any testing and problem diagnosis), although it is not envisaged that a user would actually use the <strong>Hourly</strong> option in normal operation.
 
 Run manually started parity checks in increments:
 <? $nm = 'parityTuningManual';?>
@@ -93,7 +93,7 @@ Run manually started parity checks in increments:
       <?=mk_option($parityTuningCfg[$nm], "no", "No") . "\n"?>
   </select>
 
-> Should manually started parity checks also be run in increments?  It is envisaged that one would typically only manually start a parity sync/rebuild if one was recovering from a problem so it is quite likely that you will want this to run to completion without interruption.<br><br>At the moment Yes is the only option as further work is required before the 'No' works correctly
+> Should manually started parity checks also be run in increments?  It is currently envisaged that one would typically only manually start a parity check if one was recovering from a problem so it is quite likely that you will want such a check to run to completion without interruption.  Feedback on whether this is a valid assumption would be welcomed.<br><br>At the moment <strong>Yes</strong> is the only option as further work is required before the <strong>No</strong> option works correctly.<br><br>Feedback is welcomed as to whether it is desirable to for parity-checks automatically started after an unclean shutdown should be treated specially in any way.<br><br><strong>TIP:</strong>: With this option set to <strong>Yes</strong> then if you manually start a Parity Check from the Main page and then immediately Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
 
 Parity check resume time:
 <? $nm = 'parityTuningResumeHour';?>
@@ -113,7 +113,7 @@ Parity check resume time:
     </select>&nbsp;&nbsp;HH:MM
 
 
-> The time at which a paused parity check should be resumed.<br>If no parity check has been paused then this setting will have no effect.<br><br>Typically this would be set to be an idle time overnight.<br><br>If the increment period has been set to Hourly then the hours field is disabled as it is not relevant.
+> The time at which a paused parity check should be resumed.<br>If no parity check is currently paused when this time comes around then no action will be taken.<br><br>Typically this time would be set to be the start of an idle period overnight.   An appropriate value might be to use the same time that you have specified for a scheduled parity check to start.<br><br>If the increment period has been set to <strong>Hourly</strong> then the hours field is disabled as it is not relevant and its value is ignored
 
 Parity Check pause time:
 <? $nm = 'parityTuningPauseHour';?>
@@ -131,8 +131,9 @@ Parity Check pause time:
           <?=mk_option($parityTuningCfg[$nm], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?endfor;?>
     </select>&nbsp;&nbsp;HH:MM
-    
-> The time at which a running parity check should be paused. Typically this would be set to be a time when you want other activity to not be affected by a running parity check.<br><br>If no parity check is running  then this setting will have no effect.<br><br>If the increment period has been set to Hourly then the hours field is disabled as it is not relevant.
+
+
+> The time at which a running parity check should be paused. Typically this would be set to be a time when you want other activity to not be affected by a running parity check.<br>If no parity check is actively running when this time comes around then no action will be.<br><br>Normally you want to make sure that this time is set to be after the time that you schedule regular parity checks to run.  The first increment will then be from when the regular parity check is scheduled to start up to the time you have specified for the increment to end.<br><br>If the increment period has been set to <strong>Hourly</strong> then the hours field is disabled as it is not relevant and its value will be ignored.<br><br>You also want to make sure that the time allocated to running increments is sufficient to expect the parity check to run to completion before the next check is scheduled to start.   Since most people only schedule parity checks to run infrequently (e.g. Monthly or Quarterly) then this is unlikely to be an issue but it is something to take into consideration.  
 
 Debug Logging:
 <? $nm = 'parityTuningDebug';?>
@@ -141,10 +142,10 @@ Debug Logging:
     <?=mk_option($parityTuningCfg[$nm], "yes", "Yes") . "\n"?>
     <?=mk_option($parityTuningCfg[$nm], "no", "No") . "\n"?>
   </select>
-  
-> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.  This will result in a dditional entries being written to the syslog to give more information on what is happening when this plugin is running.  These addional entries are identified by the fact that a well as the plugin name they will also ahve the word 'DEBUG' added to the messages.<br><br>As long as you have this option set to 'Yes' then you are allowed to select an 'Hourly' option as the interval at which to run increments.  This is primarily done to aid in testing although some users )particularily those who ahve not used this plugin before) may like to use it to see more detail on how this plugin operates.
 
- :
+> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identifed by the fact that they are shown as coming from <strong>Parity Check Tuning</strong>.   With the <strong>No</strong> option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to <strong>Yes</strong> will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of the plugin is functioning. These additional entries are identified by the fact that  they will have the word <strong>DEBUG</strong> added to the start of messages.  Some users (particularily those who have not used this plugin before) may like to use it to see more detail on how this plugin operates.<br><br>As long as you have this option set to <strong>Yes</strong> then you are also allowed to select <strong>Hourly</strong> option as the interval at which to run parity check increments.  This is primarily done to aid in testing and diagnosing issues.<br><br>Feedback is welcome as to whether it is worth introducing an intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running.
+
+&nbsp;  <!-- This is to have a dummy field so buttons are correctly aligned -->
 : <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
 
 </form>

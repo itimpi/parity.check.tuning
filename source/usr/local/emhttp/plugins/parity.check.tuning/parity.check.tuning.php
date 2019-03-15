@@ -67,18 +67,27 @@ switch ($command) {
     case 'updatecron':
         // This is called any time that the user has updated the settings for this plugin to reset any cron schedules.
         
+        $dailyfile='/etc/cron.daily/parity.check.tuning.tidy';
         if ($parityTuningCfg['parityTuningActive'] == "no") {
         {
+            // Clear out any cron settings for this plugin
             parityTuningLoggerDebug("plugin disabled");
+            @unlink ($dailyfile);
             if (!file_exists("$parityTuningCronFile")) {
                 parityTuningLoggerDebug('No cron present so no action required');
                 exit(0);
             }
-            @unlink ($cronfile);
-            parityTuningLoggerDebug('Removed cron settings for this plugin');
+                @unlink ($parityTuningCronFile);
+                parityTuningLoggerDebug('Removed cron settings for this plugin');
             }
         } else {
-            // Create the cron file for this plugin
+            // Create the cron settings for this plugin    
+            $handle = fopen ($dailyfile, "w");
+            fwrite($handle,"#!/bin/sh\n");
+            fwrite($handle, "$parityTuningPhpFile \"tidy\"\n");
+            fclose ($handle);
+            @chmod($dailyfile,0755);
+            
             $handle = fopen ($parityTuningCronFile, "w");
             fwrite($handle, "\n# Generated cron schedules for $parityTuningPlugin\n");
             fwrite($handle, $parityTuningCfg['parityTuningResumeMinute']  . " " . 
@@ -87,10 +96,10 @@ switch ($command) {
             fwrite($handle, $parityTuningCfg['parityTuningPauseMinute'] . " " . 
                             ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningPauseHour'])
                             . " * * * $parityTuningPhpFile \"pause\"\n");
-            fwrite($handle, "19 0 * * * $parityTuningPhpFile \"tidy\"\n\n");
             fclose($handle);
             parityTuningLoggerDebug("updated cron settings in $parityTuningCronFile");
         }
+        // Activate any changes
         exec("/usr/local/sbin/update_cron");
         exit (0);
 
@@ -132,27 +141,35 @@ switch ($command) {
         } // End of 'action' switch
         exit (0);
         
+    case 'monitor': 
+        // @TODO: This case is aimed at running a monitor task to work out if the array state has changed and 
+        // action needs to be taken as a result.
+        exit(0);
+    
+    // We now have cases that are likely to result in action needing taking aginst the array
     case 'resume':
-        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        blankDebugLine();
         parityTuningLoggerDebug ('Resume requested');
         break;        
     case 'pause':
-        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        blankDebugLine();
         parityTuningLoggerDebug('Pause requested');
         break;
         
     case 'cancel':
-        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        blankDebugLine();
         parityTuningLoggerDebug('Cancel requested');
         break;    
     case 'started':
-        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        blankDebugLine();
         parityTuningLoggerDebug('Array startied event detected');
         break;
     case 'stopping':
-        parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+        blankDebugLine();
         parityTuningLoggerDebug('Array stopping event detected');
         break;
+    
+    // Finally the error case.   Hopefully we never get here in normal running
     default:
         parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
         parityTuningLoggerDebug ('Error: Unrecognised option \'' . $command . '\'');  
@@ -160,6 +177,7 @@ switch ($command) {
         parityTuningLoggerDebug ('currently recognised values for <action> are:');
         parityTuningLoggerDebug (' updatecron');
         parityTuningLoggerDebug (' mdcmd');
+        parityTuningLoggerDebug (' monitor');
         parityTuningLoggerDebug (' tidy');
         parityTuningLoggerDebug (' pause');
         parityTuningLoggerDebug (' resume');
@@ -169,6 +187,7 @@ switch ($command) {
         $cmd = ''; for ($i = 0; $i < count($argv) ; $i++) $cmd .= $argv[$i] . ' ';
         parityTuningLoggerDebug($cmd);
         parityTuningSaveState('unknown');
+        blankDebugLine();
         exit(0);
 }
 
@@ -190,37 +209,45 @@ switch ($command) {
     case 'resume':
         if ($pos == 0) {
             parityTuningLogger('Resume requested - but no parity sync active so doing nothing');
+            blankDebugLine();
             exit(0);
         }
         if ($active) {
             parityTuningLogger('Resume requested - but parity sync already running');
+            blankDebugLine();
             exit(0);
         }  
         if (startsWith($action, 'check')) {
             parityTuningLoggerDebug ("Parity check resume request sent " . $completed );
             exec('/usr/local/sbin/mdcmd "check" "RESUME"');
 //TODO            parityTuningProgressWrite("RESUME");
+            blankDebugLine();
             exit(0);
         }
         parityTuningUnknownState ('pause');
+        blankDebugLine();
         exit(0);
         
     case 'pause':
         if ($pos == 0) {
             parityTuningLogger("Pause requested - but no parity sync active so doing nothing");
+            blankDebugLine();
             exit(0);
         }
         if (! $active) {
             parityTuningLogger('Pause requested - but parity sync already paused!');
+            blankDebugLine();
             exit(0);
         }
         if (startswith($action, 'check')) {
             parityTuningLoggerDebug ("Parity check  pause request sent " . $completed);
             exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
 //TODO            parityTuningProgessWrite("PAUSE");
+            blankDebugLine();
             exit (0);
         }
         parityTuningUnknownState ('pause');
+        blankDebugLine();
         exit(0);
         
     case 'cancel':
@@ -228,15 +255,18 @@ switch ($command) {
         // Included for completeness
         if ($pos == 0) {
             parityTuningLogger("Cancel requested - but no parity sync active so doing nothing");
+            blankDebugLine();
             exit(0);
         }
         parityTuningLoggerDebug ('mdResyncAction=' . $var['mdResyncAction']);
         if (starteWith($action, 'check')) {
             parityTuningLoggerDebug ("Parity check cancel request sent " . $completed);
             exec('/usr/local/sbin/mdcmd "nocheck"');
+            blankDebugLine();
             exit(0);
         }
         parityTuningUnknownState ('cancel');
+        blankDebugLine();
         exit(0);
         
     case 'stopping':        
@@ -246,6 +276,7 @@ switch ($command) {
         }
         if ($pos == 0) {
             parityTuningLoggerDebug ("no check in progress so no state saved");
+            blankDebugLine();
             exit(0);
         } 
         parityTuningLoggerDebug ('Array stopping while check was in progress ' . $completed); 
@@ -253,6 +284,7 @@ switch ($command) {
         # Save state information about the array aimed at later implementing handling pause/resume
         # working across array stop/start.  Not sure what we will need so at the moment guessing!;
         parityTuningSaveState();
+        blankDebugLine();
         exit(0);
         
     case 'started' :
@@ -265,6 +297,7 @@ switch ($command) {
         $state = parse_ini_file ($statefile);
         parityTuningLoggerDebug ("... but no further action currently taken on started event");
         parityTuningLoggerDebug ("... until Limetech provide a way of (re)starting a parity check at a defined offset");
+        blankDebugLine();
         exit(0);
 
     default:
@@ -276,6 +309,10 @@ switch ($command) {
 // Should not be possible to reach this point!
 echo "\nexiting\n";
 exit(0);
+
+function blankDebugLine() {
+    parityTuningLoggerDebug ('');       // Blank line to help break up debug sequences
+}
 
 // Write an entry to the progress file that is used to track increments
 
