@@ -16,7 +16,7 @@
 	version="&version;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
-	icon=""https://raw.githubusercontent.com/&github;/master/&plugin;.png""
+	icon="https://raw.githubusercontent.com/&github;/master/&plugin;.png"
 	iconFA="tools" 
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
