@@ -18,6 +18,10 @@
 $plugin="parity.check.tuning";
 
 $cwd = "/mnt/cache/Dropbox/Projects/parity.check.tuning";
+chdir ($cwd);
+// Ensure permissions are correct for runtime use 
+exec ("chown -R root *");
+exec ("chgrp -R root *");
 chdir ("$cwd/source");
 $ver = date("Y.m.d");
 $pkg = "$plugin-$ver";
@@ -71,6 +75,9 @@ copy ("$plugin.plg", "archives/$plugin-$ver.plg");
 unlink ("$plugin.plg");
 rename ("$plugin.plg.tmp", "$plugin.plg");
 
+// Ensure permissions are OK for public network access 
+exec ("chown -R nobody *");
+exec ("chgrp -R users *");
 
 chdir ($cwd);
 exit (0);

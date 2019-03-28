@@ -26,12 +26,11 @@ fi;
 if [ $1 == "status" ]; then
   cat /proc/mdstat
 else
-  # Original action unchanged
-  echo $* >/proc/mdcmd
-  
   # additional code to detect calls we are interested in
   PPPID=`ps h -o ppid= $PPID 2>/dev/null`
   P_COMMAND=`ps h -o %c $PPPID 2>/dev/null`
   php -f /usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php "mdcmd" $P_COMMAND $*
-
+  
+  # Original action unchanged
+  echo $* >/proc/mdcmd
 fi

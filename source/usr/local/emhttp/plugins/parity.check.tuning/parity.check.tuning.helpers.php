@@ -24,33 +24,29 @@ $parityTuningEmhttpDir  = "$emhttpDir/plugins/$parityTuningPlugin";
 $parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 
 // useful for testing outside Gui
-if (! function_exists("mk_option"))  require_once "/usr/local/emhttp/webGui/include/Helpers.php";
-if (empty($var)) {
-    // parityTuningLoggerDebug ("reading array state");
-    $var = parse_ini_file ("/var/local/emhttp/var.ini");
-}
-
-// Read array status variable directly from /proc/mdstat
-// Should not need this as we get the same answer from $var more efficiently
-function get_mdstat_value ($key) {
-    $cmd = "cat /proc/mdstat | grep \"$key=\"";
-    return substr (exec ($cmd), strlen($key));
-}
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 // Get configuration information
 if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
 }  else {
     // If no config file exists set up defaults
-    $parityTuningCfg = array('ParityTuningDebug' => "yes");
-    $parityTuningCfg['ParityTuningActive']       = "no";
+    $parityTuningCfg = array('ParityTuningDebug' => "no");
+    $parityTuningCfg['parityTuningIncrements']   = "no";
     $parityTuningCfg['parityTuningFrequency']    = "daily";
-    $parityTuningCfg['parityTuningmanual']       = "yes";
+    $parityTuningCfg['parityTuningUnscheduled']  = "no";
+    $parityTuningCfg['parityTuningRecon']        = "no";
+    $parityTuningCfg['parityTuningClear']        = "no";
+    $parityTuningCfg['parityTuningRestart']      = "no";
     $parityTuningCfg['parityTuningResumeHour']   = "0";
     $parityTuningCfg['parityTuningResumeMinute'] = "15";
     $parityTuningCfg['parityTuningPauseHour']    = "3";
-    $parityTuningCfg['parityTuningPauseMinute']  = "30";    
-    $parityTuningCfg['ParityTuningDebug']        = "no";
+    $parityTuningCfg['parityTuningPauseMinute']  = "30";   
+    
+    $parityTuningCfg['parityTuningHeat']         = "no";
+    $parityTuningCfg['parityTuningHeatHigh']     = "3";
+    $parityTuningCfg['parityTuningHeatLow']      = "8";
+    $parityTuningCfg['parityTuningDebug']        = "no";
 }
 
 # Write message to syslog
@@ -59,12 +55,25 @@ function parityTuningLogger($string) {
   shell_exec('logger -t "Parity Check Tuning" "' . $string . '"');
 }
 
-# Write message to syslog if debug logging not switched off (or not defined)
+# Write message to syslog if debug logging active
 function parityTuningLoggerDebug($string) {
   global $parityTuningCfg;
   if ($parityTuningCfg['parityTuningDebug'] === "yes") {
     parityTuningLogger("DEBUG: " . $string);
   };
+}
+
+// Determine if the current time is within a period where we expect this plugin to be active
+function isParityCheckActivePeriod() {
+    global $parityTuningCfg;
+    $resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
+    $pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
+    $currentTime = (date("H") * 60) + date("i");
+    if ($pauseTime > $resumeTime) {         // We need to allow for times panning midnight!
+        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime); 
+    } else {
+        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime); 
+    }
 }
 
 function startsWith($haystack, $beginning, $caseInsensitivity = false){
@@ -79,13 +88,5 @@ function endsWith($haystack, $ending, $caseInsensitivity = false){
         return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
     else
         return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
-}
-
-# Setup any cron jobs required for this plugin according to user preferences
-function parityTuningSetupCron() {
-    parityTuningCancelCron();   // as a safety measure remove any existing jobs
-}
-# cancel Cron jobs for this plugin (if any)
-function parityTuningCancelCron() {
 }
 ?>
