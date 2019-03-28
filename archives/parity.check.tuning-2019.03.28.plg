@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "Parity Check Tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.03.27">
-<!ENTITY md5 "2a64daec207925b6f199e4bd27c8b108">
+<!ENTITY version "2019.03.28">
+<!ENTITY md5 "8327c2ed21b9169e2b0fbceed5cbb154">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -16,7 +16,7 @@
 	version="&version;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
-	icon=""https://raw.githubusercontent.com/&github;/master/&plugin;.png""
+	icon="https://raw.githubusercontent.com/&github;/master/&plugin;.png"
 	iconFA="tools" 
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 

@@ -206,7 +206,7 @@ Use increments for unscheduled Parity Checks:
       <?=mk_option($parityTuningCfg[$nm], "yes", "Yes") . "\n"?>
   </select>
 
-> Should parity checks that are unscheduled also be run in increments?<br><br>The most likely scenario for this to occur is the case where an unclean shutdown has occurred and the system has therefore started an automatic parity check when the array is started.  Another possibility is that you decided to manually start the parity check for some reason.<br><br>In both these case it is quite likely that you will want such a check to run to completion without interruption and if so leave this options set to <strong>No</strong>.  If you instead set it to <strong>Yes</strong> then the increment schedule will be applied.  After an unclean shutdown any parity errors are most likely to occur near the beginning of the disks so setting this option to <strong>Yes</strong</strong> is normally reasonbly safe as long as you do not mind tht the check is likely to take much longer to complete.<br><br><strong>TIP:</strong> With this option set to <strong>Yes</strong> then if you manually start a Parity Check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
+> Should parity checks that are unscheduled also be run in increments?<br><br>The most likely scenario for this to occur is the case where an unclean shutdown has occurred and the system has therefore started an automatic parity check when the array is started.  Another possibility is that you decided to manually start the parity check for some reason.<br><br>In both these case it is quite likely that you will want such a check to run to completion without interruption and if so leave this options set to <strong>No</strong>.  If you instead set it to <strong>Yes</strong> then the increment schedule will be applied.  After an unclean shutdown any parity errors are most likely to occur near the beginning of the disks so setting this option to <strong>Yes</strong> is normally reasonbly safe as long as you do not mind tht the check is likely to take much longer to complete.<br><br><strong>TIP:</strong> With this option set to <strong>Yes</strong> then if you manually start a Parity Check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
 
 
 Use increments for Parity-Sync /Data Rebuild operations:
@@ -239,7 +239,7 @@ Send notifications for Pause or Resume of increments:
     <?=mk_option($parityTuningCfg[$nm], "yes", "Yes") . "\n"?>
   </select>
 
-> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin pauses or Resumes an array operation.<br>If you would rather not get such noticiations then leave this option set to <strong>No</strong>.<br>The notifcation is sent as a <strong>Notice</strong> category message to the targets speciried under <a href="Settings/Notifications">Settings->Notification Settings</a>.
+> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin pauses or Resumes an array operation.<br>If you would rather not get such notifications then leave this option set to <strong>No</strong>.<br>The notification is sent as a <strong>Notice</strong> category message to the targets speciried under <a href="Settings/Notifications">Settings->Notification Settings</a>.
 
 
 &nbsp;
