@@ -16,11 +16,13 @@
 	version="&version;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
-	icon="https://raw.githubusercontent.com/&github;/master/&plugin;.png"
-	iconFA="tools" 
+	icon="wrench"
 	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
 <CHANGES>
+###2019-03-29
+- Fix spelling mistakes in GUI Help
+
 ###2019.03.28
 - Added new CA plugin update feature
 - Improved GUI on Settings page with more extensive help and better checks on settings
