@@ -306,5 +306,5 @@ Debug Logging:
 
 &nbsp;  <!-- This is to have a dummy field so buttons are correctly aligned -->
 : <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
-
+<a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></a>
 </form>
