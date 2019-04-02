@@ -1,3 +1,4 @@
 ####Parity Check Tuning###
-A simple plugin to fine-tune the operation parity check so it can automatically be run in increments
+Fine-tune the execution of long-running array opperations such as Parity Check, Parity-Sync/Data Rebuid and Disk Clear so that they are automatically run in increments at convenient times rather than having to run to completion uninterrupted. Also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds.
+
 
