@@ -1,9 +1,9 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name "parity.check.tuning">
+<!ENTITY name "Parity Check Tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.04.02">
-<!ENTITY md5 "1962d66eefea56ac30fa6fa175463410">
+<!ENTITY version "2019.03.13">
+<!ENTITY md5 "75801dc1cc386ec2d455fef537ed98c3">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -16,41 +16,15 @@
 	version="&version;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
-	min="6.7.0-rc4"
-	icon="wrench"
-	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
+	icon="tools" 
+	support="https://lime-technology.com/forums/topic/70783-parity-check-tuning/">
 
 <CHANGES>
-###2018-04-02
-- Added Unraid version check in case plugin installed somehow on version earlier than 6.7
-- Added check that parity drive is present as without it plugin should always be disabled.
-
-###2019-03-30
-- Fix spelling mistakes in GUI Help on settings page
-- Fix icon on Plugins tab to use a FA 4.7 icon rather than a FA 5 one (which is not available on Unraid).
-- Fix wrong URL for support thread on Plugins page
-- Added PayPal Donate buttong to Settings page for plugin
-- Reverted CA template to using PNG icon rather than a FA one.
-- Updated description of the plugin for both Plugins and Apps pages
-
-###2019.03.28
-- Added new CA plugin update feature
-- Improved GUI on Settings page with more extensive help and better checks on settings
-- Added option to Pause/Resume array operations if disks overheat
-- Added option to Pause/Resume of paritySync/Disk Rebuild and disk Clear operations
-- Added option to send notifications on Pause/Resume
-- Added sending a notification if its detected the array was stopped while an array operation was in progress
-- Added a Paypal donate option to Apps page (be interesting to see if any actually happen!).
-
-###2019.03.15
-- Improvements to the help text built into the GUI as a result of questions from users
-- fixed some minor GUI display glitches.
+###2019.03.08
+- Version for alpha testing
 
 ###2019.03.13
-- First official Beta version.
-
-###2019.03.08
-- Version for alpha testing.
+- First official Beta version
 </CHANGES>
 
 <FILE Run="/bin/bash">

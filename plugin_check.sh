@@ -1,4 +1,6 @@
-#!/bin/sh
+#| /bin/sh
+# Script to run a standad install of this plugin
+# (useful during testing)
 #
 # Copyright 22019, Dave Walker (itimpi).
 #
@@ -10,6 +12,6 @@
 #
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
+#
 
-/usr/bin/php "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "pause"
- 
+plugin check parity.check.tuning.plg
