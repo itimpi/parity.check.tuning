@@ -16,6 +16,7 @@
 	version="&version;" 
 	launch="&launch;" 
 	pluginURL="&pluginURL;" 
+	min="6.7.0-rc4"
 	icon="wrench"
 	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
 
