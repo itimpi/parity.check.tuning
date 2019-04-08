@@ -1,4 +1,4 @@
-####Parity Check Tuning  
+# Parity Check Tuning  
 
 Fine-tune the execution of long-running array operations such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.  Also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds.
 
