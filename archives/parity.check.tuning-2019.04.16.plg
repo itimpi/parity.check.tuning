@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2019.04.16">
-<!ENTITY md5 "270cb9a5e21db0578f472473069d7c04">
+<!ENTITY md5 "1354c27babd33b1da4799284d99d4a84">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -89,9 +89,9 @@ The 'post-install' script
       ln -s /usr/local/emhttp/plugins/&plugin;/&plugin;.mdcmd /usr/local/sbin/mdcmd
     fi
     # Replace the standard parityGistory.php scrip with ou custom version
-    if [ -f /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php ]; then
-          mv -f /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php.orig
-          ln -s /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php
+    if [ -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php ]; then
+          mv -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig
+          ln -s /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
     fi
     echo ""
     echo "----------------------------------------------------"
@@ -122,10 +122,10 @@ The 'remove' script.
       fi
     fi
     # We need to replace our customised ParityHistory.php with the original version
-    if [ -h /usr/local/emhttp/dynamix.plugins/include/ParityHistory.php ]; then
-      if [ -e /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php.orig ]; then
-        rm /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php
-        mv /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php.orig /usr/local/emhttp/dynamix/plugins/include/ParityHistory.php
+    if [ -h /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php ]; then
+      if [ -e /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig ]; then
+        rm /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
+        mv /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
       else
         # Should not be possible to get here but lets play safe!
         echo ""
