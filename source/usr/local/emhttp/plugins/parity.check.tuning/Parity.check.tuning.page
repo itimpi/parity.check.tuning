@@ -311,14 +311,24 @@ Debug Logging:
   </select>
 
 > Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from <strong>Parity Check Tuning</strong>.   With the <strong>Disabled</strong> option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to <strong>Enabled</strong> will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of the plugin is functioning. These additional entries are identified by the fact that  they will have the word <strong>DEBUG</strong> added to the start of messages.  Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates.<br><br>As long as you have this option set to <strong>Enabled</strong> then you are also allowed to select <strong>Hourly</strong> option as the interval at which to run parity check increments.  This is primarily done to aid in testing and diagnosing issues.<br><br>Feedback is welcome as to whether it is worth introducing an intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running.   It is not expected that the <strong>hourly</strong> option will be used in normal use.
-
-
-
-<!-- Commented out until ready for release
-<input type="submit" name="history" value="History" onclick="showHistory">
--->
-
-&nbsp;  <!-- This is to have a dummy field so buttons are correctly aligned -->
-: <input type="submit" name="#apply" value="Apply" id='Apply'><input type="button" id="DONE" value="Done" onclick="done()">
+       
+&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
+: <input type="submit" 
+        name="#apply" 
+        value="Apply" 
+        id='Apply'>
+<input type="button" 
+        id="DONE" 
+        value="Done"
+        onclick="done()">
+   
+<?if (file_exists("/boot/config/parity-checks.log")):?>
+&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
+: <input type="button" 
+       name="showHistory" 
+       value="History" 
+       onclick="openBox('/webGui/include/ParityHistory.php','Parity/Read-Check History',600,900,false)">Click to show parity-check history
+<?endif;?>
 <a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"></a>
+
 </form>

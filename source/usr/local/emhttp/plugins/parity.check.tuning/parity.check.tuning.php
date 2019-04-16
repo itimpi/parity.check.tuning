@@ -447,10 +447,12 @@ function parityTuningProgressAnalyze() {
     $generatedRecord = date($dateformat, $lastFinish) . '|'. $duration .'|'. $speed . '|' . $exitcode .'|'. $corrected .'|'. $elapsed .'|'. $increments . "\n";
     parityTuningLoggerDebug("log record generated from progress: $generatedRecord"); 
     
-    // Next few lines are for help debugging - can be removed in final version.
+    // Next few lines help with debugging - can be safely removed when no longer wanted.
     @unlink("$parityTuningProgressfile.save");
     rename ($parityTuningProgressFile, "$parityTuningProgressFile.save");
     parityTuningLoggerDebug("Old progress file available as $parityTuningProgressFile.save");
+    $myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
+    file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);
     
     @unlink ($parityTuningProgressFile);
     // Now patch the entry in the standard parity log file
