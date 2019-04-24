@@ -70,22 +70,27 @@ switch ($command) {
         if (($parityTuningCfg['parityTuningIncrements'] == "no") && ($parityTuningCfg['parityTuningHeat'] == 'no')) {
             parityTuningLoggerDebug("No cron events for this plugin are needed");
         } else {
-            $handle = fopen ($parityTuningCronFile, "w");
-            $line = "\n# Generated schedules for $parityTuningPlugin\n";
+            $lines = [];
+            $lines[] = "\n# Generated schedules for $parityTuningPlugin\n";
             if ($parityTuningCfg['parityTuningIncrements'] == "yes") {
-                $line .= $parityTuningCfg['parityTuningResumeMinute']  . " " .
-                                ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningResumeHour'])
-                                . " * * * $parityTuningPhpFile \"resume\" &> /dev/null\n";
-                $line .= $parityTuningCfg['parityTuningPauseMinute'] . " " .
-                                ($parityTuningCfg['parityTuningFrequency'] === 'hourly' ? '*' : $parityTuningCfg['parityTuningPauseHour'])
-                                . " * * * $parityTuningPhpFile \"pause\" &> /dev/null\n";
+                if ($parityTuningCfg['parityTuningFrequency'] == 'custom') {
+                    $resumetime = $parityTuningCfg['paritytuningResumeCustom'];
+                    $pausetime  = $parityTuningCfg['parityTuningPauseCustom'];
+                } else {
+                    $resumetime = $parityTuningCfg['parityTuningResumeMinute'] . ' '
+                                . $parityTuningCfg['parityTuningResumeHour'] . ' * * *';
+                    $pausetime  = $parityTuningCfg['parityTuningPauseMinute'] . ' '
+                                . $parityTuningCfg['parityTuningPauseHour'] . ' * * *';
+                }
+                $lines[] = $resumetime . " $parityTuningPhpFile \"resume\" &> /dev/null\n";
+                $lines[] = $pausetime  . " $parityTuningPhpFile \"pause\" &> /dev/null\n";
                 parityTuningLoggerDebug ('created cron entries for running increments');
             }
             if ($parityTuningCfg['parityTuningHeat'] == 'yes') {
-                $line .= "*/5 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";
+                $lines[] = "*/5 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";
                 paritytuningLoggerDebug ('created cron entry for monitoring disk temperatures');
             }
-            file_put_contents($parityTuningCronFile, $line . "\n");
+            file_put_contents($parityTuningCronFile, $lines);
             parityTuningLoggerDebug("updated cron settings are in $parityTuningCronFile");
         }
         // Activate any changes
