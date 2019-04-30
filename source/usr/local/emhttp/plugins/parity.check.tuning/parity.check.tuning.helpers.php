@@ -30,14 +30,18 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
     // Set defaults for those upgrading from an earlier release for new options
-    if (! array_key_exists('parityTuningHeatHigh',$parityTuningCfg))
+    if (! array_key_exists('parityTuningHeatHigh',$parityTuningCfg)) {
       $parityTuningCfg['parityTuningHeatHigh']     = 3;
-    if (! array_key_exists('parityTuningHeatLow',$parityTuningCfg))
+    }
+    if (! array_key_exists('parityTuningHeatLow',$parityTuningCfg)) {
       $parityTuningCfg['parityTuningHeatLow']      = 8;
-    if (! array_key_exists('parityTuningResumeCustom',$parityTuningCfg))
+    }
+    if (! array_key_exists('parityTuningResumeCustom',$parityTuningCfg)) {
       $parityTuningCfg['parityTuningResumeCustom'] = '15 0 * * *';
-    if (! array_key_exists('parityTuningPauseCustom',$parityTuningCfg))
+    }
+    if (! array_key_exists('parityTuningPauseCustom',$parityTuningCfg)) {
       $parityTuningCfg['parityTuningPauseCustom']  = '30 3 * * *';
+    }
 }  else {
     // If no config file exists set up defaults
     $parityTuningCfg = array('ParityTuningDebug' => "no");

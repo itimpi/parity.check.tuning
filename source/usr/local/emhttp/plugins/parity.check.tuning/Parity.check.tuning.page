@@ -90,7 +90,7 @@ function confirmClearYes(form) {
     if (form.parityTuningClear.value == 'yes') {
         swal({title: "Do you really want this?",
               text: "Pausing an disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage.  On most systems a disk Clear operation does not advesely affect performance so typically this option is left at No.",
-              icon:"Warning"});
+              icon: "Warning"});
     }
 }
 
@@ -99,8 +99,14 @@ $(document).ready(function(){
   presetParityTuning(oForm);
 });
 
-function updatedCustom() {
+function checkCustom(fld) {
+    var res = fld.value.split(" ");
 
+    if ((res.length != 5) || (res[4] == "")) {
+        swal({title:"Error in custom entry",
+              text:"A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week.  Click on the crontab link to get more details on valid formats.",
+              icon:"error"});
+    }
 }
 
 function checkNotifications (me) {
@@ -108,10 +114,10 @@ function checkNotifications (me) {
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true); 
 if ($dynamixCfg['notify']['system'] == "" ) { 
     echo 'swal({title:"Notifications not enabled",\n';
-    echo '      text:"Before you can set this option to Yes you must first have enabled system notifications under Settings->Notification Settings.",\n';
-    echo '      icon:"Info"});\n';
+    echo '       text:"Before you can set this option to Yes you must first have enabled system notifications under Settings->Notification Settings.",\n';
+    echo '       icon:"Info"});\n';
     echo 'me.value="no";\n';
-    }
+}
 ?>
 }
 
@@ -173,7 +179,7 @@ Increment frequency:
      <?=mk_option($parityTuningCfg['parityTuningFrequency'], "custom", "Custom") . "\n"?>
   </select>
   
-> The frequency at which parity check increments should be run.<br><br>In normal operation it is expected that only the <strong>Daily</strong> option will be wanted so this is the only option allowed if debug logging is not enabled.   Any user looking for other increment frequencies to be added should make a Use Case for this as so far no obvious reasons for having other intervals between parity check increments have been identified.<br><br>If you select the <strong>Custom</strong> option then you can set up more complicated schedules for the Pause and Resume times.  When you use this option you are given the option to specify the time as used by the Linux crontab capability.   
+> The frequency at which parity check increments should be run.<br><br>In normal operation it is expected that the <strong>Daily</strong> option will be the one that most users will want to use so this is the default.   To support any user looking for other frequencies there is the option to set up <strong>Custom</strong> schedules which will allow for more complicated schedules for the Pause and Resume times.  When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> utility.   
 
 <!--   Comment out for release until ready!
 Restart Parity Checks when array starts (NOT IMPLEMENTED):
@@ -188,11 +194,11 @@ Restart Parity Checks when array starts (NOT IMPLEMENTED):
 
 Increment resume time:
 : <span id="customResume">
-  <input 
+  <input type="text"
          size='1' class='narrow'
          name="parityTuningResumeCustom"
          value="<?=$parityTuningCfg['parityTuningResumeCustom']?>"
-         onchange="updatedCustom(this.form)">
+         onblur="checkCustom(this)">
   &nbsp; entry in <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> format
 </span>
 <span id="dailyResume">
@@ -217,11 +223,11 @@ Increment resume time:
 
 Increment pause time:
 : <span id="customPause">
-   <input 
+   <input type="text"
           size='1' class='narrow'
           name="parityTuningPauseCustom"
           value="<?=$parityTuningCfg['parityTuningPauseCustom']?>"
-          onchange="updatedCustom(this.form)">
+          onblur="checkCustom(this)">
    &nbsp; entry in <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> format
 </span>
 <span id="dailyPause">
@@ -273,7 +279,7 @@ Use increments for disk Clear operations:
     <?=mk_option($parityTuningCfg['parityTuningClear'], "yes", "Yes") . "\n"?>
   </select>
 
-> Should disk Clear operations be run using increments.<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared using the Pre-Clear plugin) to an array that is parity protected.  The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data. <br></br>Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at <strong>No</strong>.   In addition a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
+> Should disk Clear operations be run using increments.<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected.  The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data. <br></br>Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at <strong>No</strong>.   In addition a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 
 
 Send notifications for Pause or Resume of increments:
