@@ -21,6 +21,10 @@
 	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
 
 <CHANGES>
+###2019.05.01
+- Fix: Regression that broke pause/resume of scheduled parity checks
+- Fix: Regression that broke updating parity history
+
 ###2019.04.30
 - Fix: Do not create entries in parity-history log for array operations that are not a parity check
 - Fix: Corrected handling of non-scheduled checks to match user settings.

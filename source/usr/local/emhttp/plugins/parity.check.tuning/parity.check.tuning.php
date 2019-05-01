@@ -124,7 +124,7 @@ switch ($command) {
                         }
                         parityTuningLoggerDebug ('...appears to be a regular scheduled check');
                         parityTuningProgressWrite ("STARTED");
-                        file_put_contents(parityTuningScheduledFile,"SCHEDULED");
+                        file_put_contents($parityTuningScheduledFile,"SCHEDULED");
                     }
                     exit (0);;
             case 'nocheck':
@@ -187,7 +187,7 @@ switch ($command) {
         
         foreach ($disks as $drive) {
             $name=$drive['name'];
-            if ((startswith($name, "parity")) || (startsWith($name,"disk"))) {
+            if ((startswith($name, 'parity')) || (startsWith($name,'disk'))) {
                 $drivecount++;
                 $temp = $drive['temp'];
                 $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatHigh'];
@@ -232,7 +232,7 @@ switch ($command) {
     case 'resume':
         parityTuningLoggerDebug ('Resume request');
         if ($pos == 0) {
-            parityTuningLogger('... no array operation active so doing nothing');
+            parityTuningLoggerDebug('... no array operation active so doing nothing');
             parityTuningProgressAnalyze();
          } else {
             if (configuredAction()) {
@@ -255,7 +255,7 @@ switch ($command) {
         parityTuningLoggerDebug('Pause request');
         if ($pos == 0) {
             parityTuningProgressAnalyze();
-            parityTuningLogger('... no array operation active so doing nothing');
+            parityTuningLoggerDebug('... no array operation active so doing nothing');
         } else {
             if (configuredAction()) {
                 if (! $running) {
@@ -365,12 +365,13 @@ function spacerDebugLine($start = true) {
 //  We then update the standard Unraid file.  If needed we patch an existing record.
 
 function parityTuningProgressAnalyze() {
-    global $parityTuningProgressFile;
+    global $parityTuningProgressFile, $parityTuningScheduledFile;
+    global $parityTuningCfg;
     global $var, $action;
     global $dateformat;
     
     if (! file_exists($parityTuningProgressFile)) {
-        parityTuningLoggerDebug(' no progree file to anaylse');
+        parityTuningLoggerDebug(' no progress file to anaylse');
         return;
     }    
     if ($var['mdResyncPos'] != 0) {
@@ -465,14 +466,14 @@ function parityTuningProgressAnalyze() {
     if (! file_exists($parityTuningScheduledFile)) {
         if (! $parityTuningCfg['parityTuningUnscheduled'] == 'yes') {
             parityTuningLoggerDebug ('pause/resume not activated for' . 
-                                    (startsWith('check', $action) ? ' manual ' : ' ') 
-                                    . 'checks');
+                                    (startsWith($action,'check') ? ' manual ' : ' ') 
+                                    . actionDescription());
             parityTuningLoggerDebug ('... so do not attempt to update system parity-check.log file');
             return;
         } else {
             parityTuningLoggerDebug ('pause/resume was activated for' .
-                                    (startsWith('check', $action) ? ' manual ' : ' ') 
-                                    . 'checks');
+                                    (startsWith($action,'check') ? ' manual ' : ' ') 
+                                    . actionDescription());
         }
     }
     @unlink ($parityTuningScheduledFile);
@@ -531,7 +532,7 @@ function sendNotification($op, $desc = '') {
 function sendArrayNotification ($op) {
     global $parityTuningCfg;
     if ($parityTuningCfg['parityTuningNotify'] == 'no') {
-        parityTuningLoggerDebug('Array notifications disabled so ' . $op . ' not sent');
+        parityTuningLoggerDebug('Array notifications disabled so ' . $op . ' message not sent');
         return;
     }
     sendNotification($op);
@@ -549,28 +550,28 @@ function sendTempNotification ($op, $desc) {
 
 // Confirm that action is valid according to user settings
 function configuredAction() {
-    global $action;
-    if (startsWith('recon',$action) && ($parityTuningCfg['parityTuningRrecon'] == 'yes')) {
+    global $action, $parityTuningCfg,$parityTuningScheduledFile;
+    if (startsWith($action,'recon') && ($parityTuningCfg['parityTuningRrecon'] == 'yes')) {
         parityTuningLoggerDebug('...configured action for ' . actionDescription());
         return true;
     }
-    if (startsWith('clear',$action) && ($parityTuningCfg['parityTuningClear'] == 'yes')) {
+    if (startsWith($action,'clear') && ($parityTuningCfg['parityTuningClear'] == 'yes')) {
         parityTuningLoggerDebug('...configured action for ' . actionDescription());
         return true;
     }
-    if (startsWith('check',$action)) {
-        global $parityTuningScheduledFile;
+    if (startsWith($action,'check')) {
         if (file_exists($parityTuningScheduledFile)) {
             parityTuningLoggerDebug('...configured scheduled action for ' . actionDescription());
             return true;
-        } elseif ($parityTuningCfg['parityTuningUnscheduled'] == 'yes') {
+        }
+        if ($parityTuningCfg['parityTuningUnscheduled'] == 'yes') {
             parityTuningLoggerDebug('...configured ununscheduled action for ' . actionDescription());
             return true;
-        }
+        } 
     }
     parityTuningLoggerDebug('...action not configured for' 
-                            . (startsWith('check', $action) ? ' manual ' : ' ') 
-                            . actionDescription());
+                            . (startsWith($action,'check') ? ' manual ' : ' ') 
+                            . actionDescription(). ' ' . $action);
     return false;
 }
 
