@@ -325,7 +325,7 @@ switch ($command) {
 			break;
 	    }
 		exec("/usr/local/sbin/mdcmd $action $mode");
-		sleep(1k  );
+		sleep(1);
 		$action = ($mode == 'correct') ? 'check' : 'check P';
 	    parityTuningLogger(actionDescription() . ' Started');
 	    break;
