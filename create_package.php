@@ -17,7 +17,8 @@
  
 $plugin="parity.check.tuning";
 
-$cwd = "/mnt/cache/Dropbox/Projects/parity.check.tuning";
+// current script directory
+$cwd = dirname(__FILE__);
 chdir ($cwd);
 // Ensure permissions are correct for runtime use 
 exec ("chown -R root *");
@@ -41,6 +42,7 @@ echo "\nMD5: $md5\n";
 $handle = fopen ("$pkg.md5", 'w');
 fwrite ($handle, strtok($md5," "));
 fclose ($handle);
+if ( !is_dir("archives" )) mkdir("archives" );  
 copy("$pkg.txz", "archives/$pkg.txz");
 copy("$pkg.md5", "archives/$pkg.md5");
 unlink("$pkg.txz");
@@ -52,7 +54,7 @@ chdir ($cwd);
 echo "\nPLG\n";
 
 if (! file_exists("$plugin.plg")) {
-    echo "INFO: Could not find $filename\n";
+    echo "INFO: Could not find $plugin.plg\n";
     return;
 } 
 

@@ -13,7 +13,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-  
+
 // Set up some useful variables
 $emhttpDir              = '/usr/local/emhttp';
 $parityTuningPlugin     = 'parity.check.tuning';
@@ -54,53 +54,12 @@ if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg['parityTuningResumeHour']   = "0";
     $parityTuningCfg['parityTuningResumeMinute'] = "15";
     $parityTuningCfg['parityTuningPauseHour']    = "3";
-    $parityTuningCfg['parityTuningPauseMinute']  = "30";   
-    
+    $parityTuningCfg['parityTuningPauseMinute']  = "30";
+
     $parityTuningCfg['parityTuningHeat']         = "no";
     $parityTuningCfg['parityTuningHeatHigh']     = "3";
     $parityTuningCfg['parityTuningHeatLow']      = "8";
-    
+
     $parityTuningCfg['parityTuningDebug']        = "no";
-}
-
-# Write message to syslog
-function parityTuningLogger($string) {
-  $string = str_replace("'","",$string);
-  shell_exec('logger -t "Parity Check Tuning" "' . $string . '"');
-}
-
-# Write message to syslog if debug logging active
-function parityTuningLoggerDebug($string) {
-  global $parityTuningCfg;
-  if ($parityTuningCfg['parityTuningDebug'] === "yes") {
-    parityTuningLogger("DEBUG: " . $string);
-  };
-}
-
-// Determine if the current time is within a period where we expect this plugin to be active
-function isParityCheckActivePeriod() {
-    global $parityTuningCfg;
-    $resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
-    $pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
-    $currentTime = (date("H") * 60) + date("i");
-    if ($pauseTime > $resumeTime) {         // We need to allow for times panning midnight!
-        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime); 
-    } else {
-        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime); 
-    }
-}
-
-function startsWith($haystack, $beginning, $caseInsensitivity = false){
-    if ($caseInsensitivity)
-        return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
-    else
-        return strncmp($haystack, $beginning, strlen($beginning)) === 0;
-}
-
-function endsWith($haystack, $ending, $caseInsensitivity = false){
-    if ($caseInsensitivity)
-        return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
-    else
-        return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
 }
 ?>
