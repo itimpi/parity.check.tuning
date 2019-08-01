@@ -38,32 +38,27 @@ $parityTuningStateFile     = "$parityTuningBootDir/$parityTuningPlugin.state";
 $parityTuningCronFile      = "$parityTuningBootDir/$parityTuningPlugin.cron";
 $parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress";
 $parityTuningScheduledFile = "$parityTuningBootDir/$parityTuningPlugin.scheduled";
-$dateformat = 'Y M d H:i:s';
 
 // List of fields we save ofr progress.
 // Might not all be needed but better to have more information than necessary
 $progressfields = array('sbSynced','sbSynced2','sbSyncErrs','sbSyncExit',
                        'mdState','mdResync','mdResyncPos','mdResyncSize','mdResyncCorr','mdResyncAction' );
 
-// load some state information.
-// written as a function to facilitate reloads
+
 function loadVars($delay = 0) {
-    if ($delay > 0) sleep($delay);
-    
-	global $var, $pos, $size, $action; 
-    global $percent, $completed,$active, $running, $correcting;
-    
-    $var= parse_ini_file('/var/local/emhttp/var.ini');
+if ($delay) sleep($delay);
+global $var = parse_ini_file('/var/local/emhttp/var.ini');
 
-    $pos    = $var['mdResyncPos'];
-    $size   = $var['mdResyncSize'];
-    $action = $var['mdResyncAction'];
+global $pos    = $var['mdResyncPos'];
+global $size   = $var['mdResyncSize'];
+global $action = $var['mdResyncAction'];
 
-    $percent = sprintf ("%.1f%%", ($pos/$size*100));
-    $completed = sprintf (" (%s completed) ", $percent);
-    $active = ($pos > 0);                       // If array action is active (paused or running)
-    $running = ($var['mdResync'] > 0);       // If array action is running (i.e. not paused)
-    $correcting = $var['mdResyncCorr'];
+global $percent = sprintf ("%.1f%%", ($pos/$size*100));
+global $completed = sprintf (" (%s completed) ", $percent);
+global $dateformat = 'Y M d H:i:s';
+global $active = ($pos > 0);                       // If array action is active (paused or running)
+global $running = ($var['mdResync'] > 0);       // If array action is running (i.e. not paused)
+global $correcting = $var['mdResyncCorr']
 }
 
 loadVars();
@@ -321,24 +316,32 @@ switch ($command) {
     	if (isArrayOperationActive()) parityTuningLogger(actionDescription() . ($running ? '' : ' PAUSED ') .  $completed);
     	break;
 
-    case 'check':
-	    $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
-        $setting = strtolower($dynamixCfg['parity']['write']);
-        $command= 'correct';
-        if ($setting == '' ) $command = 'nocorrect';
-        parityTuningLoggerDebug("using scheduled mode of '$command'");
-        // fallthru now we know the mode to use
-    case 'correct':
-    case 'nocorrect':
-        if (isArrayOperationActive()) {
-            parityTuningLogger('Not allowed as ' . actionDescription() . ' already running');
-            break;
-        }
-        $correcting =($command == 'correct') ? true : false;
-		exec("/usr/local/sbin/mdcmd check $command");
+    case 'start':
+    	if (isArrayOperationActive(false)) {
+	    	parityTuningLogger('ERROR: start option not allowed as ' . actionDescription() . ' is active');
+	    	exit(-1);
+	    }
+	    $mode = strtolower($argv[2]);
+	    if ($mode == '') {
+	    	$dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
+	    	$setting = strtolower($dynamixCfg['parity']['write']);
+	    	$mode = 'correct';
+	    	if ($setting == '' ) $mode = 'nocorrect';
+	    	parityTuningLoggerDebug("using default check mode of '$mode'");
+	    } elseif ($mode == 'correct') {
+	    	$correcting = 1;
+	    } elseif ($mode == 'nocorrect') {
+	    	$correcting = 0;
+	    } elseif ($mode == 'read') {
+	    	$mode = '';
+	    } else {
+		    parityTuningLogger ("ERROR: start option '$mode' not valid");
+			  break;
+	    }
+		exec("/usr/local/sbin/mdcmd check $mode");
         loadVars(2);
 	    parityTuningLogger(actionDescription() . ' Started');
-        if ($action == 'check' && ( $command == 'correct')) {
+        if ($action == 'correct') {
             parityTuningLogger('Only able to start a Read-Check due to number of disabled drives');
         }
 	    break;
@@ -347,18 +350,13 @@ switch ($command) {
         parityTuningLoggerDebug('Cancel request');
         if (isArrayOperationActive()) {
             parityTuningLoggerDebug ('mdResyncAction=' . $action);
+		    parityTuningLoggerDebug (actionDescription() . " cancel request sent " . $completed);
 			parityTuningProgressWrite('CANCELLED');
+			parityTuningLogger(actionDescription() . " Cancelled");
 			exec('/usr/local/sbin/mdcmd "nocheck"');
-            parityTuningLoggerDebug (actionDescription() . " cancel request sent " . $completed);
-            loadVars();
-            parityTuningLogger(actionDescription() . " Cancelled");
+            loadVars(2);
         }
         break;
-        
-    case 'stop':
-    case 'start':
-        parityTuningLogger("'$command' option not currently implemented");
-        // fallthru to usage section
 
     // Finally the error/usage case.   Hopefully we never get here in normal running
     case 'help':
@@ -371,9 +369,9 @@ switch ($command) {
 		parityTuningLogger ("  pause            Pause a rumnning parity check");
 		parityTuningLogger ("  resume           Resume a paused parity check");
 		if (parityTuningCLI()) {
-			parityTuningLogger ("  check            Start a parity check (as Settings->Scheduler)");
-			parityTuningLogger ("  correct          Start a correcting parity check");
-			parityTuningLogger ("  nocorrect        Start a non-corrscting parity check");
+			parityTuningLogger ("  start            Start a parity check (as Settings->Scheduler)");
+			parityTuningLogger ("  start correct    Start a correcting parity check");
+			parityTuningLogger ("  start nocorrect  Start a non-corrscting parity check");
 			parityTuningLogger ("  status           Show the status of a running parity check");
 			parityTuningLogger ("  cancel           Cancel a running parity check");
         } else {
@@ -590,9 +588,9 @@ function parityTuningProgressAnalyze() {
 	$unit='';
 	parityTuningLoggerTesting("mdResyncSize = $mdResyncSize, duration = $duration");
 	$speed = my_scale($mdResyncSize * 1024 / $duration,$unit,1) . " $unit/s";
-    $type = explode(' ',$desc);  
-    $generatedRecord = date($dateformat, $lastFinish) . "|$duration|$speed|$exitcode|$corrected|$elapsed|$increments|$type[0]\n";
+	$generatedRecord = date($dateformat, $lastFinish) . '|'. $duration .'|'. $speed . '|' . $exitcode .'|'. $corrected .'|'. $elapsed .'|'. $increments;
     parityTuningLoggerDebug("log record generated from progress: $generatedRecord");    $lines[$matchLine] = $generatedRecord;
+	$generatedRecord .= "\n";
 	file_put_contents($parityLogFile,$lines);
 }
 
@@ -681,7 +679,7 @@ function actionDescription() {
         case 'recon':   return 'Parity-Sync / Data Rebuild';
         case 'clear':   return 'Disk Clear';
         case 'check':   return 'Read-Check';
-        case 'check P': return (($correcting == 0) ? 'Non-' : '') . 'Correcting Parity Check';
+        case 'check P': return ( {$correcting == 0 ? 'Non-' : '') . 'Correcting Parity Check';
         default:        return 'unknown action: ' . $action;
     }
 }

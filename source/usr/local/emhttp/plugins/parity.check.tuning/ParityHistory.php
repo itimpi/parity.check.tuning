@@ -55,7 +55,7 @@ if ($lines != false) {
 <table class='share_status'>
 <thead><tr>
 <td>Date</td><td>Duration</td><td>Speed</td><td>Status</td><td>Errors</td>
-        <?=$extended?'<td>Elapsed Time</td><td>Increments</td>':''?>
+        <?=$extended?'<td>Elapsed Time</td><td>Increments</td><td>Type</td>':''?>
 </tr></thead>
 <tbody>
 <?
@@ -63,7 +63,7 @@ if ($lines == false) {
   echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>No parity check history present!</td></tr>";
 } else {
   foreach ($lines as $line) {
-    list($date,$duration,$speed,$status,$error,$elapsed,$increments) = explode('|',$line);
+    list($date,$duration,$speed,$status,$error,$elapsed,$increments,$type) = explode('|',$line);
     if ($speed==0) $speed = 'Unavailable';
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
     if ($duration>0||$status<>0)  {
@@ -71,6 +71,7 @@ if ($lines == false) {
           .($status==0?'OK':($status==-4?'Canceled':$status))."</td><td>$error</td>"
           .($extended?('<td>'.($elapsed==0?'Unknown':his_duration($elapsed)).'</td>'
                       .'<td>'.($increments==0?'Unavailable':$increments).'</td>'):'')
+          . "<td>$type</td>"
           .'</tr>';
     }
   }      

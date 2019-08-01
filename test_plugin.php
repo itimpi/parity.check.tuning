@@ -1,16 +1,17 @@
 #!/usr/bin/php
 <?PHP
 /*
- * Script that is used during testing to help with testing a .plg file
- * before it is committed to gitHub.
+ * Script that is used during testing to help with testing a .plg plugin
+ * file before it is committed to gitHub.
  *
  * It acts as a wrapper for the Unraid built-in 'plugin' command that
- * needs a full path to the .plg file when testing a local copy.  It
- * also carries out rome fudimentary checks.
+ * needs a full path to the .plg file when testing a local copy.  It also
+ * carries out some rudimentary checks on the file being valid XML.
  *
+ * It can also (optionally) check that an associated CA template is at least valid XML.
  * Assumpions:
- * - Plugin file is located in the current folder an has a name ot sne form <plugin-name>.plg
- * - CA template (if being used is also in current folder named ar <plugin-name>.xml
+ * - Plugin file is located in the current folder with a name of the form <plugin-name>.plg
+ * - CA template (if being used) is also in current folder named as <plugin-name>.xml
  *
  * Copyright 2019, Dave Walker (itimpi).
  *
@@ -24,7 +25,7 @@
  * all copies or substantial portions of the Software.
  */
 
-$cwd = dirname(__FILE__);
+$cwd = __DIR__;
 
 function usage() {
     echo "Usage:\n";
@@ -36,7 +37,7 @@ function usage() {
     echo "  remove     remove plugin\n";
     echo "  check      check plugin\n";
     echo "  update     update plugin\n";
-    echo "  template   test CA template For the plugin\n\n";
+    echo "  template   install CA template for the plugin\n\n";
 }
 
 if ($argc != 2) {
@@ -52,13 +53,13 @@ switch ($mthd) {
     case 'remove':
     case 'update':
     case 'check':
-
+    case 'template':
         $forced = '';
         break;
 
     case 'forced':
         $mthd = 'install';
-        $forced = 'forced';
+        $forced = ' forced';
         break;
 
     default:

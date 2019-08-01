@@ -65,3 +65,8 @@ forced_plugin.sh
 install_plugin.sh
 update_plugin.sh
 remove_plugin.sh
+testdata/case1/parity-checks.log
+testdata/case2/parity-checks.log.new
+testdata/case2/parity-checks.log.old
+testdata/case1/parity.check.tuning.progress.save
+testdata/case2/parity.check.tuning.progress.save
