@@ -373,7 +373,7 @@ switch ($command) {
 		if (parityTuningCLI()) {
 			parityTuningLogger ("  check            Start a parity check (as Settings->Scheduler)");
 			parityTuningLogger ("  correct          Start a correcting parity check");
-			parityTuningLogger ("  nocorrect        Start a non-corrscting parity check");
+			parityTuningLogger ("  nocorrect        Start a non-correcting parity check");
 			parityTuningLogger ("  status           Show the status of a running parity check");
 			parityTuningLogger ("  cancel           Cancel a running parity check");
         } else {

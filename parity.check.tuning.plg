@@ -21,7 +21,7 @@
 	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
 
 <CHANGES>
-###2)19.08.01
+###2019.08.01
 - Fix: parity history update was not terminating record correctly
 - New: type of check now being tracked in history 
 - New: Reworked CLI parity.check command and 'start' option removed
