@@ -535,9 +535,6 @@ function parityTuningProgressAnalyze() {
 	rename ($parityTuningProgressFile, "$parityTuningProgressFile.save");
     parityTuningLoggerDebug("Old progress file available as $parityTuningProgressFile.save");
 
-    $myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
-    file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);
-
     @unlink ($parityTuningProgressFile);
     if (! startsWith($action,'check')) {
         parityTuningLoggerDebug('array action was not Parity Check - it was ', actionDescription());
@@ -591,8 +588,12 @@ function parityTuningProgressAnalyze() {
 	parityTuningLoggerTesting("mdResyncSize = $mdResyncSize, duration = $duration");
 	$speed = my_scale($mdResyncSize * 1024 / $duration,$unit,1) . " $unit/s";
     $type = explode(' ',$desc);  
-    $generatedRecord = date($dateformat, $lastFinish) . "|$duration|$speed|$exitcode|$corrected|$elapsed|$increments|$type[0]\n";
+    $gendate = date($dateformat, $lastFinish);
+    if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
+    $generatedRecord = "$gendate|$duration|$speed|$exitcode|$corrected|$elapsed|$increments|$type[0]\n";
     parityTuningLoggerDebug("log record generated from progress: $generatedRecord");    $lines[$matchLine] = $generatedRecord;
+    $myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
+    file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
 	file_put_contents($parityLogFile,$lines);
 }
 

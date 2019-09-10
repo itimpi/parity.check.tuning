@@ -2,7 +2,7 @@
 
 Fine-tune the execution of long-running array operations such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.  Also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds.
 
-This will be of particular use to those who have large parity drives so that a full scheduled parity check can take a day or more to complete.   By using this plugin the parity check can be run in smaller increments that are scheduled to run when the array would otherwise be idle.
+This will be of particular use to those who have large parity drives so that a full scheduled parity check can take a day or more to complete.   By using this plugin the parity check can be run in smaller increments that are scheduled to run when the array would otherwise be idle.  If this plugin is installed then in addition to the current fields the parity history will start showing the number of increments; the total elapsed time; and the type of check that was run for checks where the plugin is active.
 
 More details can be found in the plugin's [Support thread](https://forums.unraid.net/topic/78394-plugin-parity-check-tuning/) in the Unraid forums.
 
