@@ -49,10 +49,10 @@ $progressfields = array('sbSynced','sbSynced2','sbSyncErrs','sbSyncExit',
 // written as a function to facilitate reloads
 function loadVars($delay = 0) {
     if ($delay > 0) sleep($delay);
-    
-	global $var, $pos, $size, $action; 
+
+	global $var, $pos, $size, $action;
     global $percent, $completed,$active, $running, $correcting;
-    
+
     $var= parse_ini_file('/var/local/emhttp/var.ini');
 
     $pos    = $var['mdResyncPos'];
@@ -247,7 +247,7 @@ switch ($command) {
                     parityTuningLoggerDebug('... ' . actionDescription() . ' already running');
                     if (! file_exists($parityTuningProgressFile)) parityTuningProgressWrite('MANUAL');
                 } else {
-                    exec('/usr/local/sbin/mdcmd "check" "RESUME"'); 
+                    exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                     loadVars(5);         // give time for resume
                     sendArrayNotification('Scheduled resume');
                     parityTuningLoggerDebug ('Resumed ' . actionDescription() . ' ' . $completed );
@@ -265,7 +265,7 @@ switch ($command) {
                     parityTuningLoggerDebug('... ' . actionDescription() . ' already paused!');
                 } else {
                     parityTuningProgressWrite('PAUSE');         // We want state before pause occurs
-                    exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"'); 
+                    exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
                     loadVars(5);         // give time for pause
                     sendArrayNotification ('Scheduled pause');
                     parityTuningLoggerDebug ('Pause of ' . actionDescription() . " " . $completed);
@@ -354,7 +354,7 @@ switch ($command) {
             parityTuningLogger(actionDescription() . " Cancelled");
         }
         break;
-        
+
     case 'stop':
     case 'start':
         parityTuningLogger("'$command' option not currently implemented");
@@ -467,8 +467,8 @@ function parityTuningProgressAnalyze() {
         	$temp = strtotime(substr($stamp, 9, 3) . substr($stamp,4,4) . substr($stamp,0,5) . substr($stamp,12));
 			if ($temp) {		// ignore any heading line
 				// parityTuningLoggerTesting ("Progress temp = $temp, timestamp=$timestamp");
-				$thisOffset = $temp - $timestamp;
-				// parityTuningLoggerTesting ("Progress time offset = $thisOffset seconds");
+				$thisOffset = $temp - $timestamp;  // This allows for diagnostic files from a different timezone when debugging
+				if ($thisOffset != 0) parityTuningLoggerTesting ("Progress time offset = $thisOffset seconds");
 			}
         }
         switch ($op) {
@@ -479,6 +479,7 @@ function parityTuningProgressAnalyze() {
             case 'STARTED': // TODO: Think can be ignored as only being documentation?
             case 'MANUAL':  // TODO: Think can be ignored as only being documentation?
             		if ($timestamp) $thisStart =  $thisFinish = $lastFinish = ($timestamp  + $thisOffset);
+            		$increments = 1;		// Must be first increment!
 					parityTuningLoggerTesting("thisStart=$thisStart, thisFinish=$thisFinish, lastFinish=$lastFinish, thisDuration=$thisDuration"
 											  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitcode=$exitcode");
                     break;
@@ -486,6 +487,7 @@ function parityTuningProgressAnalyze() {
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
             case 'RESUME':
             case 'RESUME (COOL)':
+                    $increments++;		// Must be starting new increment
             		if (! $thisStart) $thisStart = $timestamp + $thisOffset;
                     $thisFinish = (($sbSynced2 ==0) ? $timestamp : $sbSynced2) + $thisOffset;
                     $thisElapsed = ($lastFinish == 0) ? 0 : ($timestamp + $thisOffset - $lastFinish);
@@ -500,11 +502,11 @@ function parityTuningProgressAnalyze() {
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
             case 'PAUSE':
             case 'PAUSE (HOT)':
-            case 'ABORTED':
             case 'COMPLETED':
-            case 'CANCELLED':
+            case 'ABORTED':
             case 'STOPPING':
-                    $increments++;
+            case 'CANCELLED':
+                    if ($increments == 0) $increments = 1;			// can only happen if we did not see start so assume first increment
                     if ($sbSyncErrs) $corrected = $sbSyncErrs;
                     // parityTuningLoggerTesting("increment $increments, corrected $corrected ");
                     $thisStart = $sbSynced + $thisOffset;
@@ -526,6 +528,7 @@ function parityTuningProgressAnalyze() {
                     break;
         } // end switch
     }  // end foreach
+
 	parityTuningLoggerTesting("ProgressFile start=" . date($dateformat,$thisStart) . ", finish=" . date($dateformat,$thisFinish));
 
     // Next few lines help with debugging - could be safely removed when no longer wanted.
@@ -587,7 +590,7 @@ function parityTuningProgressAnalyze() {
 	$unit='';
 	parityTuningLoggerTesting("mdResyncSize = $mdResyncSize, duration = $duration");
 	$speed = my_scale($mdResyncSize * 1024 / $duration,$unit,1) . " $unit/s";
-    $type = explode(' ',$desc);  
+    $type = explode(' ',$desc);
     $gendate = date($dateformat, $lastFinish);
     if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
     $generatedRecord = "$gendate|$duration|$speed|$exitcode|$corrected|$elapsed|$increments|$type[0]\n";
