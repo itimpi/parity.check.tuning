@@ -132,7 +132,7 @@ switch ($command) {
                         parityTuningLoggerDebug ('... to resume ' . actionDescription());
                     } else {
                         // @TODO need to check if a delay is needed here to allow check to have started properly!
-                        if (file_exists(parityTuningProgressFile)) {
+                        if (file_exists($parityTuningProgressFile)) {
                             parityTuningLoggerDebug('analyze previous progress before starting new one');
                             parityTuningProgressAnalyze();
                         }
@@ -680,7 +680,7 @@ function configuredAction() {
 
 // Get the long text description of the current runnng array operation
 function actionDescription() {
-    global $action;
+    global $action, $correcting;
     switch ($action) {
         case 'recon':   return 'Parity-Sync / Data Rebuild';
         case 'clear':   return 'Disk Clear';
