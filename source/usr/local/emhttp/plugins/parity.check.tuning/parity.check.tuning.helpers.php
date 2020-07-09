@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tining plugin
  *
- * Copyright 2019, Dave Walker (itimpi).
+ * Copyright 2019-2020, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -14,6 +14,9 @@
  * all copies or substantial portions of the Software.
  */
 
+// useful for testing outside Gui
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
 // Set up some useful variables
 $emhttpDir              = '/usr/local/emhttp';
 $parityTuningPlugin     = 'parity.check.tuning';
@@ -22,9 +25,6 @@ $parityTuningBootDir    = "/boot/config/plugins/$parityTuningPlugin";
 $parityTuningCfgFile    = "$parityTuningBootDir/$parityTuningPlugin.cfg";
 $parityTuningEmhttpDir  = "$emhttpDir/plugins/$parityTuningPlugin";
 $parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
-
-// useful for testing outside Gui
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 // Get configuration information
 if (file_exists($parityTuningCfgFile)) {

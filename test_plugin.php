@@ -40,12 +40,6 @@ function usage() {
     echo "  template   install CA template for the plugin\n\n";
 }
 
-if ($argc != 2) {
-    echo "\nERROR: Invalid syntax\n";
-    usage();
-    exit (1);
-}
-
 $mthd = $argv[1];
 switch ($mthd) {
     case 'validate':
@@ -122,6 +116,8 @@ if (empty($files)) {
     //   exit (4);
     // }
 }
+
+// Carry out the requested action
 
 switch ($argv[1]) {
     case "validate":

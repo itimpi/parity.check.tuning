@@ -1,0 +1,14 @@
+; Translation text for the Parity Check Tuning plugin
+; This is the master english version
+
+; PHP script messages (for syslog logging)
+
+; Page file prompts
+Run scheduled Parity Checks in increments=INCREMENTS
+
+; Help text for 
+
+; Swal titles (swal alerts) 
+
+; Warning detail (swal alestr) texts for settings page
+
