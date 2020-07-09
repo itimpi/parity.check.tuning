@@ -41,7 +41,7 @@ function his_duration($time) {
 <tbody>
 <? 
 $log = '/boot/config/parity-checks.log'; $list = []; $extended = false;
-$lines = file($log);
+$lines = @file($log);
 if ($lines != false) {
   foreach ($lines as $line) {
     list($date,$duration,$speed,$status,$error,$elapsed,$increments) = explode('|',$line);
