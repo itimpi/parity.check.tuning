@@ -1,6 +1,6 @@
 <?PHP
-/* Copyright 2005-2018, Lime Technology
- * Copyright 2012-2018, Bergware International.
+/* Copyright 2005-2020, Lime Technology
+ * Copyright 2012-2020, Bergware International.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -10,11 +10,28 @@
  * all copies or substantial portions of the Software.
  *
  * This version patched by Dave Walker (itimpi) to add Elapsed Time and Increments columns to displayed information
+ * (also modified with legacy support to work on Unraid versions prior to 6.9)
  */
 ?>
 <?
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+// multi language support
+
+$plugin = 'parity.check.tuning';
+$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+if ($translations) {
+  // $_SERVER['REQUEST_URI'] = 'main';
+  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
+  require_once "$docroot/webGui/include/Translations.php";
+} else {
+  // legacy support (without javascript)
+  $noscript = true;
+  require_once "$docroot/plugins/$plugin/Legacy.php";
+}
+
 require_once "$docroot/webGui/include/Helpers.php";
+extract(parse_plugin_cfg('dynamix',true));
 
 $month = [' Jan '=>'-01-',' Feb '=>'-02-',' Mar '=>'-03-',' Apr '=>'-04-',' May '=>'-05-',' Jun '=>'-06-',' Jul '=>'-07-',' Aug '=>'-08-',' Sep '=>'-09-',' Oct '=>'-10-',' Nov '=>'-11-',' Dec '=>'-12-'];
 
@@ -28,18 +45,27 @@ function his_duration($time) {
   $hour = floor($hmss/3600);
   $mins = $hmss/60%60;
   $secs = $hmss%60;
-  return his_plus($days,'day',($hour|$mins|$secs)==0).his_plus($hour,'hr',($mins|$secs)==0).his_plus($mins,'min',$secs==0).his_plus($secs,'sec',true);
+  return his_plus($days,_('day'),($hour|$mins|$secs)==0).his_plus($hour,_('hr'),($mins|$secs)==0).his_plus($mins,_('min'),$secs==0).his_plus($secs,_('sec'),true);
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>">
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Security-Policy" content="block-all-mixed-content">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1600">
 <meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="same-origin">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-fonts.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-popup.css")?>">
 </head>
-<tbody>
-<? 
+<body>
+<?
+/*
+ * Determine if any entries are in the parity.tuning.check plugin extended format.
+ */
 $log = '/boot/config/parity-checks.log'; $list = []; $extended = false;
 $lines = @file($log);
 if ($lines != false) {
@@ -52,34 +78,35 @@ if ($lines != false) {
   }
 }
 ?>
-<table class='share_status'>
-<thead><tr>
-<td>Date</td><td>Duration</td><td>Speed</td><td>Status</td><td>Errors</td>
-        <?=$extended?'<td>Elapsed Time</td><td>Increments</td><td>Type</td>':''?>
-</tr></thead>
-<tbody>
+<table class='share_status'><thead><tr><td><?=_('Date')?></td><td><?=_('Duration')?></td><td><?=_('Speed')?></td><td><?=_('Status')?></td><td><?=_('Errors')?></td>
+            <?=$extended?'<td>' . _('Elapsed Time') . ' </td><td>' . _('Increments') . '</td><td>Type</td>':''?>
+			</tr></thead><tbody>
 <?
-if ($lines == false) {
-  echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>No parity check history present!</td></tr>";
-} else {
-  foreach ($lines as $line) {
-    list($date,$duration,$speed,$status,$error,$elapsed,$increments,$type) = explode('|',$line);
-    if ($speed==0) $speed = 'Unavailable';
+$log = '/boot/config/parity-checks.log'; $list = []; $extended = false;
+if (file_exists($log)) {
+  $handle = fopen($log, 'r');
+  while (($line = fgets($handle)) !== false) {
+    [$date,$duration,$speed,$status,$error,$elapsed,$increments,$type] = explode('|',$line);
+    if (($elapsed != 0) || ($increments != 0)) $extended = true;
+    if ($speed==0) $speed = _('Unavailable');
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
-    if ($duration>0||$status<>0)  {
-      $list[] = "<tr><td>$date</td><td>".his_duration($duration)."</td><td>$speed</td><td>"
-          .($status==0?'OK':($status==-4?'Canceled':$status))."</td><td>$error</td>"
-          .($extended?('<td>'.($elapsed==0?'Unknown':his_duration($elapsed)).'</td>'
-                      .'<td>'.($increments==0?'Unavailable':$increments).'</td>'):'')
-          . "<td>$type</td>"
-          .'</tr>';
+    if ($duration>0||$status<>0) {
+    	$list[] = "<tr><td>$date</td><td>".his_duration($duration)."</td><td>$speed</td><td>"
+    			.($status==0?_('OK'):($status==-4?_('Canceled'):$status))."</td><td>$error</td>"
+                .($extended?('<td>'.($elapsed==0?'Unknown':his_duration($elapsed)).'</td>'
+                            .'<td>'.($increments==0?_('Unavailable'):$increments).'</td>'):'')
+                . "<td>$type</td>"
+    			."</tr>";
     }
-  }      
-  for ($i=count($list); $i>=0; --$i) echo $list[$i];
+  }
+  fclose($handle);
 }
-
+if ($list)
+  for ($i=count($list); $i>=0; --$i) echo $list[$i];
+else
+  echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
 ?>
-</tr></tbody></table>
-<div style="text-align:center;margin-top:12px"><input type="button" value="Done" onclick="top.Shadowbox.close()"></div>
+</tbody></table>
+<div style="text-align:center;margin-top:12px"><input type="button" value="<?=_('Done')?>" onclick="top.Shadowbox.close()"></div>
 </body>
 </html>
