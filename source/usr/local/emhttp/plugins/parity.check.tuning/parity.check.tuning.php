@@ -26,7 +26,7 @@
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 
-$testing = 0;		// set to 0 when not testing.  	if non-zero additional logging is generated
+$testing = 1;		// set to 0 when not testing.  	if non-zero additional logging is generated
 
 // multi language support
 
@@ -34,13 +34,13 @@ $plugin = 'parity.check.tuning';
 $docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 if ($translations) {
- // add translations
- $_SERVER['REQUEST_URI'] = 'parity.check.tuning';
- require_once "$docroot/webGui/include/Translations.php";
+  // add translations
+  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
+  require_once "$docroot/webGui/include/Translations.php";
 } else {
- // legacy support (without javascript)
- $noscript = true;
- require_once "$docroot/plugins/$plugin/Legacy.php";
+  // legacy support (without javascript)
+  $noscript = true;
+  require_once "$docroot/plugins/$plugin/Legacy.php";
 }
 
 if (empty($argv)) {
@@ -120,15 +120,18 @@ switch ($command) {
                 }
                 $lines[] = $resumetime . " $parityTuningPhpFile \"resume\" &> /dev/null\n";
                 $lines[] = $pausetime  . " $parityTuningPhpFile \"pause\" &> /dev/null\n";
-                $lines[] = "17 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";		// Once an hour for parity checks
+                if ($parityTuningCfg['parityTuningHeat'] != 'yes') {
+                  // Once an hour for parity checks if not monitorilg more frequently for temperature
+                  $lines[] = "17 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";
+                }
                 parityTuningLoggerDebug (_('created cron entries for running increments'));
             }
             if ($parityTuningCfg['parityTuningHeat'] == 'yes') {
                 $lines[] = "*/5 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 5 minutes for temperature
-                paritytuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
+                parityTuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
             }
             file_put_contents($parityTuningCronFile, $lines);
-            parityTuningLoggerDebug(sprintf('%s %s',_('updated cron settings are in'),$parityTuningCronFile));
+            parityTuningLoggerTesting(sprintf('%s %s',_('updated cron settings are in'),$parityTuningCronFile));
         }
         // Activate any changes
         exec("/usr/local/sbin/update_cron");
@@ -139,27 +142,27 @@ switch ($command) {
         // detect if a parity check was started on a schedule or whether it was manually started.
 
         $cmd = 'mdcmd '; for ($i = 3; $i < count($argv) ; $i++)  $cmd .= $argv[$i] . ' ';
-        parityTuningLoggerDebug(sprintf('%s %s %s: %s', _('detected that mdcmd had been called from'), $argv['2'], _('with command'), $cmd));
+        parityTuningLoggerDebug(sprintf(_('detected that mdcmd had been called from %s with command %s'), $argv['2'], $cmd));
         switch ($argv[2]) {
         case 'crond':
             switch ($argv[3]) {
             case 'check':
                     if ($argv[4] == "RESUME") {
-                        parityTuningLoggerDebug ('... to resume ' . actionDescription());
+                        parityTuningLoggerDebug ('... ' . sprintf ('to resume %s', actionDescription()));
                     } else {
                         // @TODO need to check if a delay is needed here to allow check to have started properly!
                         if (file_exists($parityTuningProgressFile)) {
-                            parityTuningLoggerDebug('analyze previous progress before starting new one');
+                            parityTuningLoggerTesting('analyze previous progress before starting new one');
                             parityTuningProgressAnalyze();
                         }
-                        parityTuningLoggerDebug (sprintf('...%s',_('appears to be a regular scheduled check')));
+                        parityTuningLoggerDebug ('... ' . sprintf(_('%s appears to be a regular scheduled check')));
                         parityTuningProgressWrite ("STARTED");
                         file_put_contents($parityTuningScheduledFile,"SCHEDULED");
                     }
                     break;
             case 'nocheck':
                     if ($argv[4] == 'PAUSE') {
-                        parityTuningLoggerDebug (sprintf('... %s %s',_('to pause'), actionDescription()));
+                        parityTuningLoggerDebug ('...' . sprintf ('to pause %s', actionDescription()));
                     } else {
                         // Not sure this even a possible operation but we allow for it anyway!
                         parityTuningProgressWrite ('CANCELLED');
@@ -182,14 +185,13 @@ switch ($command) {
         //
         // The frequency varies according to whether temperatures are being checked as then we do it more often.
 
-        $testingTemps = true;           // Set to false to suppress too frequent debug log messages
         if (! $active) {
-            if ($testingTemps) parityTuningLoggerDebug (sprintf('Monitor: %s'),_('No array operation currently in progress'));
+            parityTuningLoggerTesting (sprintf('Monitor: %s'),_('No array operation currently in progress'));
             if (file_exists($parityTuningProgressFile)) parityTuningProgressAnalyze();
             break;
         }
         if (! $running) {
-            if ($testingTemps) parityTuningLoggerDebug (spintf('Monitor: %s'), _('Parity check appears to be paused'));
+            parityTuningLoggerTesting (spintf('Monitor: %s'), _('Parity check appears to be paused'));
         } elseif (! file_exists($parityTuningProgressFile)) {
             parityTuningProgressWrite ("STARTED");
             parityTuningLoggerDebug (sprintf('Monitor: %s'), _('Unscheduled array operation in progress'));
@@ -205,9 +207,12 @@ switch ($command) {
         // We only get here if there is a reason to check temperatures
         // so check if disk temperatures have changed appropriately
         $disks = parse_ini_file ('/var/local/emhttp/disks.ini', true);
+
         // Merge SMART settings
         require_once "$docroot/webGui/include/CustomMerge.php";
+        // the following merges any over-rides into the $disks array
         $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
+
         $hotdrives = array();       // drives that exceed pause threshold
         $warmdrives = array();      // drives that are between pause and resume thresholds
         $cooldrives = array();      // drives that are cooler than resume threshold
@@ -215,11 +220,12 @@ switch ($command) {
 
         foreach ($disks as $drive) {
             $name=$drive['name'];
-            if ((startswith($name, 'parity')) || (startsWith($name,'disk'))) {
+            if ( ($drive['status'] != 'DISK_NP') && ((startswith($name, 'parity')) || (startsWith($name,'disk')))) {
                 $drivecount++;
                 $temp = $drive['temp'];
                 $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatHigh'];
                 $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatLow'];
+                parityTuningLoggerTesting (sprintf('%s temp=%s (settings are: hot=%s, cool=%s))',$name, $temp, $hot, $cool));
                 if (($temp == "*" ) || ($temp <= $cool)) $cooldrives[$name] = $temp;
                 elseif ($temp >= $hot) $hotdrives[$name] = temp;
                 else $warmdrives[$name] = temp;
@@ -447,14 +453,14 @@ function parityTuningProgressAnalyze() {
     global $dateformat;
 
     if (! file_exists($parityTuningProgressFile)) {
-        parityTuningLoggerDebug(' no progress file to anaylse');
+        parityTuningLoggerTesting(' no progress file to anaylse');
         return;
     }
     if ($var['mdResyncPos'] != 0) {
-        parityTuningLoggerDebug(' array operation still running - so not time to analyze progess');
+        parityTuningLoggerTesting(' array operation still running - so not time to analyze progess');
         return;
     }
-    parityTuningLoggerDebug('Previous array operation finished - analyzing progress information to create history record');
+    parityTuningLoggerTesting('Previous array operation finished - analyzing progress information to create history record');
     // Work out history record values
     $lines = file($parityTuningProgressFile);
 
@@ -667,7 +673,7 @@ function sendArrayNotification ($op) {
 function sendTempNotification ($op, $desc) {
     global $parityTuningCfg;
     if ($parityTuningCfg['parityTuningHeatNotify'] == 'no') {
-        parityTuningLoggerDebug('Heat notifications disabled so ' . $op . ' ' . $desc . ' not sent');
+        parityTuningLoggerTesting('Heat notifications disabled so ' . $op . ' ' . $desc . ' not sent');
         return;
     }
     sendNotification($op, $desc);
