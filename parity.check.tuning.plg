@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2019.10.23">
-<!ENTITY md5 "2ead4b44cc7530f3b56dbe55ac03611c">
+<!ENTITY version "2020.07.19">
+<!ENTITY md5 "39315a7a92b87fd74e1b79afc4e3fcb7">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -21,6 +21,25 @@
 	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
 
 <CHANGES>
+###2020-07-19
+- New: Changes in preparation for multi-language support.
+- Fix: Pause not working when drives over-heat when temperature pause/resume active.
+- Fix: Incorrect number of drives shown in summary message for drive temperature monitoring.
+- New: Add detected temperature when listing over-heated drives in syslog.
+
+###2020-04-09
+- Fix: divide by zero error logged during startup
+
+###2020-02-15
+- New: add handling of 'starting' event
+
+###2019.11.30
+- New: add a hourly monitor check to better handle manual parity check pause/resumes
+- New: add appropriate icons to alerts
+
+###2019.10.26
+- Fix: make sure parity history updated correctly if array stopped before a scheduled run of plugin.
+
 ###2019.10.22
 - Fix; the parity history and notifications would erroneously show correcting parity checks as being non-correcting.
 - Fix: parity history would not be updated if a second check started within timeslot for a single increment
