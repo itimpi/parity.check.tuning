@@ -26,7 +26,7 @@
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 
-$testing = 1;		// set to 0 when not testing.  	if non-zero additional logging is generated
+$testing = 0;		// set to 0 when not testing.  	if non-zero additional logging is generated
 
 // multi language support
 
@@ -186,15 +186,15 @@ switch ($command) {
         // The frequency varies according to whether temperatures are being checked as then we do it more often.
 
         if (! $active) {
-            parityTuningLoggerTesting (sprintf('Monitor: %s'),_('No array operation currently in progress'));
+            parityTuningLoggerDebug (_('No array operation currently in progress'));
             if (file_exists($parityTuningProgressFile)) parityTuningProgressAnalyze();
             break;
         }
         if (! $running) {
-            parityTuningLoggerTesting (spintf('Monitor: %s'), _('Parity check appears to be paused'));
+            parityTuningLoggerDebug (_('Parity check appears to be paused'));
         } elseif (! file_exists($parityTuningProgressFile)) {
             parityTuningProgressWrite ("STARTED");
-            parityTuningLoggerDebug (sprintf('Monitor: %s'), _('Unscheduled array operation in progress'));
+            parityTuningLoggerDebug ( _('Unscheduled array operation in progress'));
         }
 
         // Check for disk temperature changes we are monitoring
@@ -210,7 +210,7 @@ switch ($command) {
 
         // Merge SMART settings
         require_once "$docroot/webGui/include/CustomMerge.php";
-        // the following merges any over-rides into the $disks array
+
         $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
         $hotdrives = array();       // drives that exceed pause threshold
@@ -237,7 +237,7 @@ switch ($command) {
             if (count($hotdrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s %s',actionDescription(), _('with all drives below temperature threshold for a Pause')));
             } else {
-                $msg = (sprintf('$s: ',_('Following drives overheated')));
+                $msg = (sprintf('%s: ',_('Following drives overheated')));
                 $handle = fopen($parityTuningHotFile, 'w');
                 foreach ($hotdrives as $drive) {
                     $msg .= $drive . ' ';
