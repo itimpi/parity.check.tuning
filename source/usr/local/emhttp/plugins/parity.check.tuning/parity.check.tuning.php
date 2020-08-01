@@ -26,8 +26,6 @@
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 
-$testing = 0;		// set to 0 when not testing.  	if non-zero additional logging is generated
-
 // multi language support
 
 $plugin = 'parity.check.tuning';
@@ -220,19 +218,19 @@ switch ($command) {
 
         foreach ($disks as $drive) {
             $name=$drive['name'];
-            if ( ($drive['status'] != 'DISK_NP') && ((startswith($name, 'parity')) || (startsWith($name,'disk')))) {
+            if ( (!startsWith($drive['status'],'DISK_NP')) && ((startsWith($name, 'parity')) || (startsWith($name,'disk')))) {
                 $drivecount++;
                 $temp = $drive['temp'];
                 $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatHigh'];
                 $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatLow'];
                 parityTuningLoggerTesting (sprintf('%s temp=%s (settings are: hot=%s, cool=%s))',$name, $temp, $hot, $cool));
                 if (($temp == "*" ) || ($temp <= $cool)) $cooldrives[$name] = $temp;
-                elseif ($temp >= $hot) $hotdrives[$name] = temp;
+                elseif ($temp >= $hot) $hotdrives[$name] = $temp;
                 else $warmdrives[$name] = temp;
             }
         }
         $parityTuningHotFile   = "$parityTuningBootDir/$parityTuningPlugin.hot";
-        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('drives'), $drivecount, _('hot'), count($hotdrives), _('warm'), count($warmdrives), _('cool'), count($cooldrives)));
+        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $drivecount, _('hot'), count($hotdrives), _('warm'), count($warmdrives), _('cool'), count($cooldrives)));
         if ($running) {
             if (count($hotdrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s %s',actionDescription(), _('with all drives below temperature threshold for a Pause')));
@@ -254,10 +252,14 @@ switch ($command) {
             if (! file_exists($parityTuningHotFile)) {
                 parityTuningLoggerDebug (_('Array operation paused but not for temperature related reason'));
             } else {
-                parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
-                parityTuningProgressWrite('RESUME (COOL)');
-                exec('/usr/local/sbin/mdcmd "check" "RESUME"');
-                sendTempNotification(_('Resume'), _('Drives cooled down'));
+             	if (count($hotdrives) == 0) {
+                	parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
+                	parityTuningProgressWrite('RESUME (COOL)');
+                	exec('/usr/local/sbin/mdcmd "check" "RESUME"');
+                	sendTempNotification(_('Resume'), _('Drives cooled down'));
+                } else {
+                	parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
+                }
             }
         }
         break;
@@ -730,11 +732,11 @@ function parityTuningLogger($string) {
   shell_exec($cmd);
 }
 
-// Write message to syslog if debug logging active
+// Write message to syslog if debug or testing logging active
 function parityTuningLoggerDebug($string) {
   global $parityTuningCfg, $argv;
   $string = str_replace("'","",$string);
-  if ($parityTuningCfg['parityTuningDebug'] === "yes") {
+  if (! ($parityTuningCfg['parityTuningDebug'] === "no")) {
   	$cmd = 'logger -t "' . basename($argv[0]) . '" "DEBUG: '  . $string . '"';
    	shell_exec($cmd);
   }
@@ -742,9 +744,9 @@ function parityTuningLoggerDebug($string) {
 
 // Write message to syslog if testing logging active
 function parityTuningLoggerTesting($string) {
-  global $testing, $argv;
+  global $parityTuningCfg, $argv;
   $string = str_replace("'","",$string);
-  if ($testing) {
+  if ($parityTuningCfg['parityTuningDebug'] === "test") {
   	$cmd = 'logger -t "' . basename($argv[0]) . '" "TESTING: '  . $string . '"';
   	shell_exec($cmd);
   }

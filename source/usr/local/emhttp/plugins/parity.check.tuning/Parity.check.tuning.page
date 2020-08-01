@@ -34,15 +34,14 @@ $diskp=parse_ini_file('/var/local/emhttp/disks.ini');
 <script>
 // Preset fields to be enabled/disabled as appropriate
 function presetParityTuning(form) {
-  // Handle the scheduled pause/resume options
-  <?
-  if ($diskp['parity']['status']=='DISK_NP_DSBL' && $diskp['parity2']['status']=='DISK_NP_DSBL') {
-    echo "form.parityTuningIncrements.value='no';\n";
-    echo "form.parityTuningHeat.value      ='no';\n";
-    echo "form.parityTuningIncrements.disabled=true;\n";
-    echo "form.parityTuningHeat.disabled      =true;\n";
-  }
-  ?>
+  <?if (($diskp['parity']['status']=='DISK_NP_DSBL') && ($diskp['parity2']['status']=='DISK_NP_DSBL')): ?>
+    // Handle the scheduled pause/resume options
+    form.parityTuningIncrements.value    = 'no';
+    form.parityTuningHeat.value          = 'no';
+    form.parityTuningIncrements.disabled = true;
+    form.parityTuningHeat.disabled       = true;
+  <? endif;?>
+
   var parityTuningDisabled = (form.parityTuningIncrements.value == "no");  
   form.parityTuningFrequency.disabled   = parityTuningDisabled;
   form.parityTuningUnscheduled.disabled = parityTuningDisabled;
@@ -86,15 +85,15 @@ function presetParityTuning(form) {
 
 function confirmReconYes(form) {
     if (form.parityTuningRecon.value == 'yes') {
-        swal({title: _("This might affect array integrity"),
+        swal({title: _("This might affect array integrity")_,
               text: "Pausing an operation that is building parity or rebuilding a failed disk has a level of risk as your array is not back in a protected state until this operation completes successfully.   Only set this option to Yes if the operation is adversely affecting system use and you are not worried about the extra time that will elapse before the system is once again in a protected state.",
-              icon:"Warning"});
+              icon: "Warning"});
     }
 }
 
 function confirmClearYes(form) {
     if (form.parityTuningClear.value == 'yes') {
-        swal({title: _("Do you really want this"),
+        swal({title: _("Do you really want this")_,
               text: "Pausing an disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage.  On most systems a disk Clear operation does not advesely affect performance so typically this option is left at No.",
               icon: "Warning"});
     }
@@ -109,8 +108,8 @@ function checkCustom(fld) {
     var res = fld.value.split(" ");
 
     if ((res.length != 5) || (res[4] == "")) {
-        swal({title:"Error in custom entry",
-              text:"A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week.  Click on the crontab link to get more details on valid formats.",
+        swal({title: _("Error in custom entry")_,
+              text: "_(A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week.  Click on the crontab link to get more details on valid formats)_.",
               icon:"Error"});
     }
 }
@@ -119,8 +118,8 @@ function checkNotifications (me) {
 <? 
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true); 
 if ($dynamixCfg['notify']['system'] == "" ) { 
-    echo 'swal({title:"Notifications not enabled",\n';
-    echo '       text:"Before you can set this option to Yes you must first have enabled system notifications under Settings->Notification Settings.",\n';
+    echo 'swal({title: \"' . _("Notifications not enabled") . '",';
+    echo 'text:"Before you can set this option to Yes you must first have enabled system notifications under Settings->Notification Settings.",\n';
     echo '       icon:"Info"});\n';
     echo 'me.value="no";\n';
 }
@@ -131,7 +130,7 @@ function checkTimeRange(form) {
   var difference = form.parityTuningPauseHour.value - form.parityTuningResumeHour.value;
   if ( difference < 0) difference += 24;
   if (difference > 12 ) {
-    swal({title:"Pause and Resume?",
+    swal({title: _("Pause and Resume?")_,
           text:"The Pause and Resume times would give an increment length of more than 12 hours which is unusual.  Are you sure you have not got these the wrong way around?",
           icon:"Warning"});
     }
@@ -210,7 +209,7 @@ _(Increment resume time)_:
          name="parityTuningResumeCustom"
          value="<?=$parityTuningCfg['parityTuningResumeCustom']?>"
          onblur="checkCustom(this)">
-  &nbsp; entry in <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> format
+  &nbsp; <?=sprintf(_('entry in %s format'),'<a href=\"https://en.wikipedia.org/wiki/Cron#Overview\" target=\"_blank\">crontab</a>');?>
 </span>
 <span id="dailyResume">
   <select name="parityTuningResumeHour" 
@@ -240,7 +239,7 @@ _(Increment pause time)_:
           name="parityTuningPauseCustom"
           value="<?=$parityTuningCfg['parityTuningPauseCustom']?>"
           onblur="checkCustom(this)">
-   &nbsp; entry in <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> format
+  &nbsp; <?=sprintf(_('entry in %s format'),'<a href=\"https://en.wikipedia.org/wiki/Cron#Overview\" target=\"_blank\">crontab</a>');?>
 </span>
 <span id="dailyPause">
   <select name="parityTuningPauseHour" 
@@ -356,7 +355,7 @@ _(Send notifications for temperature related Pause or Resume)_:
   </select>
 
 :parity_tune_temp_notify_plug:
-> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to <strong>No</strong>.    The notifcation is sent as a <strong>Notice</strong> category message to the targets specified under <a href="Settings/Notifications">Settings->Notification Settings</a>.
+> Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**.    The notifcation is sent as a **Notice**> category message to the targets specified under <a href="Settings/Notifications">Settings->Notification Settings</a>.
 :end
 
 &nbsp;
@@ -368,10 +367,11 @@ _(Parity Check Tuning debug logging)_:
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningDebug'], "no", _("Disabled")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningDebug'], "yes", _("Enabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningDebug'], "test", _("Testing")) . "\n"?>
   </select>
 
 :parity_tune_debug_plug:
-> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from <strong>Parity Check Tuning</strong>.   With the <strong>Disabled</strong> option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to <strong>Enabled</strong> will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of the plugin is functioning. These additional entries are identified by the fact that  they will have the word <strong>DEBUG</strong> added to the start of messages.  Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running<br><br>Feedback is welcome as to whether it is worth introducing an intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
+> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from **Parity Check Tuning**.   With the **Disabled** option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to **Enabled** will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of how the plugin is functioning. These additional entries are identified by the fact that they will have the word **DEBUG** added to the start of messages.  Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running<br><br>Finally there is an additional setting of **Testing** that is only intended for use by the developer but is left here for convenience.  It will write even more verbose messages to the syslog but these are not likely to be interesting (or even meaningful) to the avaerage user.  These messages will have the word **TESTING** added to the start of messages. <br><br>Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
 :end
 
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
