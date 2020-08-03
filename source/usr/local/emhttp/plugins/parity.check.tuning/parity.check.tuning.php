@@ -52,6 +52,7 @@ $parityTuningCronFile      = "$parityTuningBootDir/$parityTuningPlugin.cron";
 $parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress";
 $parityTuningScheduledFile = "$parityTuningBootDir/$parityTuningPlugin.scheduled";
 $parityTuningPausedFile    = "$parityTuningBootDir/$parityTuningPlugin.paused";
+$parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";
 $dateformat = 'Y M d H:i:s';
 
 // List of fields we save ofr progress.
@@ -229,9 +230,11 @@ switch ($command) {
                 else $warmdrives[$name] = temp;
             }
         }
-        $parityTuningHotFile   = "$parityTuningBootDir/$parityTuningPlugin.hot";
         parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $drivecount, _('hot'), count($hotdrives), _('warm'), count($warmdrives), _('cool'), count($cooldrives)));
         if ($running) {
+
+        	// Check if we need to pause because at least one drive too hot
+
             if (count($hotdrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s %s',actionDescription(), _('with all drives below temperature threshold for a Pause')));
             } else {
@@ -249,17 +252,25 @@ switch ($command) {
                 sendTempNotification(_('Pause'),$msg);
             }
         } else {
+
+        	// Check if we need to resume because drives cooled sufficiently
+
             if (! file_exists($parityTuningHotFile)) {
                 parityTuningLoggerDebug (_('Array operation paused but not for temperature related reason'));
             } else {
-             	if (count($hotdrives) == 0) {
-                	parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
-                	parityTuningProgressWrite('RESUME (COOL)');
-                	exec('/usr/local/sbin/mdcmd "check" "RESUME"');
-                	sendTempNotification(_('Resume'), _('Drives cooled down'));
+             	if (count($hotdrives) != 0) {
+             		parityTuningLoggerDebug (_('Array operation paused with some drives still too hot to resume'));
                 } else {
-                	parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
-                }
+             		if (count(warmdrives) != 0) {
+						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
+                    } else {
+                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
+                		parityTuningProgressWrite('RESUME (COOL)');
+                		exec('/usr/local/sbin/mdcmd "check" "RESUME"');
+                		sendTempNotification(_('Resume'), _('Drives cooled down'));
+                		@unlink ($parityTuningHotFile);
+                	}
+				}
             }
         }
         break;
@@ -302,6 +313,7 @@ switch ($command) {
 
     case 'starting':
     	parityTuningLoggerDebug (_('Detected that array has not yet been started'));
+    	@unlink ($parityTuningHotFile);
     	// parityTuningProgressAnalyze();
     	break;
 
