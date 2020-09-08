@@ -261,7 +261,7 @@ switch ($command) {
              	if (count($hotdrives) != 0) {
              		parityTuningLoggerDebug (_('Array operation paused with some drives still too hot to resume'));
                 } else {
-             		if (count(warmdrives) != 0) {
+             		if (count($warmdrives) != 0) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
                     } else {
                 		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
