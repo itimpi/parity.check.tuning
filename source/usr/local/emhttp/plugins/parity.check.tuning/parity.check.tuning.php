@@ -216,7 +216,8 @@ switch ($command) {
         $warmdrives = array();      // drives that are between pause and resume thresholds
         $cooldrives = array();      // drives that are cooler than resume threshold
         $drivecount = 0;
-
+        $status = '';
+        parityTuningLoggerTesting (sprintf('plugin settings: pause=%s, resume=%s',$parityTuningCfg['parityTuningHeatHigh'], $parityTuningCfg['parityTuningHeatLow']));
         foreach ($disks as $drive) {
             $name=$drive['name'];
             if ( (!startsWith($drive['status'],'DISK_NP')) && ((startsWith($name, 'parity')) || (startsWith($name,'disk')))) {
@@ -224,10 +225,18 @@ switch ($command) {
                 $temp = $drive['temp'];
                 $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatHigh'];
                 $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatLow'];
-                parityTuningLoggerTesting (sprintf('%s temp=%s (settings are: hot=%s, cool=%s))',$name, $temp, $hot, $cool));
-                if (($temp == "*" ) || ($temp <= $cool)) $cooldrives[$name] = $temp;
-                elseif ($temp >= $hot) $hotdrives[$name] = $temp;
-                else $warmdrives[$name] = temp;
+
+                if (($temp == "*" ) || ($temp <= $cool)) {
+                  $cooldrives[$name] = $temp;
+                  $status = 'cool';
+                } elseif ($temp >= $hot) {
+                  $hotdrives[$name] = $temp;
+                  $status = 'hot';
+                } else {
+                	$warmdrives[$name] = temp;
+                	$status = 'warm';
+                }
+                parityTuningLoggerTesting (sprintf('%s temp=%s, status=%s (drive settings: hot=%s, cool=%s))',$name, $temp, $status, $hot, $cool));
             }
         }
         parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $drivecount, _('hot'), count($hotdrives), _('warm'), count($warmdrives), _('cool'), count($cooldrives)));
@@ -240,9 +249,9 @@ switch ($command) {
             } else {
                 $msg = (sprintf('%s: ',_('Following drives overheated')));
                 $handle = fopen($parityTuningHotFile, 'w');
-                foreach ($hotdrives as $drive) {
-                    $msg .= $drive . ' ';
-                    fwrite ($handle, $drive . '=' . $drive);
+                foreach ($hotdrives as $key => $value) {
+                	$msg .= $key . '=' . $value . ' ';
+                    fwrite ($handle, $key . '=' . $value . '\n');
                 }
                 fclose ($handle);
 
@@ -686,8 +695,9 @@ function sendArrayNotification ($op) {
 // Send a notification if temperature related notifications enabled
 function sendTempNotification ($op, $desc) {
     global $parityTuningCfg;
+    parityTuningLoggerTesting('Heat notification message: ' . $op . ': ' . $desc);
     if ($parityTuningCfg['parityTuningHeatNotify'] == 'no') {
-        parityTuningLoggerTesting('Heat notifications disabled so ' . $op . ' ' . $desc . ' not sent');
+        parityTuningLoggerTesting('Heat notifications disabled so not sent');
         return;
     }
     sendNotification($op, $desc);
@@ -724,9 +734,13 @@ function configuredAction() {
 function actionDescription() {
     global $action, $correcting;
     switch ($action) {
-        case 'recon':   return 'Parity-Sync/Data Rebuild';
-        case 'clear':   return 'Disk Clear';
-        case 'check':   return 'Read-Check';
+        case 'recon':
+        case 'recon P':   	// Parity 1 only
+        case 'recon Q':   	// Parity 2 only
+        case 'recon P Q':   // Parity 1 and parity 2
+        				return 'Parity-Sync/Data Rebuild';
+        case 'clear':   	return 'Disk Clear';
+        case 'check':   	return 'Read-Check';
         case 'check P': 	// Parity1 only
         case 'check Q': 	// Parity2 only
         case 'check P Q':	// Parity1 and parity2
