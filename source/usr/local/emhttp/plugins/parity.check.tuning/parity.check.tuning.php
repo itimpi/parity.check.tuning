@@ -678,7 +678,7 @@ function sendNotification($op, $desc = '') {
     global $completed, $emhttpDir;
     $msg = actionDescription() . $completed . ' ' . $op;
     parityTuningLoggerDebug ('Sent notification message: ' . $msg);
-    exec ($emhttpDir . '/webGui/scripts/notify -e "Parity Tuning Operation" -i "normal" -d "'
+    exec ($emhttpDir . '/webGui/scripts/notify -e "Parity Tuning Operation" -i "normal" -l "/Settings/Scheduler" -d "'
                     . $msg . '"' . (($desc == '') ? '' : ' -m "' . $desc . '"') );
 }
 

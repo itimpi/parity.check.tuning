@@ -136,6 +136,15 @@ function checkTimeRange(form) {
     }
 }
 
+function checkHeatLow(form) {
+  var difference = form.parityTuningHeatLow.value - form.parityTuningHeatHigh.value;
+  if (difference < 1 ) {
+    swal({title: _("Temperature Pause and Resume?")_,
+          text:"The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as tney are both relative to the disk temperature warning value",
+          icon:"Warning"});
+    }
+}
+
 $(function() {
   if ( typeof caPluginUpdateCheck === "function" ) {
     caPluginUpdateCheck("parity.check.tuning.plg",{element:".pluginUpdate"});
@@ -340,6 +349,7 @@ _(Resume an array operation at)_:
 : <input name="parityTuningHeatLow" 
          size='1' class='narrow'
          type='text'
+         onchange="checkHeatLow(this.form)"
          value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $dynamixCfg['display']['unit'] ?> _(below warning disk temperature)_ threshold
 
 :parity_tune_low_plug:

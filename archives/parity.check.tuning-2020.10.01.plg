@@ -26,6 +26,8 @@
 
 ###2020.10.01
  - New: When running 6.9 Beta 27+, clicking on an alert from Parity Check Tuning will take you to the Scheduler settings page.
+ 
+###2020.09.11
  - New: Added check that temperature resume value is larger than pause value.
 
 ###2020.09.10

@@ -18,7 +18,7 @@
 PLUGIN="parity.check.tuning"
 
 echo "copying files from 'source' to runtime position"
-cp -va -r source/* / &>/dev/null
+cp -v -u -r source/* / &>/dev/null
 chown -R root /usr/local/emhttp/plugins/$PLUGIN/*
 chgrp -R root /usr/local/emhttp/plugins/$PLUGIN/*
 chmod -R 755 /usr/local/emhttp/plugins/$PLUGIN/*

@@ -52,6 +52,8 @@ Notifications not enabled=
 Before you can set this option to Yes you must first have enabled system notifications under **Settings->Notification Settings**=
 Pause and Resume=
 The Pause and Resume times would give an increment length of more than 12 hours which is unusual.  Are you sure you have not got these the wrong way around=
+Temperature Pause and Resume=
+The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as tney are both relative to the disk temperature warning value=
 
 ; Help text on settings page
 ; These could perhaps be left in English to keep tranrlati/n task easier)
