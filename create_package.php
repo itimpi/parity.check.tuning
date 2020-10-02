@@ -14,13 +14,28 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
- 
-$plugin="parity.check.tuning";
+
+// Use .plg file to derive plugin name
+
+$cwd = dirname(__FILE__);
+chdir ($cwd);
+$files = glob("$cwd/*.plg");
+if (empty($files)) {
+    echo "ERROR:  Unable to find any .plg files in current directory\n";
+    exit(1);
+} elseif (count($files) != 1 ) {
+    echo "ERROR;  More than 1 .plg file in current directory\n";
+    echo $files;
+    exit(1);
+} else {
+    $plugin = preg_replace('/\\.[^.\\s]{3,4}$/', '', basename($files[0]));;
+    echo "\nPLUGIN: $plugin\n";
+}
 
 // current script directory
 $cwd = dirname(__FILE__);
 chdir ($cwd);
-// Ensure permissions are correct for runtime use 
+// Ensure permissions are correct for runtime use
 exec ("chown -R root *");
 exec ("chgrp -R root *");
 chdir ("$cwd/source");
@@ -42,7 +57,7 @@ echo "\nMD5: $md5\n";
 $handle = fopen ("$pkg.md5", 'w');
 fwrite ($handle, strtok($md5," "));
 fclose ($handle);
-if ( !is_dir("archives" )) mkdir("archives" );  
+if ( !is_dir("archives" )) mkdir("archives" );
 copy("$pkg.txz", "archives/$pkg.txz");
 copy("$pkg.md5", "archives/$pkg.md5");
 unlink("$pkg.txz");
@@ -56,7 +71,7 @@ echo "\nPLG\n";
 if (! file_exists("$plugin.plg")) {
     echo "INFO: Could not find $plugin.plg\n";
     return;
-} 
+}
 
 $in = file("$plugin.plg");
 $out = fopen("$plugin.plg.tmp", 'w');
@@ -77,7 +92,7 @@ copy ("$plugin.plg", "archives/$plugin-$ver.plg");
 unlink ("$plugin.plg");
 rename ("$plugin.plg.tmp", "$plugin.plg");
 
-// Ensure permissions are OK for public network access 
+// Ensure permissions are OK for public network access
 exec ("chown -R nobody *");
 exec ("chgrp -R users *");
 

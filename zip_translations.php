@@ -19,13 +19,28 @@
  * all copies or substantial portions of the Software.
  */
 
-$name="paritychecktuning";
-// current script directory
+// Use .plg file to derive plugin name
+
 $cwd = dirname(__FILE__);
 chdir ($cwd);
+$files = glob("$cwd/*.plg");
+if (empty($files)) {
+    echo "ERROR:  Unable to find any .plg files in current directory\n";
+    exit(1);
+} elseif (count($files) != 1 ) {
+    echo "ERROR;  More than 1 .plg file in current directory\n";
+    echo $files;
+    exit(1);
+} else {
+    $plugin = preg_replace('/\\.[^.\\s]{3,4}$/', '', basename($files[0]));;
+    echo "\nPLUGIN: $plugin\n";
+}
+
+// current script directory
+
 $zipfile = new ZipArchive();
-$zipfile->open("$name.zip", ZIPARCHIVE::CREATE);
-$zipfile->addFile("$name.txt");
+$zipfile->open("$plugin.zip", ZIPARCHIVE::CREATE);
+$zipfile->addFile("$plugin.txt");
 $zipfile->close();
-echo ("\nCreated $name.zip\n");
+echo ("\nCreated $plugin.zip\n");
 echo ("You can now use Developer mode in Tools->Language to load this into a running Unraid 6.9.0 (or later) system\n");
