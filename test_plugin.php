@@ -75,7 +75,7 @@ if (empty($files)) {
 } else {
     $pluginFile = basename($files[0]);
     $pluginName = preg_replace('/\\.[^.\\s]{3,4}$/', '', $pluginFile);;
-    echo "\n$pluginName\n\n";
+    echo "\n$pluginName\n" . str_repeat('-', strlen($pluginName)) . "\n";
 
     // Do a simple validation of the .plg file contents
     $domplg = new DOMDocument;

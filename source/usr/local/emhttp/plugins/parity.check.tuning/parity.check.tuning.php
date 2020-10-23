@@ -53,7 +53,12 @@ $parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress"
 $parityTuningScheduledFile = "$parityTuningBootDir/$parityTuningPlugin.scheduled";
 $parityTuningPausedFile    = "$parityTuningBootDir/$parityTuningPlugin.paused";
 $parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";
+$parityTuningCriticalFile  = "$parityTuningBootDir/$parityTuningPlugin.critical";
 $dateformat = 'Y M d H:i:s';
+$cfgShutdown = ($parityTuningCfg['parityTuningHeatShutdown'] === 'yes');
+$cfgHeat     = ($parityTuningCfg['parityTuningHeat'] === 'yes');
+$cfgTesting  = ($parityTuningCfg['parityTuningDebug'] === "test");
+$cfgDebug    = ($parityTuningCfg['parityTuningDebug'] === "yes");
 
 // List of fields we save ofr progress.
 // Might not all be needed but better to have more information than necessary
@@ -102,7 +107,7 @@ switch ($command) {
     case 'updatecron':
         // This is called any time that the user has updated the settings for this plugin to reset any cron schedules.
         @unlink ($parityTuningCronFile);
-        if (($parityTuningCfg['parityTuningIncrements'] == "no") && ($parityTuningCfg['parityTuningHeat'] == 'no')) {
+        if (($parityTuningCfg['parityTuningIncrements'] == "no") && (!cfgHeat)) {
             parityTuningLoggerDebug(_("No cron events for this plugin are needed"));
         } else {
             $lines = [];
@@ -119,13 +124,13 @@ switch ($command) {
                 }
                 $lines[] = $resumetime . " $parityTuningPhpFile \"resume\" &> /dev/null\n";
                 $lines[] = $pausetime  . " $parityTuningPhpFile \"pause\" &> /dev/null\n";
-                if ($parityTuningCfg['parityTuningHeat'] != 'yes') {
-                  // Once an hour for parity checks if not monitorilg more frequently for temperature
+                if (!$cfgHeat && !cfgShutdown) {
+                  // Once an hour for parity checks if not monitoring more frequently for temperature
                   $lines[] = "17 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";
                 }
                 parityTuningLoggerDebug (_('created cron entries for running increments'));
             }
-            if ($parityTuningCfg['parityTuningHeat'] == 'yes') {
+            if ($cfgHeat || $cfgShutdown) {
                 $lines[] = "*/5 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 5 minutes for temperature
                 parityTuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
             }
@@ -180,31 +185,20 @@ switch ($command) {
 
     case 'monitor':
         // This is invoked at regular intervals to try and detect some sort of relevant status change
-        // that we need to take some action on.  In particular disks overheating (or cooling back down.
+        // that we need to take some action on.  In particular disks overheating (or cooling back down).
         //
         // The frequency varies according to whether temperatures are being checked as then we do it more often.
 
-        if (! $active) {
-            parityTuningLoggerDebug (_('No array operation currently in progress'));
-            if (file_exists($parityTuningProgressFile)) parityTuningProgressAnalyze();
-            break;
-        }
-        if (! $running) {
-            parityTuningLoggerDebug (_('Parity check appears to be paused'));
-        } elseif (! file_exists($parityTuningProgressFile)) {
-            parityTuningProgressWrite ("STARTED");
-            parityTuningLoggerDebug ( _('Unscheduled array operation in progress'));
-        }
 
         // Check for disk temperature changes we are monitoring
 
-        if ($parityTuningCfg['parityTuningHeat'] != "yes" ) {
+        if ((!$cfgHeat) && (! $scfgSutdown)) {
             parityTuningLoggerDebug (_('Temperature monitoring switched off'));
             break;
         }
 
-        // We only get here if there is a reason to check temperatures
-        // so check if disk temperatures have changed appropriately
+        // Get temperature information
+
         $disks = parse_ini_file ('/var/local/emhttp/disks.ini', true);
 
         // Merge SMART settings
@@ -212,49 +206,106 @@ switch ($command) {
 
         $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
-        $hotdrives = array();       // drives that exceed pause threshold
-        $warmdrives = array();      // drives that are between pause and resume thresholds
-        $cooldrives = array();      // drives that are cooler than resume threshold
-        $drivecount = 0;
+		$criticalDrives = array();  // drives that exceed shutdown threshold
+        $hotDrives = array();       // drives that exceed pause threshold
+        $warmDrives = array();      // drives that are between pause and resume thresholds
+        $coolDrives = array();      // drives that are cooler than resume threshold
+        $driveCount = 0;
+        $arrayCount = 0;
         $status = '';
-        parityTuningLoggerTesting (sprintf('plugin settings: pause=%s, resume=%s',$parityTuningCfg['parityTuningHeatHigh'], $parityTuningCfg['parityTuningHeatLow']));
+		$cfgCritical = $parityTuningCfg['parityTuningHeatCritical'] ?? 1;		// defaults to 1 if not set
+		$cfgHigh     = $parityTuningCfg['parityTuningHeatHigh'];
+	    $cfgLow      = $parityTuningCfg['parityTuningHeatLow'];
+        parityTuningLoggerTesting (sprintf('plugin temperature settings: pause=%s, resume=%s',$cfgHigh, $cfgLow)
+                				   . ($cfgShutdown ? sprintf(', shutdown=%s', $cfgCritical) : ''));
         foreach ($disks as $drive) {
             $name=$drive['name'];
-            if ( (!startsWith($drive['status'],'DISK_NP')) && ((startsWith($name, 'parity')) || (startsWith($name,'disk')))) {
-                $drivecount++;
-                $temp = $drive['temp'];
-                $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatHigh'];
-                $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningCfg['parityTuningHeatLow'];
+            $temp = $drive['temp'];
+            if ((!startsWith($drive['status'],'DISK_NP')) & ($name != 'flash')) {
+                $driveCount++;
+                $critical  = ($drive['maxTemp'] ?? $dynamixCfg['display']['max']) - $cfgCritical;
+                $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $cfgHigh;
+                $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $cfgLow;
 
-                if (($temp == "*" ) || ($temp <= $cool)) {
-                  $cooldrives[$name] = $temp;
-                  $status = 'cool';
-                } elseif ($temp >= $hot) {
-                  $hotdrives[$name] = $temp;
-                  $status = 'hot';
-                } else {
-                	$warmdrives[$name] = temp;
-                	$status = 'warm';
+				// Check array drives for other over-heating
+				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
+					$arrayCount++;
+					if (($temp == "*" ) || ($temp <= $cool)) {
+					  $coolDrives[$name] = $temp;
+					  $status = 'cool';
+					} elseif ($temp >= $hot) {
+					  $hotDrives[$name] = $temp;
+					  $status = 'hot';
+					} else {
+						$warmDrives[$name] = temp;
+						$status = 'warm';
+					}
                 }
-                parityTuningLoggerTesting (sprintf('%s temp=%s, status=%s (drive settings: hot=%s, cool=%s))',$name, $temp, $status, $hot, $cool));
+				//  Check all array and cache drives for critical temperatures
+				//  TODO: find way to include unassigned devices?
+				if ((($temp != "*" )) && ($temp >= $critical)) {
+					parityTuningLoggerTesting(sprintf('Drive %s appears to be critical', $temp));
+					$criticalDrives[$name] = $temp;
+					$status = 'critical';
+				}
+                parityTuningLoggerTesting (sprintf('%s temp=%s, status=%s (drive settings: hot=%s, cool=%s',$name, $temp, $status, $hot, $cool)
+                						   . ($cfgShutdown ? sprintf(', critical=%s',$critical) : ''). ')');
             }
         }
-        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $drivecount, _('hot'), count($hotdrives), _('warm'), count($warmdrives), _('cool'), count($cooldrives)));
-        if ($running) {
 
+
+        // Handle at least 1 drive reaching shutdown threshold
+
+        if ($cfgShutdown) {
+			if (count($criticalDrives) > 0) {
+				$drives=listDrives($criticalDrives);
+				parityTuningLogger(_("Array being shutdown due to drive overheating"));
+				file_put_contents ($parityTuningCriticalFile, "$drives\n");
+				$msg = (sprintf('%s: ',_('Following drives overheated')) . $drives);
+				if ($active) {
+					parityTuningLoggerTesting('array operationis active');
+					$msg .= '<br>' . _('Abandoned ') . actionDescription() . $completed;
+				}
+				sendNotification (_('Array shutdown'), $msg, 'alert');
+				if ($cfgTesting) {
+					parityTuningLoggerTesting (_('Shutdown not actioned as running in TESTING mode'));
+				} else {exit(0);
+					sleep (15);	// add a delay for notification to be actioned
+					parityTuningLogger (_('Starting Shutdown'));
+					exec('/sbin/shutdown -h -P now');
+				}
+				break;
+			} else {
+				parityTuningLoggerDebug("No drives appear to have reached shutdown threshold");
+			}
+	    }
+
+		// See if temperatures are even relevant so that we need to consider pause/resume
+
+		if (! $active) {
+			parityTuningLoggerDebug (_('No array operation currently in progress'));
+			parityTuningProgressAnalyze();
+			break;
+		}
+		if (! $running) {
+			parityTuningLoggerDebug (_('Parity check appears to be paused'));
+		} elseif (! file_exists($parityTuningProgressFile)) {
+			parityTuningProgressWrite ("STARTED");
+			parityTuningLoggerDebug ( _('Unscheduled array operation in progress'));
+		}
+
+		// Handle drives being paused/resumed due to temperature
+
+        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives)));
+        if ($running) {
         	// Check if we need to pause because at least one drive too hot
 
-            if (count($hotdrives) == 0) {
+            if (count($hotDrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s %s',actionDescription(), _('with all drives below temperature threshold for a Pause')));
             } else {
-                $msg = (sprintf('%s: ',_('Following drives overheated')));
-                $handle = fopen($parityTuningHotFile, 'w');
-                foreach ($hotdrives as $key => $value) {
-                	$msg .= $key . '=' . $value . ' ';
-                    fwrite ($handle, $key . '=' . $value . '\n');
-                }
-                fclose ($handle);
-
+                $drives = listDrives($hotDrives);
+                file_put_contents ($parityTuningHotFile, "$drives\n");
+                $msg = (sprintf('%s: ',_('Following drives overheated')) . $drives);
                 parityTuningLogger (sprintf('%s %s %s: %s',_('Paused'), actionDescription(), $completed, $msg ));
                 parityTuningProgressWrite('PAUSE (HOT)');
                 exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
@@ -267,10 +318,10 @@ switch ($command) {
             if (! file_exists($parityTuningHotFile)) {
                 parityTuningLoggerDebug (_('Array operation paused but not for temperature related reason'));
             } else {
-             	if (count($hotdrives) != 0) {
+             	if (count($hotDrives) != 0) {
              		parityTuningLoggerDebug (_('Array operation paused with some drives still too hot to resume'));
                 } else {
-             		if (count($warmdrives) != 0) {
+             		if (count($warmDrives) != 0) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
                     } else {
                 		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription(), $completed, _('as drives now cooled down')));
@@ -293,11 +344,10 @@ switch ($command) {
                     parityTuningLoggerDebug(sprintf('... %s %s', actionDescription(), _('already running')));
                     if (! file_exists($parityTuningProgressFile)) parityTuningProgressWrite('MANUAL');
                 } else {
+                    sendArrayNotification('Scheduled resume');
                     exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                     loadVars(5);         // give time for resume
-                    sendArrayNotification('Scheduled resume');
-                    parityTuningLoggerDebug (sprintf('%s %s %s',_('Resumed'), actionDescription(), $completed));
-                    parityTuningProgressWrite('RESUME');            // We want state after resune has started
+                    parityTuningProgressWrite('RESUME');            // We want state after resume has started
                 }
             }
         }
@@ -314,7 +364,6 @@ switch ($command) {
                     exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
                     loadVars(5);         // give time for pause
                     sendArrayNotification (_('Scheduled pause'));
-                    parityTuningLoggerDebug (sprintf('%s %s %s', _('Pause of'), actionDescription(), $completed));
                 }
             }
         }
@@ -328,10 +377,15 @@ switch ($command) {
 
     case 'array_started':
         parityTuningLoggerDebug (_('Detected that array has just been started'));
+        // TODO: How can an unclean shutdown be detected as then any restart would be aborted?
         if (!file_exists($parityTuningProgressFile)) {
             parityTuningLoggerDebug('... ' . _('but no parity check was in progress when array stopped'));
             parityTuningLoggerDebug('... ' . _('so no further action to take'));
             break;
+        } elseif (!($drives=file_get_contents($parityTuningCriticalFile))) {
+            $reason = _('Array started after shutdown due to following drives reaching critical temperature');
+            parityTuningLogger ("$reason\n$drives");
+            @unlink ($parityTuningCriticalFile);
         } else {
             // One day we may think of restarting here!
             parityTuningProgressWrite('ABORTED');
@@ -450,6 +504,15 @@ function spacerDebugLine($start = true) {
     global $command, $argv;
     parityTuningLoggerDebug ('-----------' . strtoupper($command) . (($start == true) ? ' start' : ' end-') . '------');
 }
+
+function listDrives($drives) {
+	$msg = '';
+    foreach ($drives as $key => $value) {
+        $msg .= $key . '(' . $value . ') ';
+    }
+    return $msg;
+}
+
 // is an array operation in progress
 function isArrayOperationActive($msg = true) {
 	global $pos;
@@ -673,37 +736,49 @@ function parityTuningProgressWrite($msg) {
     parityTuningLoggerDebug ('written ' . $msg . ' record to  ' . $parityTuningProgressFile);
 }
 
+// send a notification without checking if enabled.
+
+function sendNotification($msg, $desc = '', $type = 'normal') {
+    global $emhttpDir;
+    parityTuningLogger (_('Sent notification') . ': ' . $msg .': ' . $desc);
+    exec ($emhttpDir . '/webGui/scripts/notify -e "Parity Check Tuning" -i ' . $type . ' -l "/Settings/Scheduler" -s "'
+                    . $msg . '"' . (($desc == '') ? '' : ' -d "' . $desc . '"' ));
+}
+
 // send a notification without checking if enabled.  Always add point reached.
-function sendNotification($op, $desc = '') {
-    global $completed, $emhttpDir;
-    $msg = actionDescription() . $completed . ' ' . $op;
-    parityTuningLoggerDebug ('Sent notification message: ' . $msg);
-    exec ($emhttpDir . '/webGui/scripts/notify -e "Parity Tuning Operation" -i "normal" -l "/Settings/Scheduler" -d "'
-                    . $msg . '"' . (($desc == '') ? '' : ' -m "' . $desc . '"') );
+
+function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
+    global $completed;
+    sendNotification ($op, $desc .  (strlen($desc) > 0 ? '<br>' : '') . actionDescription() . $completed, $type);
 }
 
 // Send a notification if increment notifications enabled
+
 function sendArrayNotification ($op) {
     global $parityTuningCfg;
+    parityTuningLoggerTesting("Pause/Resume notification message: $op");
     if ($parityTuningCfg['parityTuningNotify'] == 'no') {
-        parityTuningLoggerDebug('Array notifications disabled so ' . $op . ' message not sent');
+        parityTuningLoggerDebug('... Array notifications disabled so ' . $op . ' message not sent');
         return;
     }
-    sendNotification($op);
+    sendNotificationWithCompletion($op);
 }
 
 // Send a notification if temperature related notifications enabled
-function sendTempNotification ($op, $desc) {
+
+
+function sendTempNotification ($op, $desc, $type = 'normal') {
     global $parityTuningCfg;
-    parityTuningLoggerTesting('Heat notification message: ' . $op . ': ' . $desc);
+    parityTuningLoggerTesting("Heat notification message: $op: $desc");
     if ($parityTuningCfg['parityTuningHeatNotify'] == 'no') {
-        parityTuningLoggerTesting('Heat notifications disabled so not sent');
+        parityTuningLoggerTesting('... Heat notifications disabled so not sent');
         return;
     }
-    sendNotification($op, $desc);
+    sendNotificationWithCompletion($op, $desc, $type);
 }
 
 // Confirm that action is valid according to user settings
+
 function configuredAction() {
     global $action, $parityTuningCfg,$parityTuningScheduledFile;
     if (startsWith($action,'recon') && ($parityTuningCfg['parityTuningRecon'] == 'yes')) {
@@ -731,6 +806,7 @@ function configuredAction() {
 }
 
 // Get the long text description of the current runnng array operation
+
 function actionDescription() {
     global $action, $correcting;
     switch ($action) {
@@ -738,14 +814,28 @@ function actionDescription() {
         case 'recon P':   	// Parity 1 only
         case 'recon Q':   	// Parity 2 only
         case 'recon P Q':   // Parity 1 and parity 2
-        				return 'Parity-Sync/Data Rebuild';
-        case 'clear':   	return 'Disk Clear';
-        case 'check':   	return 'Read-Check';
+        				return _('Parity Sync') . '/' . _('Data Rebuild');
+        case 'clear':   	return _('Disk Clear');
+        case 'check':   	return _('Read Check');
         case 'check P': 	// Parity1 only
         case 'check Q': 	// Parity2 only
         case 'check P Q':	// Parity1 and parity2
-        				return (($correcting == 0) ? _('Non-Correcting Parity Check') : _('Correcting Parity Check'));
+        				return (($correcting == 0) ? _('Non-Correcting') : _('Correcting') . ' ' . _('Parity Check'));
         default:        return sprintf(_('unknown action: %s'), $action);
+    }
+}
+
+// Determine if the current time is within a period where we expect this plugin to be active
+
+function isParityCheckActivePeriod() {
+    global $parityTuningCfg;
+    $resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
+    $pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
+    $currentTime = (date("H") * 60) + date("i");
+    if ($pauseTime > $resumeTime) {         // We need to allow for times panning midnight!
+        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime);
+    } else {
+        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime);
     }
 }
 
@@ -760,50 +850,19 @@ function parityTuningLogger($string) {
 
 // Write message to syslog if debug or testing logging active
 function parityTuningLoggerDebug($string) {
-  global $parityTuningCfg, $argv;
-  $string = str_replace("'","",$string);
-  if (! ($parityTuningCfg['parityTuningDebug'] === "no")) {
-  	$cmd = 'logger -t "' . basename($argv[0]) . '" "DEBUG: '  . $string . '"';
-   	shell_exec($cmd);
+  global $cfgDebug;
+  if (! $cfgDebug) {
+  	parityTuningLogger('DEBUG: ' . $string);
   }
 }
 
 // Write message to syslog if testing logging active
 function parityTuningLoggerTesting($string) {
-  global $parityTuningCfg, $argv;
-  $string = str_replace("'","",$string);
-  if ($parityTuningCfg['parityTuningDebug'] === "test") {
-  	$cmd = 'logger -t "' . basename($argv[0]) . '" "TESTING: '  . $string . '"';
-  	shell_exec($cmd);
+  global $cfgTesting;
+  if ($cfgTesting) {
+  	parityTuningLogger('TESTING: ' . $string);
   }
 }
 
-// Determine if the current time is within a period where we expect this plugin to be active
-function isParityCheckActivePeriod() {
-    global $parityTuningCfg;
-    $resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
-    $pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
-    $currentTime = (date("H") * 60) + date("i");
-    if ($pauseTime > $resumeTime) {         // We need to allow for times panning midnight!
-        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime);
-    } else {
-        return ($currentTime > $resumeTime) && ($currentTime < $pauseTime);
-    }
-}
 
-// Useful matching functions
-
-function startsWith($haystack, $beginning, $caseInsensitivity = false){
-    if ($caseInsensitivity)
-        return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
-    else
-        return strncmp($haystack, $beginning, strlen($beginning)) === 0;
-}
-
-function endsWith($haystack, $ending, $caseInsensitivity = false){
-    if ($caseInsensitivity)
-        return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
-    else
-        return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
-}
 ?>

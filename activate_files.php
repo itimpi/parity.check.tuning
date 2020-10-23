@@ -41,3 +41,4 @@ system ("chgrp -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
 system ("date");
 echo "files copied\n\n";
+?>

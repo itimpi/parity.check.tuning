@@ -71,3 +71,5 @@ testdata/case2/parity-checks.log.old
 testdata/case1/parity.check.tuning.progress.save
 testdata/case2/parity.check.tuning.progress.save
 source/usr/local/emhttp/plugins/parity.check.tuning/paritychecktuning.txt
+paritychecktuning.zip
+paritychecktuning.zip

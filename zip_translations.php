@@ -34,13 +34,16 @@ if (empty($files)) {
 } else {
     $plugin = preg_replace('/\\.[^.\\s]{3,4}$/', '', basename($files[0]));;
     echo "\nPLUGIN: $plugin\n";
+    echo "\n$plugin\n" . str_repeat('-', strlen($plugin)) . "\n";
 }
 
-// current script directory
+// Tigy up name of translations file
+$transName = str_replace(".","","$plugin");
+$transName = str_replace("-","","$transName");
+$transName = strtowlower( $transName);
 
-$zipfile = new ZipArchive();
-$zipfile->open("$plugin.zip", ZIPARCHIVE::CREATE);
-$zipfile->addFile("$plugin.txt");
-$zipfile->close();
-echo ("\nCreated $plugin.zip\n");
-echo ("You can now use Developer mode in Tools->Language to load this into a running Unraid 6.9.0 (or later) system\n");
+// Create zip
+@unlink ("$transName.zip");
+passthru ("zip -v \"$transName.zip\" \"$transName.txt\"");
+echo ("\nCreated $transName.zip\n");
+echo ("You can now use Developer mode in Tools->Language to load this into a running Unraid 6.9.0 (or later) system\n\n");

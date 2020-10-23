@@ -59,7 +59,25 @@ if (file_exists($parityTuningCfgFile)) {
     $parityTuningCfg['parityTuningHeat']         = "no";
     $parityTuningCfg['parityTuningHeatHigh']     = "3";
     $parityTuningCfg['parityTuningHeatLow']      = "8";
-
+    $parityTuningCfg['parityTuningHeatShutdown'] = "no";
+    $parityTuningCfg['parityTuningHeatCritical'] = "0";
     $parityTuningCfg['parityTuningDebug']        = "no";
 }
+
+// Useful matching functions
+
+function startsWith($haystack, $beginning, $caseInsensitivity = false){
+    if ($caseInsensitivity)
+        return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
+    else
+        return strncmp($haystack, $beginning, strlen($beginning)) === 0;
+}
+
+function endsWith($haystack, $ending, $caseInsensitivity = false){
+    if ($caseInsensitivity)
+        return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
+    else
+        return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
+}
+
 ?>
