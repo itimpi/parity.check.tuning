@@ -29,6 +29,7 @@ $parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 // Get configuration information
 if (file_exists($parityTuningCfgFile)) {
 
+    $parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
     // Set defaults for those upgrading from an earlier release for new options
     if (! array_key_exists('parityTuningHeatHigh',$parityTuningCfg)) {
       $parityTuningCfg['parityTuningHeatHigh']     = 3;
