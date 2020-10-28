@@ -25,10 +25,10 @@ High disk temperatures can shutdown server=
 Shutdown server at=
 Parity Check Tuning debug logging=
 Testing=
-Requires Unraid 67 or later=Requires Unraid 6.7 or late
+Requires Unraid 67 or later=Requires Unraid 6.7 or later=
 ParityRead-Check History=Parity/Read-Check History=
 Click to show parity-check history=
-unknown action %s=unknown action: %s
+Unknown action=
 Elapsed Time=
 Increments=
 Parity Sync=

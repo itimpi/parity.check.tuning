@@ -55,12 +55,17 @@ $parityTuningPausedFile    = "$parityTuningBootDir/$parityTuningPlugin.paused";
 $parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";
 $parityTuningCriticalFile  = "$parityTuningBootDir/$parityTuningPlugin.critical";
 $dateformat = 'Y M d H:i:s';
-$cfgShutdown = ($parityTuningCfg['parityTuningHeatShutdown'] === 'yes');
-$cfgHeat     = ($parityTuningCfg['parityTuningHeat'] === 'yes');
-$cfgTesting  = ($parityTuningCfg['parityTuningDebug'] === "test");
-$cfgDebug    = ($parityTuningCfg['parityTuningDebug'] === "yes");
+$cfgIncrements  = ($parityTuningCfg['parityTuningIncrements'] === "yes");
+$cfgUnscheduled = ($parityTuningCfg['parityTuningUnscheduled'] === "yes");
+$cfgRecon       = ($parityTuningCfg['parityTuningRecon'] === "yes");
+$cfgClear       = ($parityTuningCfg['parityTuningClear'] === "yes");
+$cfgRestart     = ($parityTuningCfg['parityTuningRestart'] === "yes");
+$cfgShutdown    = ($parityTuningCfg['parityTuningHeatShutdown'] === 'yes');
+$cfgHeat        = ($parityTuningCfg['parityTuningHeat'] === 'yes');
+$cfgTesting     = ($parityTuningCfg['parityTuningDebug'] === "test");
+$cfgDebug       = ($parityTuningCfg['parityTuningDebug'] === "yes") || $cfgTesting;
 
-// List of fields we save ofr progress.
+// List of fields we save for progress.
 // Might not all be needed but better to have more information than necessary
 $progressfields = array('sbSynced','sbSynced2','sbSyncErrs','sbSyncExit',
                        'mdState','mdResync','mdResyncPos','mdResyncSize','mdResyncCorr','mdResyncAction' );
@@ -112,7 +117,7 @@ switch ($command) {
         } else {
             $lines = [];
             $lines[] = "\n# Generated schedules for $parityTuningPlugin\n";
-            if ($parityTuningCfg['parityTuningIncrements'] == "yes") {
+            if ($cfgIncrements) {
                 if ($parityTuningCfg['parityTuningFrequency'] == 'custom') {
                     $resumetime = $parityTuningCfg['parityTuningResumeCustom'];
                     $pausetime  = $parityTuningCfg['parityTuningPauseCustom'];
@@ -299,7 +304,6 @@ switch ($command) {
         parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives)));
         if ($running) {
         	// Check if we need to pause because at least one drive too hot
-
             if (count($hotDrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s %s',actionDescription(), _('with all drives below temperature threshold for a Pause')));
             } else {
@@ -821,7 +825,7 @@ function actionDescription() {
         case 'check Q': 	// Parity2 only
         case 'check P Q':	// Parity1 and parity2
         				return (($correcting == 0) ? _('Non-Correcting') : _('Correcting') . ' ' . _('Parity Check'));
-        default:        return sprintf(_('unknown action: %s'), $action);
+        default:        return sprintf('%s: %s',_('Unknown action'), $action);
     }
 }
 
@@ -851,7 +855,7 @@ function parityTuningLogger($string) {
 // Write message to syslog if debug or testing logging active
 function parityTuningLoggerDebug($string) {
   global $cfgDebug;
-  if (! $cfgDebug) {
+  if ($cfgDebug) {
   	parityTuningLogger('DEBUG: ' . $string);
   }
 }

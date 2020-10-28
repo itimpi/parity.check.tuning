@@ -398,8 +398,9 @@ _(High disk temperatures can shutdown server)_:
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "yes", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "no", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeat'], "no", _("Disabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeat'], "yes", _("Enabled")) . "\n"?>
+
   </select>
 
 :parity_tune_shutdown_plug:
