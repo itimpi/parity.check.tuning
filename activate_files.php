@@ -39,6 +39,8 @@ system ("cp -v -r -u source/* /");
 system ("chown -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chgrp -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
+system ("cp -v -r -u *.txt /usr/local/emhttp//languages/en_US");
+system ("chmod -c 644 /usr/local/emhttp//languages/en_US/*.txt");
 system ("date");
 echo "files copied\n\n";
 ?>

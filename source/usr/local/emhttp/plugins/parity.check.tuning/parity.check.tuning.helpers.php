@@ -26,43 +26,40 @@ $parityTuningCfgFile    = "$parityTuningBootDir/$parityTuningPlugin.cfg";
 $parityTuningEmhttpDir  = "$emhttpDir/plugins/$parityTuningPlugin";
 $parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 
-// Get configuration information
-if (file_exists($parityTuningCfgFile)) {
+$dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
+$tempUnit = $dynamixCfg['display']['unit'];
 
-    $parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
-    // Set defaults for those upgrading from an earlier release for new options
-    if (! array_key_exists('parityTuningHeatHigh',$parityTuningCfg)) {
-      $parityTuningCfg['parityTuningHeatHigh']     = 3;
-    }
-    if (! array_key_exists('parityTuningHeatLow',$parityTuningCfg)) {
-      $parityTuningCfg['parityTuningHeatLow']      = 8;
-    }
-    if (! array_key_exists('parityTuningResumeCustom',$parityTuningCfg)) {
-      $parityTuningCfg['parityTuningResumeCustom'] = '15 0 * * *';
-    }
-    if (! array_key_exists('parityTuningPauseCustom',$parityTuningCfg)) {
-      $parityTuningCfg['parityTuningPauseCustom']  = '30 3 * * *';
-    }
-}  else {
-    // If no config file exists set up defaults
-    $parityTuningCfg = array('ParityTuningDebug' => "no");
-    $parityTuningCfg['parityTuningIncrements']   = "no";
-    $parityTuningCfg['parityTuningFrequency']    = "daily";
-    $parityTuningCfg['parityTuningUnscheduled']  = "no";
-    $parityTuningCfg['parityTuningRecon']        = "no";
-    $parityTuningCfg['parityTuningClear']        = "no";
-    $parityTuningCfg['parityTuningRestart']      = "no";
-    $parityTuningCfg['parityTuningResumeHour']   = "0";
-    $parityTuningCfg['parityTuningResumeMinute'] = "15";
-    $parityTuningCfg['parityTuningPauseHour']    = "3";
-    $parityTuningCfg['parityTuningPauseMinute']  = "30";
+// Configuration information
 
-    $parityTuningCfg['parityTuningHeat']         = "no";
-    $parityTuningCfg['parityTuningHeatHigh']     = "3";
-    $parityTuningCfg['parityTuningHeatLow']      = "8";
-    $parityTuningCfg['parityTuningHeatShutdown'] = "no";
-    $parityTuningCfg['parityTuningHeatCritical'] = "0";
-    $parityTuningCfg['parityTuningDebug']        = "no";
+if (! $parityTuningCfg = parse_ini_file("$parityTuningCfgFile")) {
+	$parityTuningCfg = array();
+}
+// Set defaults for any missing values
+setCfgValue('ParityTuningDebug', 'no');
+setCfgValue('parityTuningIncrements', 'no');
+setCfgValue('parityTuningFrequency', 'daily');
+setCfgValue('parityTuningUnscheduled', 'no');
+setCfgValue('parityTuningRecon', 'no');
+setCfgValue('parityTuningClear', 'no');
+setCfgValue('parityTuningRestart', 'no');
+setCfgValue('parityTuningResumeHour', '0');
+setCfgValue('parityTuningResumeMinute', '15');
+setCfgValue('parityTuningPauseHour', '3');
+setCfgValue('parityTuningPauseMinute', '30');
+setCfgValue('parityTuningResumeCustom', '15 0 * * *');
+setCfgValue('parityTuningPauseCustom', '30 3 * * *');
+setCfgValue('parityTuningHeat', 'no');
+setCfgValue('parityTuningHeatHigh','3');
+setCfgValue('parityTuningHeatLow','8');
+setCfgValue('parityTuningHeatShutdown', 'no');
+setCfgValue('parityTuningHeatCritical', '1');
+
+// Set a value if not already set
+function setCfgValue ($key, $value) {
+	global $parityTuningCfg;
+	if (! array_key_exists($key,$parityTuningCfg)) {
+	    $parityTuningCfg[$key] = $value;
+	}
 }
 
 // Useful matching functions

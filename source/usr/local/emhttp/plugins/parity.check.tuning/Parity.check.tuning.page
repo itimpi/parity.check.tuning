@@ -119,7 +119,6 @@ function checkCustom(fld) {
 
 function checkNotifications (me) {
 <? 
-$dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true); 
 if ($dynamixCfg['notify']['system'] == "" ) { ?>
     swal({title:"_(Notifications not enabled)_ ",
           text:"_('Before you can set this option to Yes you must first have enabled system notifications')_.",
@@ -200,7 +199,7 @@ _(Run scheduled Parity Checks in increments)_:
   </select><?  if ($noParity) echo "<font color=\"orange\">_(You require a parity disk present to be able to use all options)_</font>"; ?>
 
 :parity_tune_explain_plug:
-> This main reason for this plugin is to allow you to limit parity checks (to running at times that will not inconvenience you.<br>Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.<br><br>If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them them.<br><br>As an example of what this plugin can do assume:<br>- You have a parity check you have scheduled to start on the first of every month at midnight<br>- Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.<br>- You set this plugin to use 3 hour increments starting at midnight and finishing at 3.00 A.M.<br>- The parity check will now actually take 10 days elapsed time (10 x 3 = 30) so the parity check will complete on 10th of the month.<br>- You have scheduled these increments to run starting at midnight and finishing at 3:00 A.M. when you know the system is not being used.<br>- ou are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.<br>>-The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an incremenet comes around.<br><br>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning
+> This main reason for this plugin is to allow you to limit parity checks (to running at times that will not inconvenience you.<br>Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.<br><br>If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.<br><br>As an example of what this plugin can do assume:<br>- You have a parity check you have scheduled to start on the first of every month at midnight<br>- Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.<br>- You set this plugin to use 3 hour increments starting at midnight and finishing at 3.00 A.M.<br>- The parity check will now actually take 10 days elapsed time (10 x 3 = 30) so the parity check will complete on 10th of the month.<br>- You have scheduled these increments to run starting at midnight and finishing at 3:00 A.M. when you know the system is not being used.<br>- ou are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.<br>>-The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.<br><br>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning
 :end
 
 _(Increment frequency)_:
@@ -255,7 +254,7 @@ _(Increment resume time)_:
 </span>
 
 :parity_tune_resume_plug:
-> The time at which a paused parity check should be resumed.<br>If no parity check is currently paused when this time comes around then no action will be taken.<br><br>Typically this time would be set to be the start of an idle period overnight.   An appropriate value might be to use the same time that you have specified for a scheduled parity check to start.<br><br>If the increment period has been set to <strong>Custom</strong> then the hours/minites fields are hidden and you are instead given the option to set the time in <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> format.
+> The time at which a paused parity check should be resumed.<br>If no parity check is currently paused when this time comes around then no action will be taken.<br><br>Typically this time would be set to be the start of an idle period overnight.   An appropriate value might be to use the same time that you have specified for a scheduled parity check to start.<br><br>If the increment period has been set to <strong>Custom</strong> then the hours/minutes fields are hidden and you are instead given the option to set the time in <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> format.
 :end
 
 _(Increment pause time)_:
@@ -361,7 +360,7 @@ _(Pause an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $dynamixCfg['display']['unit'] ?> below warning disk temperature threshold
+         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $tempUnit ?> below warning disk temperature threshold
 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.<br>You normally want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature warning threshold has been reached for a disk.<br><br>If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.<br><br>If there is no active array operation then no action will be taken even if disk temperatures exceed the specified threshold.<br><br> If there is no running array operation then no action will be taken.
@@ -372,7 +371,7 @@ _(Resume an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $dynamixCfg['display']['unit'] ?> _(below warning disk temperature)_ threshold
+         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $tempUnit ?> _(below warning disk temperature)_ threshold
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.<br>You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.<br><br>If a disk ever gets spun down the temperature is not readily available so it will be assumed that this criteria has been met<br><br>If there is no paused array operation then no action will be taken. 
@@ -387,7 +386,7 @@ _(Send notifications for temperature related Pause or Resume)_:
   </select>
 
 :parity_tune_temp_notify_plug:
-> Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**.    The notifcation is sent as a **Notice**> category message to the targets specified under <a href="Settings/Notifications">Settings->Notification Settings</a>.
+> Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**.    The notification is sent as a **Notice**> category message to the targets specified under <a href="Settings/Notifications">Settings->Notification Settings</a>.
 :end
 
 &nbsp;
@@ -398,23 +397,23 @@ _(High disk temperatures can shutdown server)_:
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "no", _("Disabled")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "yes", _("Enabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "no", _("Disabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "yes", _("Enabled")) . "\n"?>
 
   </select>
 
 :parity_tune_shutdown_plug:
-> If set to **Yes''** then automatically start a tidy shutdown of the server if any disk in tha array or a cache pool reach the defined temperature threshold.<br>The temperatures are checked against the thresholds set for the **Critical** disk temperature levels. If a Critical temperature has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via Settings->Display Settings) will be used.<br><br>This opion intended to be triggered if for some reason the system's cooling system is insufficient or if it has failed in some way. The idea is that you want to do a tidy shutdown before the disks become damaged due to overheating badly.   The shutdown that is triggered is functionally the same as would be the case of pressing the Shutdown button on the Main page of the Unraid GUI.  If notifications are enabled then you are sent one to indicate that this has happened.<br><br>When the server is started up again after such a shudown then when the array is started you will be notified that a temperature related shutdown happened in case you were not aware of the reason.<br><br>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.
+> If set to **Yes''** then automatically start a tidy shutdown of the server if any disk in the array or a cache pool reach the defined temperature threshold.<br>The temperatures are checked against the thresholds set for the **Critical** disk temperature levels. If a Critical temperature has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via Settings->Display Settings) will be used.<br><br>This option intended to be triggered if for some reason the system's cooling system is insufficient or if it has failed in some way. The idea is that you want to do a tidy shutdown before the disks become damaged due to overheating badly.   The shutdown that is triggered is functionally the same as would be the case of pressing the Shutdown button on the Main page of the Unraid GUI.  If notifications are enabled then you are sent one to indicate that this has happened.<br><br>When the server is started up again after such a shutdown then when the array is started you will be notified that a temperature related shutdown happened in case you were not aware of the reason.<br><br>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.
 :end
 
 _(Shutdown server at)_:
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
            type='text'
-           value="<?=$parityTuningCfg['parityTuningHeatCritical'] ?? '1'?>">&deg;<?= $dynamixCfg['display']['unit'] ?> below critical disk temperature threshold
+           value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $tempUnit ?> below critical disk temperature threshold
   
 :parity_tune_critical_plug:
-> This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shegdown of the server is triggered.<br>You may want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.<br><br>If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
+> This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shutdown of the server is triggered.<br>You may want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.<br><br>If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
 
 
@@ -430,7 +429,7 @@ _(Parity Check Tuning debug logging)_:
   </select>
 
 :parity_tune_debug_plug:
-> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from **Parity Check Tuning**.   With the **Disabled** option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to **Enabled** will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of how the plugin is functioning. These additional entries are identified by the fact that they will have the word **DEBUG** added to the start of messages.  Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running<br><br>Finally there is an additional setting of **Testing** that is only intended for use by the developer but is left here for convenience.  It will write even more verbose messages to the syslog but these are not likely to be interesting (or even meaningful) to the avaerage user.  These messages will have the word **TESTING** added to the start of messages. <br><br>Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
+> Write more verbose entries to the syslog file to help with debugging any problems using this plugin might encounter.<br><br>Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from **Parity Check Tuning**.   With the **Disabled** option set these will only be a small number of messages indicating that this plugin has taken some action.<br><br>Setting this option to **Enabled** will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of how the plugin is functioning. These additional entries are identified by the fact that they will have the word **DEBUG** added to the start of messages.  Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running<br><br>Finally there is an additional setting of **Testing** that is only intended for use by the developer but is left here for convenience.  It will write even more verbose messages to the syslog but these are not likely to be interesting (or even meaningful) to the average user.  These messages will have the word **TESTING** added to the start of messages. <br><br>Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
 :end
 
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 

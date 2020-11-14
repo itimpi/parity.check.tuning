@@ -136,7 +136,7 @@ switch ($command) {
                 parityTuningLoggerDebug (_('created cron entries for running increments'));
             }
             if ($cfgHeat || $cfgShutdown) {
-                $lines[] = "*/5 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 5 minutes for temperature
+                $lines[] = "/6 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 6 minutes for temperature
                 parityTuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
             }
             file_put_contents($parityTuningCronFile, $lines);
@@ -218,7 +218,7 @@ switch ($command) {
         $driveCount = 0;
         $arrayCount = 0;
         $status = '';
-		$cfgCritical = $parityTuningCfg['parityTuningHeatCritical'] ?? 1;		// defaults to 1 if not set
+		$cfgCritical = $parityTuningCfg['parityTuningHeatCritical'];
 		$cfgHigh     = $parityTuningCfg['parityTuningHeatHigh'];
 	    $cfgLow      = $parityTuningCfg['parityTuningHeatLow'];
         parityTuningLoggerTesting (sprintf('plugin temperature settings: pause=%s, resume=%s',$cfgHigh, $cfgLow)
@@ -249,12 +249,12 @@ switch ($command) {
 				//  Check all array and cache drives for critical temperatures
 				//  TODO: find way to include unassigned devices?
 				if ((($temp != "*" )) && ($temp >= $critical)) {
-					parityTuningLoggerTesting(sprintf('Drive %s appears to be critical', $temp));
+					parityTuningLoggerTesting(sprintf('Drive %s%s appears to be critical', $temp, $tempUnit));
 					$criticalDrives[$name] = $temp;
 					$status = 'critical';
 				}
-                parityTuningLoggerTesting (sprintf('%s temp=%s, status=%s (drive settings: hot=%s, cool=%s',$name, $temp, $status, $hot, $cool)
-                						   . ($cfgShutdown ? sprintf(', critical=%s',$critical) : ''). ')');
+                parityTuningLoggerTesting (sprintf('%s temp=%s%s, status=%s (drive settings: hot=%s%s, cool=%s%s',$name, $temp, $tempUnit, $status, $hot, $tempUnit, $cool, $tempUnit)
+                						   . ($cfgShutdown ? sprintf(', critical=%s%s',$critical, $tempUnit) : ''). ')');
             }
         }
 
@@ -348,7 +348,7 @@ switch ($command) {
                     parityTuningLoggerDebug(sprintf('... %s %s', actionDescription(), _('already running')));
                     if (! file_exists($parityTuningProgressFile)) parityTuningProgressWrite('MANUAL');
                 } else {
-                    sendArrayNotification('Scheduled resume');
+                    sendArrayNotification(isParityCheckActivePeriod() ? _('Scheduled resume') : _('Resumed'));
                     exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                     loadVars(5);         // give time for resume
                     parityTuningProgressWrite('RESUME');            // We want state after resume has started
@@ -367,7 +367,7 @@ switch ($command) {
                     parityTuningProgressWrite('PAUSE');         // We want state before pause occurs
                     exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
                     loadVars(5);         // give time for pause
-                    sendArrayNotification (_('Scheduled pause'));
+                    sendArrayNotification (isParityCheckActivePeriod() ? _('Scheduled pause') : _('Paused'));
                 }
             }
         }
@@ -510,9 +510,10 @@ function spacerDebugLine($start = true) {
 }
 
 function listDrives($drives) {
+	global $tempUnit;
 	$msg = '';
     foreach ($drives as $key => $value) {
-        $msg .= $key . '(' . $value . ') ';
+        $msg .= $key . '(' . $value . $tempUnit . ') ';
     }
     return $msg;
 }
@@ -784,12 +785,12 @@ function sendTempNotification ($op, $desc, $type = 'normal') {
 // Confirm that action is valid according to user settings
 
 function configuredAction() {
-    global $action, $parityTuningCfg,$parityTuningScheduledFile;
-    if (startsWith($action,'recon') && ($parityTuningCfg['parityTuningRecon'] == 'yes')) {
+    global $action, $parityTuningScheduledFile, $cfgRecon, $cfgClear, $cfgUnscheduled;
+    if (startsWith($action,'recon') && $cfgRecon) {
         parityTuningLoggerDebug('...configured action for ' . actionDescription());
         return true;
     }
-    if (startsWith($action,'clear') && ($parityTuningCfg['parityTuningClear'] == 'yes')) {
+    if (startsWith($action,'clear') && $cfgClear) {
         parityTuningLoggerDebug('...configured action for ' . actionDescription());
         return true;
     }
@@ -798,14 +799,14 @@ function configuredAction() {
             parityTuningLoggerDebug('...configured scheduled action for ' . actionDescription());
             return true;
         }
-        if ($parityTuningCfg['parityTuningUnscheduled'] == 'yes') {
+        if ($cfgUnscheduled) {
             parityTuningLoggerDebug('...configured ununscheduled action for ' . actionDescription());
             return true;
         }
     }
     parityTuningLoggerDebug('...action not configured for'
                             . (startsWith($action,'check') ? ' manual ' : ' ')
-                            . actionDescription(). ' ' . $action);
+                            . actionDescription(). ' (' . $action . ')');
     return false;
 }
 
@@ -813,17 +814,12 @@ function configuredAction() {
 
 function actionDescription() {
     global $action, $correcting;
-    switch ($action) {
-        case 'recon':
-        case 'recon P':   	// Parity 1 only
-        case 'recon Q':   	// Parity 2 only
-        case 'recon P Q':   // Parity 1 and parity 2
+    $act = explode(' ', $action );
+    switch ($act[0]) {
+        case 'recon':	// TODO use extra array entries to decide if disk rebuild in progress or merely parity sync
         				return _('Parity Sync') . '/' . _('Data Rebuild');
-        case 'clear':   	return _('Disk Clear');
-        case 'check':   	return _('Read Check');
-        case 'check P': 	// Parity1 only
-        case 'check Q': 	// Parity2 only
-        case 'check P Q':	// Parity1 and parity2
+        case 'clear':   return _('Disk Clear');
+        case 'check':   if (count($act) == 1) return _('Read Check');
         				return (($correcting == 0) ? _('Non-Correcting') : _('Correcting') . ' ' . _('Parity Check'));
         default:        return sprintf('%s: %s',_('Unknown action'), $action);
     }
