@@ -136,7 +136,7 @@ switch ($command) {
                 parityTuningLoggerDebug (_('created cron entries for running increments'));
             }
             if ($cfgHeat || $cfgShutdown) {
-                $lines[] = "/6 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 6 minutes for temperature
+                $lines[] = "*/7 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";	// Every 7 minutes for temperature
                 parityTuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
             }
             file_put_contents($parityTuningCronFile, $lines);
