@@ -13,7 +13,7 @@
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
  *
- * Limetech is given expliit permission to use this code in any way they like.
+ * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -37,13 +37,14 @@ if (empty($files)) {
     echo "\n$plugin\n" . str_repeat('-', strlen($plugin)) . "\n";
 }
 
-// Tigy up name of translations file
+// Tidy up name of translations file
 $transName = str_replace(".","","$plugin");
 $transName = str_replace("-","","$transName");
-$transName = strtowlower( $transName);
+$transName = strtolower( $transName);
 
 // Create zip
 @unlink ("$transName.zip");
-passthru ("zip -v \"$transName.zip\" \"$transName.txt\"");
+// passthru ("zip -v \"$transName.zip\" \"$transName.txt\"");
+passthru ("zip -v \"$transName.zip\" *.txt");
 echo ("\nCreated $transName.zip\n");
 echo ("You can now use Developer mode in Tools->Language to load this into a running Unraid 6.9.0 (or later) system\n\n");

@@ -129,7 +129,7 @@ switch ($command) {
                 }
                 $lines[] = $resumetime . " $parityTuningPhpFile \"resume\" &> /dev/null\n";
                 $lines[] = $pausetime  . " $parityTuningPhpFile \"pause\" &> /dev/null\n";
-                if (!$cfgHeat && !cfgShutdown) {
+                if (!$cfgHeat && !$cfgShutdown) {
                   // Once an hour for parity checks if not monitoring more frequently for temperature
                   $lines[] = "17 * * * * $parityTuningPhpFile \"monitor\" &>/dev/null\n";
                 }
