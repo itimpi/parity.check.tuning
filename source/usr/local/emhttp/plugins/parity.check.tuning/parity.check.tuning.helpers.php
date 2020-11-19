@@ -31,7 +31,9 @@ $tempUnit = $dynamixCfg['display']['unit'];
 
 // Configuration information
 
-if (! $parityTuningCfg = parse_ini_file("$parityTuningCfgFile")) {
+if (file_exists("$parityTuningCfgFile")) {
+	$parityTuningCfg = parse_ini_file("$parityTuningCfgFile");
+} else {
 	$parityTuningCfg = array();
 }
 // Set defaults for any missing values
