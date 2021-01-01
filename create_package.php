@@ -82,7 +82,7 @@ foreach ($in as $inl)
         echo 'Updating VERSION to "' . $ver . "\"\n";
         fputs($out,substr($inl,0,18) . $ver . "\">\n");
     } elseif (startsWith($inl,'<!ENTITY md5 ')) {
-        echo 'Updating MD5 to "' . strtok($md5, " ") . "\"\n";
+        echo "Updating MD5 to \"" . strtok($md5, " ") . "\"\n";
         fputs($out,substr($inl,0, 13) . '"' . strtok ($md5, " ") . "\">\n");
     } elseif (! $skipping) {
         fputs ($out, $inl);

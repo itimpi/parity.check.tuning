@@ -34,13 +34,13 @@ if (empty($files)) {
     echo "\nPLUGIN: $plugin\n";
 }
 
-echo "copying files from 'source' to runtime position\n";
+echo "\nINFO: Copying files from 'source' to runtime position\n";
 system ("cp -v -r -u source/* /");
 system ("chown -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chgrp -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
 // set up files for English multi-landuage support
-$dir="/usr/local/emhttp//languages/en_US";
+$dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
     system ("cp -v -r -u *.txt $dir");
     system ("chmod -c 644 $dir/*.txt");
@@ -49,10 +49,12 @@ if (file_exists($dir)) {
 $ver = date("Y.m.d");
 $pkg = "$plugin-$ver";
 if (file_exists("archives/$pkg.txz")) {
+	echo "\nINFO: Updating flash drive\n";
+    system ("rm -vf /boot/config/plugins/$plugin/*.tgz");
     system ("cp -v -r -u archives/$pkg.txz /boot/config/plugins/$plugin");
     system ("cp -v -r -u archives/$pkg.plg /boot/config/plugins/$plugin.plg");
 }
-
+echo "\n";
 system ("date");
-echo "files copied\n\n";
+echo "INFO: Files copied\n\n";
 ?>

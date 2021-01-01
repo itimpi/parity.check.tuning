@@ -1,6 +1,6 @@
 <?PHP
 /*
- * Helper routines used by the parity.check.tining plugin
+ * Helper routinesieg used by the parity.check.tining plugin
  *
  * Copyright 2019-2020, Dave Walker (itimpi).
  *
@@ -13,6 +13,14 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+
+if (file_exists('/var/local/emhttp/disks.ini')) {
+	$diskp=parse_ini_file('/var/local/emhttp/disks.ini', true);
+	$noParity = ($diskp['parity']['status']=='DISK_NP_DSBL') && ($diskp['parity2']['status']=='DISK_NP_DSBL');
+} else {
+	parityTuningLoggerTesting('System appears to still be initialising - exiting');
+	exit(0);
+}
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -29,6 +37,12 @@ $parityTuningPhpFile    = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $tempUnit = $dynamixCfg['display']['unit'];
 
+
+// Handle Unraid version dependencies
+$unraid = parse_ini_file("/etc/unraid-version");
+$cfgVersionOK = (version_compare($unraid['version'],'6.7','>') >= 0);
+$cfgRestartOK = (version_compare($unraid['version'],'6.9.0-rc1','>') > 0);
+
 // Configuration information
 
 if (file_exists("$parityTuningCfgFile")) {
@@ -36,7 +50,7 @@ if (file_exists("$parityTuningCfgFile")) {
 } else {
 	$parityTuningCfg = array();
 }
-// Set defaults for any missing values
+// Set defaults for any missing/new values
 setCfgValue('ParityTuningDebug', 'no');
 setCfgValue('parityTuningIncrements', 'no');
 setCfgValue('parityTuningFrequency', 'daily');
@@ -63,6 +77,7 @@ function setCfgValue ($key, $value) {
 	    $parityTuningCfg[$key] = $value;
 	}
 }
+
 
 // Useful matching functions
 

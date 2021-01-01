@@ -12,4 +12,4 @@
 # all copies or substantial portions of the Software.
 
 /usr/bin/php "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.php" "array_started"
- 
+exit 0 
