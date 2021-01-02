@@ -886,12 +886,15 @@ function parityTuningProgressAnalyze() {
 		file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
 		file_put_contents($parityLogFile,$lines);
 		// send Notification about data written to history file
-		sendNotification(sprintf(_('%s %s (%d errors)'), actionDescription($mdResyncAction, $mdResyncCorr) ,
-									(file_exists($parityTuningUncleanFile) ? _('aborted due to Unclean shutdown') : _('finished')), $corrected),
-									sprintf(_('%s %s, %s %s, %s %d, %s %s'),_('Elapsed Time'),his_duration($elapsed),
-																			_('Runtime'), his_duration($duration),
-																			_('Increments'), $increments,
-																			_('Average Speed'),$speed));
+		sendNotification(sprintf(_('%s %s (%d errors)'),
+							 		actionDescription($mdResyncAction, $mdResyncCorr) ,
+								 	(file_exists($parityTuningUncleanFile) ? _('aborted due to Unclean shutdown') : _('finished')),
+								 	$corrected),
+						 sprintf(_('%s %s, %s %s, %s %d, %s %s'),
+						 			_('Elapsed Time'),his_duration($elapsed),
+									_('Runtime'), his_duration($duration),
+									_('Increments'), $increments,
+									_('Average Speed'),$speed));
 	}
 	spacerDebugLine(false, 'ANALYSE PROGRESS');
 }
@@ -932,15 +935,22 @@ function parityTuningProgressWrite($msg) {
     parityTuningLoggerTesting ('written ' . $msg . ' record to  ' . $parityTuningProgressFile);
 }
 
-// send a notification without checking if enabled.
+// send a notification without checking if enabled in plugin settings
+// (assuming even enabled at the system level)
 
 function sendNotification($msg, $desc = '', $type = 'normal') {
     global $emhttpDir;
-    parityTuningLogger (_('Sent notification') . ': ' . $msg .': ' . $desc);
-    $cmd = $emhttpDir . '/webGui/scripts/notify -e "Parity Check Tuning" -i ' . $type . (version_compare('6.8.3', $unraid, '>') ? ' -l "/Settings/Scheduler"' : '') . ' -s "'
-                    . $msg . '"' . (($desc == '') ? '' : ' -d "' . $desc . '"' );
-    parityTuningLoggerTesting ("... using $cmd");
-    exec ($cmd);
+    parityTuningLogger (_('Send notification') . ': ' . $msg . ': ' . $desc);
+    if ($dynamixCfg['notify']['system'] == "" ) {
+    	parityTuningLoggerTesting (_('... but suppressed as system notifications do not appear to be enabled'));
+    }
+        $cmd = $emhttpDir . '/webGui/scripts/notify -e "Parity Check Tuning" -i ' . $type
+	    				. (version_compare('6.8.3', $unraid, '>') ? ' -l "/Settings/Scheduler"' : '')
+	    				. ' -s "' . $msg . '"'
+	                    . (($desc == '') ? '' : ' -d "' . $desc . '"' );
+    	parityTuningLoggerTesting (_('... using ' . $cmd));
+    	exec ($cmd);
+    }
 }
 
 // send a notification without checking if enabled.  Always add point reached.
