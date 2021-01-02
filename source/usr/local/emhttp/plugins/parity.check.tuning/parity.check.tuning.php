@@ -98,7 +98,7 @@ switch ($command) {
     case 'updatecron':
         // This is called any time that the user has updated the settings for this plugin to reset any cron schedules.
         ParityTuningDeleteFile ($parityTuningCronFile);
-        if (($parityTuningCfg['parityTuningIncrements'] == "no") && (!cfgHeat)) {
+        if (($parityTuningCfg['parityTuningIncrements'] == "no") && (!$cfgHeat)) {
             parityTuningLoggerDebug(_("No cron events for this plugin are needed"));
         } else {
             $lines = [];
