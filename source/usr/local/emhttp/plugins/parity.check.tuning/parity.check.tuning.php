@@ -943,7 +943,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
     parityTuningLogger (_('Send notification') . ': ' . $msg . ': ' . $desc);
     if ($dynamixCfg['notify']['system'] == "" ) {
     	parityTuningLoggerTesting (_('... but suppressed as system notifications do not appear to be enabled'));
-    }
+    } else {
         $cmd = $emhttpDir . '/webGui/scripts/notify -e "Parity Check Tuning" -i ' . $type
 	    				. (version_compare('6.8.3', $unraid, '>') ? ' -l "/Settings/Scheduler"' : '')
 	    				. ' -s "' . $msg . '"'

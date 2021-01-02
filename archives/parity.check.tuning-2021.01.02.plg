@@ -260,6 +260,8 @@ The 'remove' script.
         echo "------------------------------------------"
       fi
     fi
+    # Remove option for CLI usage
+    rm -v /usr/local/bin/parity.check
     removepkg &plugin;-&version;
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&plugin;
