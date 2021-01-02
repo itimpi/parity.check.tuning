@@ -221,7 +221,7 @@ The 'post-install' script
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
-    echo " Copyright 2019-2020, Dave Walker (itimpi)"
+    echo " Copyright 2019-2021, Dave Walker (itimpi)"
     echo " Version: &version;"
     echo "----------------------------------------------------"
     echo ""
@@ -233,7 +233,8 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
   <INLINE>
-    rm /usr/local/bin/parity.check
+    # Remove option for CLI usage
+    rm -v /usr/local/bin/parity.check
     # We need to replace our customised mdcmd with the original version
     if [ -h /usr/local/sbin/mdcmd ]; then
       if [ -e /usr/local/sbin/mdcmd.orig ]; then
@@ -260,8 +261,7 @@ The 'remove' script.
         echo "------------------------------------------"
       fi
     fi
-    # Remove option for CLI usage
-    rm -v /usr/local/bin/parity.check
+    # final tidy up to remove last traces of plugin
     removepkg &plugin;-&version;
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&plugin;

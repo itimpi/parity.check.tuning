@@ -2,7 +2,7 @@
 /*
  * Helper routinesieg used by the parity.check.tining plugin
  *
- * Copyright 2019-2020, Dave Walker (itimpi).
+ * Copyright 2019-2021, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,

@@ -3,7 +3,7 @@
 /*
  * Script that is run to build the plugin package.
  *
- * Copyright 2019, Dave Walker (itimpi).
+ * Copyright 2019-2021, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,

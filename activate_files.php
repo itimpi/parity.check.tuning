@@ -5,7 +5,7 @@
 # package or commit any changes to gitHub.   Make testing increments easier.
 # (useful during testing)
 #
-# Copyright 2019, Dave Walker (itimpi).
+# Copyright 2019-2021, Dave Walker (itimpi).
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 2,
@@ -43,7 +43,7 @@ system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
 $dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
     system ("cp -v -r -u *.txt $dir");
-    system ("chmod -c 644 $dir/*.txt");
+    system ("chmod -c 644 $dir/*.txt");k
 }
 // Update flash if necessary
 $ver = date("Y.m.d");

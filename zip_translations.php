@@ -7,7 +7,7 @@
  * It zips up the English translation file so that you can install it using
  * Developer mode in the Tools->Languages section.
  *
- * Copyright 2020, Dave Walker (itimpi).
+ * Copyright 2020-2021, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,

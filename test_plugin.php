@@ -13,7 +13,7 @@
  * - Plugin file is located in the current folder with a name of the form <plugin-name>.plg
  * - CA template (if being used) is also in current folder named as <plugin-name>.xml
  *
- * Copyright 2019, Dave Walker (itimpi).
+ * Copyright 2019-2021, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,

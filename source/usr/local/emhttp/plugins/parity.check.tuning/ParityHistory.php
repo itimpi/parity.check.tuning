@@ -1,6 +1,7 @@
 <?PHP
 /* Copyright 2005-2020, Lime Technology
  * Copyright 2012-2020, Bergware International.
+ * Amendments Copyright 2019-2021, Dave Walker (itimpi)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
