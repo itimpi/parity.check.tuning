@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.01.01">
-<!ENTITY md5 "c916edc10019a0086da6206bb6a6152b">
+<!ENTITY version "2021.01.02">
+<!ENTITY md5 "a7add9f118e5349c4e1469364618bc86">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -24,6 +24,11 @@
 
 <CHANGES>
 
+###2021.01.02
+ - Fix: Regression to force execute permission on files used internally by plugin
+        (altnough not clear why this changed as should have been set correctly as part of package build))
+   Fix: Suppress all notifications if system notifications not enabled.
+ 
 ###2021.01.01
  - New: Resume previously running array operations when array started after a reboot or array stop/start (requires Unraid 6.9.0 rc1 or higher)
  - New: Add pause/resume for read checks when no parity disk present
@@ -197,7 +202,11 @@ The 'post-install' script
 -->
 <FILE Run="/bin/bash">
   <INLINE>
+    # Ensure permissons correct (not sure why needed as should already be OK, but apparently not the case)
+    chmod -R 755 /usr/local/emhttp/plugins/&plugin;
+    # Set up option for CLI usage
     ln /usr/local/emhttp/plugins/&plugin;/&plugin;.php /usr/local/bin/parity.check
+    # set up intial cron schedules
     /usr/local/emhttp/plugins/&plugin;/&plugin;.php "updatecron"
     # Replace the standard mdcmd one with our custom version
     if [ -f /usr/local/sbin/mdcmd ]; then
@@ -212,7 +221,7 @@ The 'post-install' script
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
-    echo " Copyright 2019-2020, Dave Walker (itimpi)"
+    echo " Copyright 2019-2021, Dave Walker (itimpi)"
     echo " Version: &version;"
     echo "----------------------------------------------------"
     echo ""
@@ -224,7 +233,8 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
   <INLINE>
-    rm /usr/local/bin/parity.check
+    # Remove option for CLI usage
+    rm -v /usr/local/bin/parity.check
     # We need to replace our customised mdcmd with the original version
     if [ -h /usr/local/sbin/mdcmd ]; then
       if [ -e /usr/local/sbin/mdcmd.orig ]; then
@@ -251,6 +261,7 @@ The 'remove' script.
         echo "------------------------------------------"
       fi
     fi
+    # final tidy up to remove last traces of plugin
     removepkg &plugin;-&version;
     rm -rf &plugdir;
     rm -rf /boot/config/plugins/&plugin;
