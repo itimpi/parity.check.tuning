@@ -14,6 +14,7 @@ Tag="gear"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+// error_reporting(E_ALL);
 
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';

@@ -43,7 +43,7 @@ system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
 $dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
     system ("cp -v -r -u *.txt $dir");
-    system ("chmod -c 644 $dir/*.txt");k
+    system ("chmod -c 644 $dir/*.txt");
 }
 // Update flash if necessary
 $ver = date("Y.m.d");

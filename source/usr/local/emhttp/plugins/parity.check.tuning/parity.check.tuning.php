@@ -22,6 +22,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+// error_reporting(E_ALL);
 
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
@@ -939,7 +940,7 @@ function parityTuningProgressWrite($msg) {
 // (assuming even enabled at the system level)
 
 function sendNotification($msg, $desc = '', $type = 'normal') {
-    global $emhttpDir;
+    global $emhttpDir, $dynamixCfg , $unraid;
     parityTuningLogger (_('Send notification') . ': ' . $msg . ': ' . $desc);
     if ($dynamixCfg['notify']['system'] == "" ) {
     	parityTuningLoggerTesting (_('... but suppressed as system notifications do not appear to be enabled'));
@@ -948,7 +949,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 	    				. (version_compare('6.8.3', $unraid, '>') ? ' -l "/Settings/Scheduler"' : '')
 	    				. ' -s "' . $msg . '"'
 	                    . (($desc == '') ? '' : ' -d "' . $desc . '"' );
-    	parityTuningLoggerTesting (_('... using ' . $cmd));
+    	parityTuningLoggerTesting (_('... using ') . $cmd);
     	exec ($cmd);
     }
 }
