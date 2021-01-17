@@ -36,27 +36,44 @@ You require a parity disk present for this option to be relevant=
 Your Unraid release is too old to use this option=
 
 ; PHP file messages
+action=
+Analyze results from an array operation=
 Array being shutdown due to drive overheating=
 Array operation will not be restarted=
 Array operation restarted=
 Array shutdown=
+Cancel a running parity check=
+Command Line was=
 Correcting=
 Detected a change to the disk configuration=
 Drives cooled down=
 Elapsed Time=
+ERROR=
 Following drives overheated=
 Increments=
 Non-Correcting=
+option not currently implemented=
+Pause a running array operation=
+Resume a paused array operation=
 Sent notification=
+Show the status of a running parity check=
+Start a correcting parity check=
+Start a non-correcting parity check=
+Start a parity check with scheduled settings-
 Starting Shutdown=
 Unclean shutdown detected=
 Unknown action=
+Unrecognised option=
+Usage=
+where action is one of=
 
 ; Notifications
+aborted=
 aborted due to Unclean shutdown=
 array stopping so progress will be lost=
 Automatic Unraid parity check will be started=
 Average Speed=
+cancelled=
 completed=
 Correcting Parity Check=
 Drives cooled down=

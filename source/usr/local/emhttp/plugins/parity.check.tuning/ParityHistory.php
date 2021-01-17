@@ -93,7 +93,7 @@ if (file_exists($log)) {
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
     if ($duration>0||$status<>0) {
     	$list[] = "<tr><td>$date</td><td>".his_duration($duration)."</td><td>$speed</td><td>"
-    			.($status==0?_('OK'):($status==-4?_('Canceled') . '&nbsp;':$status))."</td><td>$error</td>"
+    			.($status==0?_('OK'):($status==-4?_('Canceled'):($status==-5?_('Aborted'):'&nbsp;' . $status)))."</td><td>$error</td>"
                 .($extended?('<td>'.($elapsed==0?'Unknown':his_duration($elapsed)).'</td>'
                             .'<td>'.($increments==0?_('Unavailable'):$increments).'</td>'):'')
                 . "<td>$type</td>"

@@ -35,6 +35,7 @@ if (empty($files)) {
 // current script directory
 $cwd = dirname(__FILE__);
 chdir ($cwd);
+
 // Ensure permissions are correct for runtime use
 exec ("chown -R root *");
 exec ("chgrp -R root *");

@@ -34,16 +34,26 @@ if (empty($files)) {
     echo "\nPLUGIN: $plugin\n";
 }
 
+// Check that the plugin has actually been installed
+// If not create its working folder on the flash drive
+
+if (!is_dir("/boot/config/plugins/$plugin")) {
+    echo "\nERROR: $plugin is not currently installed\n";
+    exit (-1);
+}
+
 echo "\nINFO: Copying files from 'source' to runtime position\n";
 system ("cp -v -r -u source/* /");
 system ("chown -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chgrp -R root /usr/local/emhttp/plugins/$plugin/*");
 system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
+
 // set up files for English multi-landuage support
 $dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
-    system ("cp -v -r -u *.txt $dir");
-    system ("chmod -c 644 $dir/*.txt");
+    system ("cp -v -r -u *.txt $dir");		// Copy across new tranrlations file
+    system ("chmod -c 644 $dir/*.txt");		// set required permissions
+    system ("rm -v $dir/*.dot");			// remove .dot file to activate re-read of translations file
 }
 // Update flash if necessary
 $ver = date("Y.m.d");

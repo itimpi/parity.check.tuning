@@ -78,6 +78,29 @@ function setCfgValue ($key, $value) {
 	}
 }
 
+// load some state information.
+// (written as a function to facilitate reloads)
+function loadVars($delay = 0) {
+    if ($delay > 0) sleep($delay);
+
+	global $var, $pos, $size, $action, $parityTuningVarFile;
+    global $completed, $active, $running, $correcting;
+
+	if (! file_exists($parityTuningVarFile)) {		// Protection against running plugin while system initialising so this file not yet created
+		// parityTuningLoggerTesting("Trying to populate \$vars before $parityTuningVarFile created so ignored");
+		return;
+	}
+
+   	$var = parse_ini_file($parityTuningVarFile);
+
+    $pos    = $var['mdResyncPos'];
+    $size   = $var['mdResyncSize'];
+    $action = $var['mdResyncAction'];
+    $completed = sprintf(" (%s %s) ", (($size > 0) ? sprintf ("%.1f%%", ($pos/$size*100)) : '0%' ), _('completed'));
+    $active = ($pos > 0);                       // If array action is active (paused or running)
+    $running = ($var['mdResync'] > 0);          // If array action is running (i.e. not paused)
+    $correcting = $var['mdResyncCorr'];
+}
 
 // Useful matching functions
 
