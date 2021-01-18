@@ -473,6 +473,7 @@ run_pause:			// can jump here after a restart
     		$restartPos -= $adj;
     	}
 		$cmd = 'mdcmd check ' . ($restart['mdResyncCorr'] == 1 ? '' : 'NO') . 'CORRECT ' . $restartPos;
+		suppressMonitorNotification();
 		ParityTuningDeleteFile($parityTuningRestartFile);
 		parityTuningLoggerTesting('restart command: ' . $cmd);
 		exec ($cmd);
@@ -565,7 +566,11 @@ end_array_started:
         loadVars(2);
 	    parityTuningLogger(actionDescription($action, $correcting) . ' Started');
         if ($action == 'check' && ( $command == 'correct')) {
-            parityTuningLogger(_('Only able to start a Read-Check due to number of disabled drives'));
+            if ($noParity) {
+            	parityTuningLogger(_('Only able to start a Read-Check as no parity drive present'));
+            } else {
+            	parityTuningLogger(_('Only able to start a Read-Check due to number of disabled drives'));
+            }
         }
 	    break;
 
@@ -573,12 +578,14 @@ end_array_started:
         parityTuningLoggerDebug(_('Cancel request'));
         if (isArrayOperationActive()) {
             parityTuningLoggerDebug ('mdResyncAction=' . $action);
-			parityTuningProgressWrite('CANCELLED');
 			exec('/usr/local/sbin/mdcmd "nocheck"');
             parityTuningLoggerDebug (sprintf(_('%s cancel request sent %s'), actionDescription($action, $correcting), $completed));
-            loadVars();
+            loadVars(5);
+            parityTuningProgressWrite('CANCELLED');
             parityTuningLogger(sprintf(_('%s Cancelled'),actionDescription($action, $correcting)));
+            parityTuningProgressAnalyze();
         }
+
         break;
 
     case 'stop':
@@ -749,7 +756,7 @@ function parityTuningProgressAnalyze() {
     }
     $duration = $elapsed = $increments = $corrected = 0;
     $thisStart = $thisFinish = $thisElapsed = $thisDuration = $thisOffset = 0;
-    $lastFinish = $exitcode = $reachedSector = $totalSectors = 0;
+    $lastFinish = $exitCode = $reachedSector = $totalSectors = 0;
     $mdResyncAction = '';
     foreach ($lines as $line) {
     	parityTuningLoggerTesting("$line");
@@ -775,7 +782,7 @@ function parityTuningProgressAnalyze() {
             		if ($timestamp) $thisStart =  $thisFinish = $lastFinish = ($timestamp  + $thisOffset);
             		$increments = 1;		// Must be first increment!
 					parityTuningLoggerTesting("thisStart=$thisStart, thisFinish=$thisFinish, lastFinish=$lastFinish, thisDuration=$thisDuration"
-											  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitcode=$exitcode");
+											  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitCode=$exitCode");
                     break;
 
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
@@ -791,7 +798,7 @@ function parityTuningProgressAnalyze() {
                     $elapsed += $thisElapsed;
                     $lastFinish = $thisFinish;
 					parityTuningLoggerTesting("thisStart=$thisStart, thisFinish=$thisFinish, lastFinish=$lastFinish, thisDuration=$thisDuration"
-                    						  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitcode=$exitcode");
+                    						  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitCode=$exitCode");
                     break;
 
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
@@ -821,9 +828,9 @@ function parityTuningProgressAnalyze() {
                     $elapsed += $thisDuration;
                     parityTuningLoggerTesting("new duration: $duration seconds, elapsed: $elapsed seconds");
                     $lastFinish = $thisFinish;
-                    $exitcode = $sbSyncExit;
+                    $exitCode = $sbSyncExit;
 					parityTuningLoggerTesting("thisStart=$thisStart, thisFinish=$thisFinish, lastFinish=$lastFinish, thisDuration=$thisDuration"
-											  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitcode=$exitcode");
+											  . ",\n duration=$duration, elapsed=$elapsed, corrected=$corrected, exitCode=$exitCode");
                     break;
 
         	case 'ABORTED': // Indicates that a parity check has been aborted due to unclean shutdown,
@@ -836,6 +843,10 @@ function parityTuningProgressAnalyze() {
                     break;
         } // end switch
     }  // end foreach
+    if (file_exists($parityTuningUncleanFile) && (exitCode != -5)) {
+        parityTuningLoggerTesting ("exitCode forced to -5 for unclean shutdown");
+    	$exitCode = -5;		// Force error code for history
+    }
     $exitStatus = _("exit code") . ": " . $exitCode;
     switch ($exitCode) {
     	case 0:  $exitStatus = _("finished");
@@ -895,7 +906,7 @@ function parityTuningProgressAnalyze() {
 				if ($logtime <= $thisFinish) {
 					parityTuningLoggerDebug ('update log entry on line ' . ($matchLine+1),", errors=$logerrors");
 					$lastFinish = $logtime;
-					$exitcode = $logexit;
+					$exitCode = $logexit;
 					if ($logerrors > $corrected) $corrected = $logerrors;
 					break;
 				} else {
@@ -913,10 +924,9 @@ function parityTuningProgressAnalyze() {
 		$type = explode(' ',$desc);
 		$gendate = date($dateformat, $lastFinish);
 		if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
-		if (file_exists($parityTuningUncleanFile)) $exitCode = -5;		// Force error code for history
+
 		$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$elapsed|$increments|$type[0]\n";
 		parityTuningLoggerDebug("log record generated from progress: $generatedRecord");    $lines[$matchLine] = $generatedRecord;
-
 		$myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
 		file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
 		file_put_contents($parityLogFile,$lines);
@@ -975,15 +985,16 @@ function parityTuningProgressWrite($msg) {
 // (assuming even enabled at the system level)
 
 function sendNotification($msg, $desc = '', $type = 'normal') {
-    global $emhttpDir, $dynamixCfg , $cfgRestartOK;
+    global $notify, $server, $dynamixCfg , $cfgRestartOK;
     parityTuningLogger (_('Send notification') . ': ' . $msg . ': ' . $desc);
     if ($dynamixCfg['notify']['system'] == "" ) {
     	parityTuningLoggerTesting (_('... but suppressed as system notifications do not appear to be enabled'));
     } else {
-        $cmd = $emhttpDir . '/webGui/scripts/notify -e "Parity Check Tuning" -i ' . $type
-	    				. ($cfgRestartOK ? ' -l "/Settings/Scheduler"' : '')
-	    				. ' -s "' . $msg . '"'
-	                    . (($desc == '') ? '' : ' -d "' . $desc . '"' );
+        $cmd = $notify . ' -e ' . escapeshellarg("Parity Check Tuning")
+        			   . ' -i ' . escapeshellarg($type)
+	    			   . ($cfgRestartOK ? ' -l ' . escapeshellarg("/Settings/Scheduler") : '')
+	    			   . ' -s ' . escapeshellarg("[$server] $msg")
+	                   . (($desc == '') ? '' : ' -d ' . escapeshellarg($desc));
     	parityTuningLoggerTesting (_('... using ') . $cmd);
     	exec ($cmd);
     }
@@ -1074,28 +1085,28 @@ function suppressMonitorNotification() {
 // Confirm that action is valid according to user settings
 
 function configuredAction() {
-    global $action, $parityTuningScheduledFile, $cfgRecon, $cfgClear, $cfgUnscheduled;
+    global $action, $correcting, $parityTuningScheduledFile, $cfgRecon, $cfgClear, $cfgUnscheduled;
     if (startsWith($action,'recon') && $cfgRecon) {
-        parityTuningLoggerTesting('...configured action for ' . actionDescription());
+        parityTuningLoggerTesting('...configured action for ' . actionDescription($action, $correcting));
         return true;
     }
     if (startsWith($action,'clear') && $cfgClear) {
-        parityTuningLoggerTesting('...configured action for ' . actionDescription());
+        parityTuningLoggerTesting('...configured action for ' . actionDescription($action, $correcting));
         return true;
     }
     if (startsWith($action,'check')) {
         if (file_exists($parityTuningScheduledFile)) {
-            parityTuningLoggerTesting('...configured action for scheduled ' . actionDescription());
+            parityTuningLoggerTesting('...configured action for scheduled ' . actionDescription($action, $correcting));
             return true;
         }
         if ($cfgUnscheduled) {
-            parityTuningLoggerTesting('...configured action for unscheduled ' . actionDescription());
+            parityTuningLoggerTesting('...configured action for unscheduled ' . actionDescription($action, $correcting));
             return true;
         }
     }
     parityTuningLoggerDebug('...action not configured for'
                             . (startsWith($action,'check') ? ' manual ' : ' ')
-                            . actionDescription(). ' (' . $action . ')');
+                            . actionDescription($action,$correcting). ' (' . $action . ')');
     return false;
 }
 

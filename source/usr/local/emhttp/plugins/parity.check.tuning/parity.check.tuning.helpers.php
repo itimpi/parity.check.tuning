@@ -24,6 +24,7 @@ if (file_exists('/var/local/emhttp/disks.ini')) {
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$notify = "$docroot/webGui/scripts/notify";
 
 // Set up some useful variables
 $emhttpDir              = '/usr/local/emhttp';
@@ -83,7 +84,7 @@ function setCfgValue ($key, $value) {
 function loadVars($delay = 0) {
     if ($delay > 0) sleep($delay);
 
-	global $var, $pos, $size, $action, $parityTuningVarFile;
+	global $var,$server, $pos, $size, $action, $parityTuningVarFile;
     global $completed, $active, $running, $correcting;
 
 	if (! file_exists($parityTuningVarFile)) {		// Protection against running plugin while system initialising so this file not yet created
@@ -92,7 +93,7 @@ function loadVars($delay = 0) {
 	}
 
    	$var = parse_ini_file($parityTuningVarFile);
-
+	$server = strtoupper($var['NAME']);
     $pos    = $var['mdResyncPos'];
     $size   = $var['mdResyncSize'];
     $action = $var['mdResyncAction'];

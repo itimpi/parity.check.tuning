@@ -53,7 +53,7 @@ $dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
     system ("cp -v -r -u *.txt $dir");		// Copy across new tranrlations file
     system ("chmod -c 644 $dir/*.txt");		// set required permissions
-    system ("rm -v $dir/*.dot");			// remove .dot file to activate re-read of translations file
+    system ("rm -vf $dir/*.dot");			// remove .dot file to activate re-read of translations file
 }
 // Update flash if necessary
 $ver = date("Y.m.d");
