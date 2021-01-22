@@ -1,0 +1,210 @@
+Menu="About"
+Title="Parity Problems Assistant"
+Tag="gear"
+---
+<?PHP
+/* Copyright 2021, Dave Walker (itimpi).
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *'
+ * Limetech is given expliit permission to use this code in any way they like.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+// error_reporting(E_ALL);
+
+require_once '/usr/local/emhttp/webGui/include/Helpers.php';
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
+
+// Multi-language support
+
+$plugin = 'parity.check.tuning';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+require_once "$docroot/plugins/$plugin/Legacy.php";
+loadVars(1);
+?>
+<?if (!$translations):?>
+<?eval('?>'.parse_file("$docroot/plugins/$parityTuningPlugin/Parity.check.problems.page"))?>
+<?else:?>
+<? 
+if (!$cfgRestartOK)        echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
+if ($parityTuningActive)   echo "<p class='notice'>" . _('There is already an array operation running') . "</p>"; 
+?>
+<script>
+var totalSectors = <?=$parityTuningSize?>;
+
+$(function() {
+  if ( typeof caPluginUpdateCheck === "function" ) {
+    caPluginUpdateCheck("parity.check.tuning.plg",{element:".pluginUpdate"});
+  }
+  
+});
+
+$(document).ready(function(){
+  var oForm = document.getElementById('parityProblem');
+  oForm.parityProblemType.value = "<?=$parityTuningCfg['parityProblemType']?>";
+  setProblemType(oForm);
+});
+
+function setProblemType(form) { 
+    if (form.parityProblemType.value == "sector") {
+        document.getElementById('parityProblemSectorStart').style.display  = "inline";
+        document.getElementById('parityProblemSectorEnd').style.display    = "inline";
+        document.getElementById('parityProblemPercentStart').style.display = "none";
+        document.getElementById('parityProblemPercentEnd').style.display   = "none";
+    } else {
+        document.getElementById('parityProblemPercentStart').style.display = "inline";
+        document.getElementById('parityProblemPercentEnd').style.display   = "inline";
+        document.getElementById('parityProblemSectorStart').style.display  = "none";
+        document.getElementById('parityProblemSectorEnd').style.display    = "none";
+    }
+}
+
+function checkStartEnd(form) {
+    var firstSector = 0+ form.parityProblemStart.value;
+    var lastSector = 0 + form.parityProblemEnd.value;
+    if (lastSector < firstSector) {
+        swal({title: "_(End point too small)_",
+              text: "_(The end cannot be less than the start)_.",
+          icon:"Error"});
+    }
+    if (lastSector > totalSectors) {
+        swal({title: "_(End point too large)_",
+              text: "_(The end has been set to more than the size of the disk.)_.",
+          icon:"Error"});
+    }
+}
+
+function changeProblemStartSector (form) {
+    var v;
+    v = form.parityProblemStart.value / totalSectors * 100;
+    form.parityProblemStartPercent.value = v.toFixed(1);
+    checkStartEnd(form);
+}
+
+function changeProblemStartPercent (form) {
+    v = parseFloat(form.parityProblemStartPercent.value);
+    form.parityProblemStartPercent.value = v.toFixed(1);
+    v = Math.floor(parseFloat(form.parityProblemEndPercent.value)/100 * totalSectors);
+    form.parityProblemStartSector.value = v;
+    checkStartEnd(form);
+}
+
+function changeProblemEndSector (form) {
+    var v;
+    v = form.parityProblemEndSector.value / totalSectors * 100;
+    form.parityProblemEndPercent.value = v.toFixed(1);
+    checkStartEnd(form);
+}
+
+function changeProblemEndPercent (form) {
+    v = parseFloat(form.parityProblemEndPercent.value);
+    form.parityProblemEndPercent.value = v.toFixed(1);
+    v = Math.ceil((v/100 * totalSectors);
+    form.parityProblemEndSector.value = v;
+    checkStartEnd(form);
+}
+</script>
+
+<div class='pluginUpdate'></div>
+
+<form   markdown = "1" 
+        id       = "parityProblem"
+        method   = "POST" 
+        action   = "/update.php" 
+        target   = "progressFrame">
+        
+<input type="hidden" 
+       name="#file"    
+       value="<?=$parityTuningCfgFile?>">
+<!--        
+<input type="hidden" 
+       name="#command" 
+       value="<?=$parityTuningPhpFile?>">
+<input type="hidden"
+       name="#arg[1]"
+       value="partial">
+-->
+
+**NOT YET READY FOR USE - Only included to show concept and get feedback** (does not yet actually work!).
+  
+This assistant is part of the Parity Check Tuning plugin 
+
+The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future.
+
+It is intended to help pin down and resolve problems after a parity check has been run and unexpected errors have been reported.
+
+The idea is that this assistant can be used after a parity check (or read check) has reported problems and logged the details of the problem sector(s) to the syslog.
+
+In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.   If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range of sectors to see if the problem still occurs.
+
+This can be much faster than having to run a full parity/read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk. 
+
+**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity/read check once you think the problem has been resolved.
+
+_(Method used to specify start and stop points)_:
+: <input type="radio" name="parityProblemType" value="sector" onclick="setProblemType(this.form)"> _(Sector Numbers)_
+<input type="radio" name="parityProblemType" value="percent" onclick="setProblemType(this.form)"> _(Percentage)_
+
+:parityProblems_type_plug:
+> Select the way you want to specify the start and end points.
+:end
+
+_(Start point for check)_:
+: <span id="parityProblemSectorStart">
+<input type="text"
+         size='1' class='narrow'
+         name="parityProblemStartSector"
+         value="<?=$parityTuningCfg['parityProblemStart']?>"
+         onchange="changeProblemStartSector(this.form)"> _(sector)_
+</span>
+<span id="parityProblemPercentStart">
+<input type="text"
+         size='1' class='narrow'
+         name="parityProblemStartPercent"
+         value="<?=sprintf("%.1f", ($parityTuningCfg['parityProblemStart']/$parityTuningSize) * 100);?>"
+         onchange="changeProblemStartPercent(this.form)"> _(percent)_
+</span>
+
+_(End point for check)_:
+: <span id="parityProblemSectorEnd">
+<input type="text"
+         size='1' class='narrow'
+         name="parityProblemEndSector"
+         value="<?=$parityTuningCfg['parityProblemEnd']?>"
+         onchange="changeProblemEndSector(this.form)"> _(sector)_
+</span>
+<span id="parityProblemPercentEnd">
+<input type="text"
+         size='1' class='narrow'
+         name="parityProblemEndPercent"
+         value="<?=sprintf("%.1f", ($parityTuningCfg['parityProblemEnd']/$parityTuningSize) * 100);?>"
+         onchange="changeProblemEndPercent(this.form)"> _(percent)_
+</span>
+
+_(Write Corrections to Parity)_:
+: <select name="parityProblemsCorrect" 
+          size='1' class='narrow'>
+    <?=mk_option($parityTuningCfg['parityProblemsCorrect'], "no", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityProblemsCorrect'], "yes", _("Yes")) . "\n"?>
+  </select>
+
+<input type="submit" 
+     name="#runcheck" 
+     <? if ($parityTuningActive || (!$cfgRestartOK)) echo "disabled\n";?>
+     value="_(Start Check)_" 
+     id='runCheck'>
+<input type="submit" 
+     name="#apply" 
+     value="_(Apply)_" 
+     id='Apply'>
+<input type="button" 
+     id="DONE" 
+     value="_(Done)_"
+     onclick="done()"><a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
+</form>
+
+<?endif;?>
