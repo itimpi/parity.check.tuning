@@ -1050,7 +1050,7 @@ function parityTuningProgressWrite($msg) {
 function parityTuningProgressSave() {
 //		 ~~~~~~~~~~~~~~~~~~~~~~~~
 	$progressfile = $GLOBALS['$parityTuningProgressfile'];
-	if (file_exists($progressFile) {
+	if (file_exists($progressFile)) {
 		rename ($progressFile, "$progressFile.save");
 	    parityTuningDeleteFile("$progressfile.save");
     	parityTuningLoggerDebug("Old progress file available as $progressFile.save");
