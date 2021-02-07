@@ -1050,9 +1050,11 @@ function parityTuningProgressWrite($msg) {
 function parityTuningProgressSave() {
 //		 ~~~~~~~~~~~~~~~~~~~~~~~~
 	$progressfile = $GLOBALS['$parityTuningProgressfile'];
-    parityTuningDeleteFile("$progressfile.save");
-	rename ($progressFile, "$progressFile.save");
-    parityTuningLoggerDebug("Old progress file available as $progressFile.save");
+	if (file_exists($progressFile) {
+		rename ($progressFile, "$progressFile.save");
+	    parityTuningDeleteFile("$progressfile.save");
+    	parityTuningLoggerDebug("Old progress file available as $progressFile.save");
+    }
 }
 
 // send a notification without checking if enabled in plugin settings
