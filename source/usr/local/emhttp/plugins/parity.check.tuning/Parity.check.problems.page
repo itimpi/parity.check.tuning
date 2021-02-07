@@ -26,10 +26,15 @@ $translations = file_exists("$docroot/webGui/include/Translations.php");
 // legacy support (with javascript)
 $noscript = false;
 require_once "$docroot/plugins/$plugin/Legacy.php";
-loadVars(1);
+loadVars(0);
 
 // Build a list of sectors from syslog that have reported errors
 // (Need to filter to latest date to remove old parity checks)
+//
+// Example syslog messages
+// ~~~~~~~~~~~~~~~~~~~~~~~
+// recovery thread: P corrected, sector=496
+// recovery thread: P incorrect, sector=432
 
 function buildSectorList() {
     exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector="', $results));
@@ -40,8 +45,9 @@ function buildSectorList() {
 <?eval('?>'.parse_file("$docroot/plugins/$parityTuningPlugin/Parity.check.problems.page"))?>
 <?else:?>
 <? 
-if (!$cfgRestartOK)        echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
-if ($parityTuningActive)   echo "<p class='notice'>" . _('There is already an array operation running') . "</p>"; 
+if (!$parityTuningRestartOK)        echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
+if ($parityTuningActive) 
+    echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
 ?>
 
 <script>
@@ -55,9 +61,22 @@ $(function() {
 
 $(document).ready(function(){
   var oForm = document.getElementById('parityProblemPage');
-  // (document.getElementById('#arg'))[1].value = "partial";
+  var active = <?=($parityTuningActive)?"true":"false"?>;
+  oForm.parityProblemType.disabled         = active;
+  oForm.parityProblemStartSector.disabled  = active;  
+  oForm.parityProblemStartPercent.disabled = active;  
+  oForm.parityProblemEndSector.disabled    = active;  
+  oForm.parityProblemEndPercent.disabled   = active;  
+  oForm.parityProblemCorrect.disabled      = active;
+  oForm.parityProblemCheck.disabled        = active;
   changeProblemType(oForm);
+  // TODO: Investigate whether their is a more elegant/efficient solution than forcing page refreshes?
+  if (active) setTimeout(refreshPage, 1000 * 30);
 });
+
+function refreshPage() {
+    window.location.reload(true);
+}
 
 function changeProblemType(form) { 
     if (form.parityProblemType.value == "sector") {
@@ -74,21 +93,24 @@ function changeProblemType(form) {
 }
 
 function checkStartEnd(form) {
-    var firstSector = 0 + form.parityProblemStartSector.value;
-    var lastSector  = 0 + form.parityProblemEndSector.value;
+    var returnValue = true;
+    var firstSector = parseInt(form.parityProblemStartSector.value);
+    var lastSector  = parseInt(form.parityProblemEndSector.value);
     if (lastSector < firstSector) {
         swal({title: "_(End point too small)_",
               text: "_(The end point must be larger than the start)_.",
           icon:"Error"});
-       return false;
+       returnValue = false;
     }
     if (lastSector > totalSectors) {
         swal({title: "_(End point too large)_",
               text: "_(The end has been set to more than the size of the disk)_.",
           icon:"Error"});
-        return false;
+        returnValue = false;
     }
-    return true;
+    form.parityProblemCheck.disabled = (returnValue == false);
+    return returnValue;
+
 }
 
 function changeProblemStartSector(form) {
@@ -102,12 +124,13 @@ function updateIfChanged(fld, newVal) {
 }
 
 function changeProblemStartPercent(form) {
-    var v1 = ((parseFloat(form.parityProblemStartPercent.value)) + 0.05).toFixed(1);
+    var v1 = ((parseFloat(form.parityProblemStartPercent.value)) + 0.049).toFixed(1);
     updateIfChanged (form.parityProblemStartPercent, v1);
     var v2 = Math.floor(parseFloat(v1)/100 * totalSectors);
     updateIfChanged (form.parityProblemStartSector, v2);
     checkStartEnd(form);
 }
+
 
 function changeProblemEndSector(form) {
     var v = form.parityProblemEndSector.value / totalSectors * 100;
@@ -116,7 +139,7 @@ function changeProblemEndSector(form) {
 }
 
 function changeProblemEndPercent(form) {
-    var v1 = ((parseFloat(form.parityProblemEndPercent.value)) + 0.05).toFixed(1); 
+    var v1 = ((parseFloat(form.parityProblemEndPercent.value)) + 0.049).toFixed(1); 
     updateIfChanged (form.parityProblemEndPercent, v1);
     var v2 = Math.ceil(v1/100 * totalSectors);
     updateIfChanged (form.parityProblemEndSector, v2);
@@ -125,10 +148,10 @@ function changeProblemEndPercent(form) {
 
 function startCheck(form) {
     if (checkStartEnd(form)) {
- //     (document.getElementById('#arg))[1].value = "partial"
- //                                                 + " " + form.parityProblemStartSector.value
- //                                                 + " " + form.parityProblemEndSector.value
- //                                                 + " " + form.parityProblemCorrect.value;
+       (document.getElementById('parityProblemFile')).disabled = false;
+       (document.getElementById('parityProblemCmd')).disabled  = false;
+       (document.getElementById('parityProblemFile')).value = "<?=$parityTuningPhpFile?>";
+       (document.getElementById('parityProblemCmd')).value  = "partial";
     }
 }
 
@@ -146,11 +169,13 @@ function startCheck(form) {
        name="#file"    
        value="<?=$parityTuningCfgFile?>">      
 <input type="hidden" 
-       name="#command" 
-       value="<?=$parityTuningPhpFile?>">
+       name="#command"
+       disabled
+       id = "parityProblemFile">
 <input type="hidden"
        name="#arg[1]"
-       value="partial">
+       disabled
+       id = "parityProblemCmd">
  
 The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin 
 
@@ -165,7 +190,7 @@ In many cases such errors can be due to external factors such as cabling or the 
 
 This can be much faster than having to run a full parity/read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk. 
 
-**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity/read check once you think the problem has been resolved.
+**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
 
 _(Method used to specify start and stop points)_:
 : <input type="radio" 
@@ -189,7 +214,8 @@ _(Start point for check)_:
          size='1' class='narrow'
          name="parityProblemStartSector"
          value="<?=$parityTuningCfg['parityProblemStartSector']?>"
-         onchange="changeProblemStartSector(this.form)"> _(sector)_
+         onchange="changeProblemStartSector(this.form)"> _(sector)_ 
+         </select>
 </span>
 <span id="parityProblemPercentStart">
 <input type="text"
@@ -200,7 +226,7 @@ _(Start point for check)_:
 </span>
 
 :parityProblems_start_plug:
-> Select where you want the check to be started from.  You can specify the start point as either a sector number or as a percentage of the parity disk size.
+> Select where you want the check to be started from.  You can specify the start point as either a sector number or as a percentage of the size of the largest parity disk.
 >
 > Specifying absolute sectors is likely to be of particular use when you have extracted the sector numbers from the *syslog* when the original parity chesk reported errors on those sectors. In a future version of this plugin the plugin may be enhanced to automatically extract such sectors from the *syslog* and give you a drop down list but this feature is not yet implemented.
 >
@@ -224,7 +250,7 @@ _(End point for check)_:
 </span>
 
 :parityProblems_end_plug:
-> Select where you want the check to be ended.  You can specify the start point as either a sector number or as a percentage of the parity disk size.
+> Select where you want the check to be ended.  You can specify the start point as either a sector number or as a percentage of the size of the largest parity disk.
 >
 > In practice for technical reasons the check may end later than the point you specify as a check is only made once a minute to see if the end point has been reached.
 :end
@@ -237,14 +263,13 @@ _(Write Corrections to Parity)_:
   </select>
 
 :parityProblems_correct_plug:
-> Spesify whether you want to attempt to update parity to correct any error found,
-> or just do a read test to see if any parity errors aruy reported.
+> Specify whether you want to attempt to update parity to correct any error found,
+> or just do a read test to see if any parity errors are reported.
 :end
 
 <input type="submit" 
-     <? if ($parityTuningActive || (!$cfgRestartOK)) echo "disabled\n";?>
      value="_(Start Check)_" 
-     id="runCheck"
+     id="parityProblemCheck"
      onclick="startCheck(this.form)">
 <input type="submit" 
      name="#apply" 

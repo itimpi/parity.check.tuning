@@ -1,6 +1,6 @@
 ; Translation text for the Parity Check Tuning plugin
 
-; Page file prompts
+; Parity Tuning Settings Page
 below warning disk temperature=
 Click to show parity-check history=
 Data Rebuild=
@@ -35,6 +35,8 @@ Use increments for Parity-SyncData Rebuild operations=Use increments for Parity-
 You require a parity disk present for this option to be relevant=
 Your Unraid release is too old to use this option=
 
+; Parity Problems page
+
 ; PHP file messages
 action=
 Analyze results from an array operation=
@@ -51,7 +53,7 @@ Elapsed Time=
 ERROR=
 Following drives overheated=
 Increments=
-Non-Correcting=
+Non-Correcting=Non-Correcting
 Not allowed as %s already running=
 Only able to start a Read-Check as no parity drive present=
 Only able to start a Read-Check due to number of disabled drives=
