@@ -36,7 +36,7 @@ loadVars(0);
 // recovery thread: P corrected, sector=496
 // recovery thread: P incorrect, sector=432
 
-function buildSectorList() {
+function parityProblemBuildSectorList() {
     exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector="', $results));
 }
 
