@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.02.07">
-<!ENTITY md5 "94cc84ceff35807addd79846f2ea5ca6">
+<!ENTITY version "2021.02.09">
+<!ENTITY md5 "18102997b091106f0430735ca3da1206">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,6 +23,11 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2021.02.09
+ - New: Display notice and disable options for Parity Problems Assistant if no parity disk present
+ - Fix: Invalid cron entries could be generated due to incomplete migration of plugin settings to new format
+        (temporary workaround was to resave settings from plugin Settings page)
+ 
 ###2021.02.07
  - New: Add new experimental Parity Problems Assistant page to Tools page in unRaid GUI
  - Fix: A number of notifications were not displaying correct status information

@@ -83,14 +83,17 @@ setCfgValue('parityProblemCorrect', 'no');
 // Set a value if not already set for the configuration file
 // ... and set a variable of the same name to the current value
 function setCfgValue ($key, $value) {
-	if (! array_key_exists($key,$GLOBALS['parityTuningCfg'])) {
-		$GLOBALS['parityTuningCfg'][$key] = $value;
+	$cfgFile = $GLOBALS['parityTuningCfg'];
+	if (! array_key_exists($key,$cfgFile)) {
+		$cfgFile[$key] = $value;
 	} else {
 		// Next 2 lines handle migration of settings to new values - will be removed in future release.
-		if ($GLOBALS['parityTuningCfg'][$key] == "no") $GLOBALS['parityTuningCfg'][$key] = 0;
-		if ($GLOBALS['parityTuningCfg'][$key] == "yes") $GLOBALS['parityTuningCfg'][$key] = 1;
+		if ($cfgFile[$key] == "no") $cfgFile[$key] = 0;
+		if ($cfgFile[$key] == "yes") $cfgFile[$key] = 1;
+		if ($cfgFile[$key] == "daily") $cfgFile[$key] = 0;
+		if ($cfgFile[$key] == "custom") $cfgFile[$key] = 1;
 	}
-	$GLOBALS[$key] = $GLOBALS['parityTuningCfg'][$key];
+	$GLOBALS[$key] = $cfgFile[$key];
 }
 
 if (file_exists('/var/local/emhttp/disks.ini')) {

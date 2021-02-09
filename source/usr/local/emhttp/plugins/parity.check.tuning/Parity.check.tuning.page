@@ -255,9 +255,9 @@ _(Increment pause time)_:
   <select name="parityTuningPauseHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
-      <?for ($d=0; $d<=23; $d++):?>
+      <?for ($d=0; $d<=23; $d++){?>
         <?=mk_option($parityTuningCfg['parityTuningPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
-      <?endfor;?>
+      <?}?>
     </select>
     <select name="parityTuningPauseMinute" 
             size='1' class='narrow'>

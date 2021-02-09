@@ -45,13 +45,15 @@ loadVars(0);
 <?eval('?>'.parse_file("$docroot/plugins/$parityTuningPlugin/Parity.check.problems.page"))?>
 <?else:?>
 <? 
-if (!$parityTuningRestartOK)        echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
+if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . "</p>";
+if (!$parityTuningRestartOK)   echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
 if ($parityTuningActive) 
     echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
 ?>
 
 <script>
 var totalSectors = <?=$parityTuningSize?>;
+var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
 
 $(function() {
   if ( typeof caPluginUpdateCheck === "function" ) {
@@ -62,13 +64,14 @@ $(function() {
 $(document).ready(function(){
   var oForm = document.getElementById('parityProblemPage');
   var active = <?=($parityTuningActive)?"true":"false"?>;
-  oForm.parityProblemType.disabled         = active;
-  oForm.parityProblemStartSector.disabled  = active;  
-  oForm.parityProblemStartPercent.disabled = active;  
-  oForm.parityProblemEndSector.disabled    = active;  
-  oForm.parityProblemEndPercent.disabled   = active;  
-  oForm.parityProblemCorrect.disabled      = active;
-  oForm.parityProblemCheck.disabled        = active;
+  var isDisabled = active || noParity;
+  oForm.parityProblemType.disabled         = isDisabled;
+  oForm.parityProblemStartSector.disabled  = isDisabled;  
+  oForm.parityProblemStartPercent.disabled = isDisabled;  
+  oForm.parityProblemEndSector.disabled    = isDisabled;  
+  oForm.parityProblemEndPercent.disabled   = isDisabled;  
+  oForm.parityProblemCorrect.disabled      = isDisabled;
+  oForm.parityProblemCheck.disabled        = isDisabled;
   changeProblemType(oForm);
   // TODO: Investigate whether their is a more elegant/efficient solution than forcing page refreshes?
   if (active) setTimeout(refreshPage, 1000 * 30);
@@ -186,9 +189,9 @@ It is intended to help pin down and resolve problems after a parity check has be
 
 The idea is that this assistant can be used after a parity check (or read check) has reported problems and logged the details of the problem sector(s) to the syslog.
 
-In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.   If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range of sectors to see if the problem still occurs.
-
-This can be much faster than having to run a full parity/read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk. 
+In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.   
+If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.
+This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk. 
 
 **IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
 

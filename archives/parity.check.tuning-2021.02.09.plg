@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.01.18">
-<!ENTITY md5 "43d3ae9feae9ce08fc5e4553737d1ad1">
+<!ENTITY version "2021.02.07">
+<!ENTITY md5 "94cc84ceff35807addd79846f2ea5ca6">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,6 +23,24 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2021.02.09
+ - New: Display notice and disable options for Parity Problems Assistant if no parity disk present
+ - Fix: Invalid cron entries could be generated due to incomplete migration of plugin settings to new format
+        (temporary workaround was to resave settings from plugin Settings page)
+ 
+###2021.02.07
+ - New: Add new experimental Parity Problems Assistant page to Tools page in unRaid GUI
+ - Fix: A number of notifications were not displaying correct status information
+ - Fix: Correct average speed calculation for parity checks that do not complete
+ - New: Improve suppression of superflous notifications from monitor task
+ - New: Use a default of hourly monitoring even if no options explictly set to ensure parity history updated
+ - Fix: Internal refactoring of code to aid with future maintenance
+ 
+###2021.01.19
+ - Fix: Regression that stopped the Apply button working on the plugin's Settings page
+        (appears to have been a vatiable name collision with some other Unraid component)
+ - New: Escape argumelts for better behaviour when using CLI
+ 
 ###2021.01.18
  - Fix: Regression that would cause an exception when checking if a valid action was requested
  - New: Add server name to notifisations
