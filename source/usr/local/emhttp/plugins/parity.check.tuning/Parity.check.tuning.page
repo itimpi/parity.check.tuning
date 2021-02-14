@@ -414,13 +414,13 @@ _(Shutdown server at)_:
 
 &nbsp;
 
-_(Parity Check Tuning debug logging)_:
+_(Parity Check Tuning logging level)_:
 : <select name="parityTuningLogging" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningDebug'], "0", _("Disabled")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningDebug'], "1", _("Enabled")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningDebug'], "2", _("Testing")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "0", _("Basic")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "1", _("Debug")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "2", _("Testing")) . "\n"?>
   </select>
 
 :parity_tune_debug_plug:

@@ -40,7 +40,7 @@ $parityTuningPartialFile   = "$parityTuningBootDir/$parityTuningPlugin.partial";
 $parityTuningSyncFile      = '/boot/config/forcesync';							 // Presence of file used by Unraid to detect unclean Shutdown (we currently ignore)
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
-$tempUnit = $dynamixCfg['display']['unit'];
+$parityTuningTempUnit      = $dynamixCfg['display']['unit'];
 
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
@@ -144,10 +144,11 @@ function actionDescription($action, $correcting) {
 // Logging functions
 
 // Write message to syslog and also to console if in CLI mode
+// Change source according to whether doing partial check or not
 function parityTuningLogger($string) {
   parityTuningLoggerCLI ($string);
   $string = str_replace("'","",$string);
-  $cmd = 'logger -t "' . basename($GLOBALS['argv'][0]) . '" "' . $string . '"';
+  $cmd = 'logger -t "' . (parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning") . '" "' . $string . '"';
   shell_exec($cmd);
 }
 

@@ -1,9 +1,11 @@
 ; Translation text for the Parity Check Tuning plugin
 
 ; Parity Tuning Settings Page
+Basic=
 below warning disk temperature=
 Click to show parity-check history=
 Data Rebuild=
+Debug=
 Disk Clear=
 Donate to plugin author=DONATE
 entry in %s format=
@@ -13,7 +15,7 @@ Increment pause time=
 Increment resume time=
 No
 ParityRead-Check History=Parity/Read-Check History=
-Parity Check Tuning debug logging=
+Parity Check Tuning logging level=
 Parity Checks=
 Parity Sync=
 Pause an array operation at=

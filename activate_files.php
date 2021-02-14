@@ -42,11 +42,11 @@ if (!is_dir("/boot/config/plugins/$plugin")) {
     exit (-1);
 }
 
-echo "\nINFO: Copying files from 'source' to runtime position\n";
+echo "\nINFO: Copying files from 'source' to runtime position";
 system ("cp -v -r -u source/* /");
-system ("chown -R root /usr/local/emhttp/plugins/$plugin/*");
-system ("chgrp -R root /usr/local/emhttp/plugins/$plugin/*");
-system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin/*");
+system ("chown -R root /usr/local/emhttp/plugins/$plugin");
+system ("chgrp -R root /usr/local/emhttp/plugins/$plugin");
+system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin");
 
 // set up files for English multi-landuage support
 $dir="/usr/local/emhttp/languages/en_US";

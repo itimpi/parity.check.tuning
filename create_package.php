@@ -51,6 +51,8 @@ echo "\nCreating package $pkg\n\n";
 
 @unlink ("../$pkg.pkg");
 // @TODO  Might want to conider supressing makepkg output?
+exec ("chown -R root *");
+exec ("chgrp -R root *");
 exec ("makepkg --chown y ../$pkg.txz");
 chdir ("$cwd");
 $md5 = exec ("md5sum $pkg.txz");
@@ -96,6 +98,7 @@ rename ("$plugin.plg.tmp", "$plugin.plg");
 // Ensure permissions are OK for public network access
 exec ("chown -R nobody *");
 exec ("chgrp -R users *");
+exec ("chmod -R 755 *");
 
 chdir ($cwd);
 exit (0);
