@@ -24,8 +24,8 @@
 
 <CHANGES>
 ###2021.02.14
- - Fix: Pause/Resume to be scheduled for unschebuled array operations even if standard increments not also enabled.
- - Fix: Changes to logging level were not being remebered when settings screen next shown.
+ - Fix: Pause/Resume to be scheduled for unscheduled array operations even if standard increments not also enabled.
+ - Fix: Changes to logging level were not being remembered when settings screen next shown.
  - Fix: Make sure packaging not done on network share as can mean unexpected nobody/users on files/folders instead of root.
  - Fix: Output a syslog entry for pause/resume even when notifications disabled.
 
@@ -38,18 +38,18 @@
  - New: Add new experimental Parity Problems Assistant page to Tools page in unRaid GUI
  - Fix: A number of notifications were not displaying correct status information
  - Fix: Correct average speed calculation for parity checks that do not complete
- - New: Improve suppression of superflous notifications from monitor task
- - New: Use a default of hourly monitoring even if no options explictly set to ensure parity history updated
+ - New: Improve suppression of superfluous notifications from monitor task
+ - New: Use a default of hourly monitoring even if no options explicitly set to ensure parity history updated
  - Fix: Internal refactoring of code to aid with future maintenance
  
 ###2021.01.19
  - Fix: Regression that stopped the Apply button working on the plugin's Settings page
-        (appears to have been a vatiable name collision with some other Unraid component)
- - New: Escape argumelts for better behaviour when using CLI
+        (appears to have been a variable name collision with some other Unraid component)
+ - New: Escape arguments for better behaviour when using CLI
  
 ###2021.01.18
  - Fix: Regression that would cause an exception when checking if a valid action was requested
- - New: Add server name to notifisations
+ - New: Add server name to notifications
  
 ###2021.01.16
  - New: Suppress Unraid built-in notifications for array operations start/finish when plugin issues better equivalent
@@ -63,14 +63,14 @@
 
 ###2021.01.02
  - Fix: Regression to force execute permission on files used internally by plugin
-        (altnough not clear why this changed as should have been set correctly as part of package build))
+        (although not clear why this changed as should have been set correctly as part of package build)
    Fix: Suppress all notifications if system notifications not enabled.
  
 ###2021.01.01
  - New: Resume previously running array operations when array started after a reboot or array stop/start (requires Unraid 6.9.0 rc1 or higher)
  - New: Add pause/resume for read checks when no parity disk present
  - New: Notification if parity check started due to unclean shutdown
- - Fix: Regression whese notifications were not displaying description text on Unraid releases earlier than 6.9.0
+ - Fix: Regression where notifications were not displaying description text on Unraid releases earlier than 6.9.0
  - Fix: Major overhaul of translations file for multi-language support
  
 ###2020.11.19
@@ -116,11 +116,11 @@
 - Fix: Incorrect reporting of number of drives if no parity2 present.
 - Fix: 'hot' drive(s) listed with name of 'temp' instead of correct name.
 - Fix: Resume happening before drives cooled sufficiently.
-- New  Log level of 'testing' can now be activbated from the plugins settings.
+- New  Log level of 'testing' can now be activated from the plugins settings.
 - Fix  Minor changes to English translation file.
 
 ###2020.07.21
-- Fix: Settings page was not always correctly switching GUI display beteween custom and daily scheduling options
+- Fix: Settings page was not always correctly switching GUI display between custom and daily scheduling options
 - Fix: Some missing translation texts enabled
 
 ###2020-07-19
