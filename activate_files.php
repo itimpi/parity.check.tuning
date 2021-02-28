@@ -35,7 +35,6 @@ if (empty($files)) {
 }
 
 // Check that the plugin has actually been installed
-// If not create its working folder on the flash drive
 
 if (!is_dir("/boot/config/plugins/$plugin")) {
     echo "\nERROR: $plugin is not currently installed\n";

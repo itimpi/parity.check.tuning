@@ -27,17 +27,19 @@ $parityTuningCfgFile       = "$parityTuningBootDir/$parityTuningPlugin.cfg";
 $parityTuningEmhttpDir     = "$emhttpDir/plugins/$parityTuningPlugin";
 $parityTuningPhpFile       = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
 $parityTuningVarFile       = '/var/local/emhttp/var.ini';
-$parityTuningCronFile      = "$parityTuningBootDir/$parityTuningPlugin.cron";	// File created to hold current cron settings for this plugin
-$parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress";// Created when arry operation active to hold increment info
+$parityTuningCronFile      = "$parityTuningBootDir/$parityTuningPlugin.cron";	  // File created to hold current cron settings for this plugin
+$parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress"; // Created when arry operation active to hold increment info
 $parityTuningScheduledFile = "$parityTuningBootDir/$parityTuningPlugin.scheduled";// Created when we detect an array operation started by cron
-$parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";	 // Created when paused because at least one drive fount do have rezched 'hot' temperature
-$parityTuningCriticalFile  = "$parityTuningBootDir/$parityTuningPlugin.critical";// Created when parused besause at least one drive found to reach critical temperature
-$parityTuningRestartFile   = "$parityTuningBootDir/$parityTuningPlugin.restart"; // Created if arry stopped with array operation active to hold restart info
-$parityTuningDisksFile     = "$parityTuningBootDir/$parityTuningPlugin.disks";   // Copy of disks.ini when restart info sved to check disk configuration
-$parityTuningTidyFile      = "$parityTuningBootDir/$parityTuningPlugin.tidy";	 // Create when we think there was a tidy shutdown
-$parityTuningUncleanFile   = "$parityTuningBootDir/$parityTuningPlugin.unclean"; // Create when we think unclean shutdown forces a parity chack being abandoned
-$parityTuningPartialFile   = "$parityTuningBootDir/$parityTuningPlugin.partial"; // Create when partial chesk in progress (contains end sector value)
-$parityTuningSyncFile      = '/boot/config/forcesync';							 // Presence of file used by Unraid to detect unclean Shutdown (we currently ignore)
+$parityTuningManualFile    = "$parityTuningBootDir/$parityTuningPlugin.manual";   // Created when we detect an array operation started manually
+$parityTuningAutomaticFile = "$parityTuningBootDir/$parityTuningPlugin.automatic";// Created when we detect an array operation started automatically after unclean shutdown
+$parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";	  // Created when paused because at least one drive fount do have reached 'hot' temperature
+$parityTuningCriticalFile  = "$parityTuningBootDir/$parityTuningPlugin.critical"; // Created when parused besause at least one drive found to reach critical temperature
+$parityTuningRestartFile   = "$parityTuningBootDir/$parityTuningPlugin.restart";  // Created if arry stopped with array operation active to hold restart info
+$parityTuningDisksFile     = "$parityTuningBootDir/$parityTuningPlugin.disks";    // Copy of disks.ini when restart info sved to check disk configuration
+$parityTuningTidyFile      = "$parityTuningBootDir/$parityTuningPlugin.tidy";	  // Create when we think there was a tidy shutdown
+$parityTuningUncleanFile   = "$parityTuningBootDir/$parityTuningPlugin.unclean";  // Create when we think unclean shutdown forces a parity chack being abandoned
+$parityTuningPartialFile   = "$parityTuningBootDir/$parityTuningPlugin.partial";  // Create when partial chesk in progress (contains end sector value)
+$parityTuningSyncFile      = '/boot/config/forcesync';							  // Presence of file used by Unraid to detect unclean Shutdown (we currently ignore)
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'];
@@ -139,6 +141,13 @@ function actionDescription($action, $correcting) {
         				return (($correcting == 0) ? _('Non-Correcting') : _('Correcting')) . ' ' . _('Parity Check');
         default:        return sprintf('%s: %s',_('Unknown action'), $action);
     }
+}
+
+//	test if partial parity check in progress
+//       ~~~~~~~~~~~~~~~~~~~
+function parityTuningPartial() {
+//       ~~~~~~~~~~~~~~~~~~~
+	return file_exists($GLOBALS['parityTuningPartialFile']);
 }
 
 // Logging functions

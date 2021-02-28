@@ -270,11 +270,16 @@ _(Write Corrections to Parity)_:
 > or just do a read test to see if any parity errors are reported.
 :end
 
-<input type="submit" 
+&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
+
+: <input type="submit" 
      value="_(Start Check)_" 
      id="parityProblemCheck"
      onclick="startCheck(this.form)">
-<input type="submit" 
+     
+&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
+
+: <input type="submit" 
      name="#apply" 
      value="_(Apply)_" 
      id='Apply'>
