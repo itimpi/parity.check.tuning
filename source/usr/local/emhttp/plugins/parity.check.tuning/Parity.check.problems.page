@@ -170,7 +170,7 @@ function startCheck(form) {
         
 <input type="hidden" 
        name="#file"    
-       value="<?=$parityTuningCfgFile?>">      
+       value="<?=PARITY_TUNING_CFG_FILE?>">      
 <input type="hidden" 
        name="#command"
        disabled

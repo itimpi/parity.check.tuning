@@ -1,6 +1,6 @@
 <?PHP
 /*
- * Helper routinesieg used by the parity.check.tining plugin
+ * Helper routines used by the parity.check.tining plugin
  *
  * Copyright 2019-2021, Dave Walker (itimpi).
  *
@@ -18,31 +18,24 @@
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $parityTuningNotify = "$docroot/webGui/scripts/notify";
 
-// Set up some useful variables
-$emhttpDir                 = '/usr/local/emhttp';
-$parityTuningPlugin        = 'parity.check.tuning';
-$parityTuningPluginDir     = "$emhttpDir/plugins/$parityTuningPlugin";
-$parityTuningBootDir       = "/boot/config/plugins/$parityTuningPlugin";
-$parityTuningCfgFile       = "$parityTuningBootDir/$parityTuningPlugin.cfg";
-$parityTuningEmhttpDir     = "$emhttpDir/plugins/$parityTuningPlugin";
-$parityTuningPhpFile       = "$parityTuningEmhttpDir/$parityTuningPlugin.php";
-$parityTuningVarFile       = '/var/local/emhttp/var.ini';
-$parityTuningCronFile      = "$parityTuningBootDir/$parityTuningPlugin.cron";	  // File created to hold current cron settings for this plugin
-$parityTuningProgressFile  = "$parityTuningBootDir/$parityTuningPlugin.progress"; // Created when arry operation active to hold increment info
-$parityTuningScheduledFile = "$parityTuningBootDir/$parityTuningPlugin.scheduled";// Created when we detect an array operation started by cron
-$parityTuningManualFile    = "$parityTuningBootDir/$parityTuningPlugin.manual";   // Created when we detect an array operation started manually
-$parityTuningAutomaticFile = "$parityTuningBootDir/$parityTuningPlugin.automatic";// Created when we detect an array operation started automatically after unclean shutdown
-$parityTuningHotFile       = "$parityTuningBootDir/$parityTuningPlugin.hot";	  // Created when paused because at least one drive fount do have reached 'hot' temperature
-$parityTuningCriticalFile  = "$parityTuningBootDir/$parityTuningPlugin.critical"; // Created when parused besause at least one drive found to reach critical temperature
-$parityTuningRestartFile   = "$parityTuningBootDir/$parityTuningPlugin.restart";  // Created if arry stopped with array operation active to hold restart info
-$parityTuningDisksFile     = "$parityTuningBootDir/$parityTuningPlugin.disks";    // Copy of disks.ini when restart info sved to check disk configuration
-$parityTuningTidyFile      = "$parityTuningBootDir/$parityTuningPlugin.tidy";	  // Create when we think there was a tidy shutdown
-$parityTuningUncleanFile   = "$parityTuningBootDir/$parityTuningPlugin.unclean";  // Create when we think unclean shutdown forces a parity chack being abandoned
-$parityTuningPartialFile   = "$parityTuningBootDir/$parityTuningPlugin.partial";  // Create when partial chesk in progress (contains end sector value)
-$parityTuningSyncFile      = '/boot/config/forcesync';							  // Presence of file used by Unraid to detect unclean Shutdown (we currently ignore)
+// Set up some useful constants used in multiple files
+define('PARITY_TUNING_PLUGIN',      'parity.check.tuning');
+define('EMHTTP_DIR' ,               '/usr/local/emhttp');
+define('CONFIG_DIR' ,               '/boot/config');
+define('PLUGINS_DIR' ,              CONFIG_DIR . '/plugins');
+define('PARITY_TUNING_EMHHTTP_DIR', EMHTTP_DIR . '/plugins/' . PARITY_TUNING_PLUGIN);
+define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHHTTP_DIR . '/' . PARITY_TUNING_PLUGIN . '.php');
+define('PARITY_TUNING_BOOT_DIR',    PLUGINS_DIR . '/' . PARITY_TUNING_PLUGIN);
+define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING_PLUGIN . '.');
+define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
+define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial chesk in progress (contains end sector value)
+
+define('PARITY_TUNING_VAR_FILE',    '/var/local/emhttp/var.ini');
+
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'];
+
 
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
@@ -51,8 +44,8 @@ $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],
 
 // Configuration information
 
-if (file_exists($parityTuningCfgFile)) {
-	$parityTuningCfg = parse_ini_file($parityTuningCfgFile);
+if (file_exists(PARITY_TUNING_CFG_FILE)) {
+	$parityTuningCfg = parse_ini_file(PARITY_TUNING_CFG_FILE);
 } else {
 	$parityTuningCfg = array();
 }
@@ -61,6 +54,7 @@ setCfgValue('parityTuningLogging', '0');
 setCfgValue('parityTuningIncrements', '0');
 setCfgValue('parityTuningFrequency', '0');
 setCfgValue('parityTuningUnscheduled', '0');
+setCfgValue('parityTuningAutomatic', '0');
 setCfgValue('parityTuningRecon', '0');
 setCfgValue('parityTuningClear', '0');
 setCfgValue('parityTuningRestart', '0');
@@ -81,6 +75,7 @@ setCfgValue('parityProblemStartPercent', 0);
 setCfgValue('parityProblemEndSector', 100);
 setCfgValue('parityProblemEndPercent', 0);
 setCfgValue('parityProblemCorrect', 'no');
+
 
 // Set a value if not already set for the configuration file
 // ... and set a variable of the same name to the current value
@@ -109,13 +104,12 @@ function loadVars($delay = 0) {
     parityTuningLoggerTesting ("loadVars($delay)");
     if ($delay > 0) sleep($delay);
 
-    $varFile = $GLOBALS['parityTuningVarFile'];
-	if (! file_exists($varFile)) {		// Protection against running plugin while system initialising so this file not yet created
-		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  $varFile));
+	if (! file_exists(PARITY_TUNING_VAR_FILE)) {		// Protection against running plugin while system initialising so this file not yet created
+		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_VAR_FILE));
 		return;
 	}
 
-   	$vars = parse_ini_file($varFile);
+   	$vars = parse_ini_file(PARITY_TUNING_VAR_FILE);
     $size = $vars['mdResyncSize'];
 	$pos  = $vars['mdResyncPos'];
 	$GLOBALS['parityTuningVar']        = $vars;
@@ -126,6 +120,7 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningActive']     = ($pos > 0);              // If array action is active (paused or running)
     $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array actimb on is running (i.e. not paused)
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
+    $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
 
 
@@ -147,7 +142,7 @@ function actionDescription($action, $correcting) {
 //       ~~~~~~~~~~~~~~~~~~~
 function parityTuningPartial() {
 //       ~~~~~~~~~~~~~~~~~~~
-	return file_exists($GLOBALS['parityTuningPartialFile']);
+	return file_exists(PARITY_TUNING_PARTIAL_FILE);
 }
 
 // Logging functions

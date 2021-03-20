@@ -1,6 +1,7 @@
 ; Translation text for the Parity Check Tuning plugin
 
 ; Parity Tuning Settings Page
+Automatic=
 Basic=
 below warning disk temperature=
 Click to show parity-check history=
@@ -53,6 +54,7 @@ Detected a change to the disk configuration=
 Drives cooled down=
 Elapsed Time=
 ERROR=
+errors=
 Following drives overheated=
 Increments=
 Non-Correcting=Non-Correcting
@@ -199,6 +201,10 @@ updated cron settings are in %s=
 
 :parity_tune_explain_plug:
 > This main reason for this plugin is to allow you to limit parity checks to running at times that will not inconvenience you.<br>Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.<br><br>If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.<br><br>As an example of what this plugin can do assume:<br>- You have a parity check you have scheduled to start on the first of every month at midnight<br>- Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.<br>- You set this plugin to use 3 hour increments starting at midnight and finishing at 3.00 A.M.<br>- The parity check will now actually take 10 days elapsed time (10 x 3 = 30) so the parity check will complete on 10th of the month.<br>- You have scheduled these increments to run starting at midnight and finishing at 3:00 A.M. when you know the system is not being used.<br>- You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.<br>- The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.<br><br>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning
+:end
+
+:parity_tune_automatic_plug:
+> if the unRaid system is not shutdown cleanly then the next time the array is started unRaid will automatically start a non-correcting parity check (or a read check if you have no parity disk). This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issus.  The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.<br><br>If this option is set then the check will automatically be put into a paused state if outside the time specified for running increments, and the check subsequently run in increments according to to the time slots specified for them.
 :end
 
 :parity_tune_frequency_plug:

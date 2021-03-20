@@ -50,7 +50,7 @@ $pkg = "$plugin-$ver";
 echo "\nCreating package $pkg\n\n";
 
 @unlink ("../$pkg.pkg");
-// @TODO  Might want to conider supressing makepkg output?
+// @TODO  Might want to consider supressing makepkg output?
 exec ("chown -R root *");
 exec ("chgrp -R root *");
 exec ("makepkg --chown y ../$pkg.txz");
