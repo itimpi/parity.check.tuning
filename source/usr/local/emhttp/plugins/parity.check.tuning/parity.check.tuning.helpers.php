@@ -30,7 +30,9 @@ define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING
 define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
 define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial chesk in progress (contains end sector value)
 
-define('PARITY_TUNING_VAR_FILE',    '/var/local/emhttp/var.ini');
+define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
+define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
+define('PARITY_TUNIN5_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
 
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
@@ -49,6 +51,7 @@ if (file_exists(PARITY_TUNING_CFG_FILE)) {
 } else {
 	$parityTuningCfg = array();
 }
+
 // Set defaults for any missing/new values
 setCfgValue('parityTuningLogging', '0');
 setCfgValue('parityTuningIncrements', '0');
@@ -84,17 +87,21 @@ function setCfgValue ($key, $value) {
 	if (! array_key_exists($key,$cfgFile)) {
 		$cfgFile[$key] = $value;
 	} else {
+		if (empty($cfgFile[$key]) || $cfgFile[$key]== ' ' ) {
+			$cfgFile[$key] = $value;
+		}
 		// Next 2 lines handle migration of settings to new values - will be removed in future release.
 		if ($cfgFile[$key] == "no") $cfgFile[$key] = 0;
 		if ($cfgFile[$key] == "yes") $cfgFile[$key] = 1;
 		if ($cfgFile[$key] == "daily") $cfgFile[$key] = 0;
 		if ($cfgFile[$key] == "custom") $cfgFile[$key] = 1;
 	}
+	$GLOBALS['parityTuningCfg'][$key] = $cfgFile[$key];		// TODO: Not sure thir is actually needed any more
 	$GLOBALS[$key] = $cfgFile[$key];
 }
 
-if (file_exists('/var/local/emhttp/disks.ini')) {
-	$disks=parse_ini_file('/var/local/emhttp/disks.ini', true);
+if (file_exists(PARITY_TUNIN5_EMHTTP_DISKS_FILE)) {
+	$disks=parse_ini_file(PARITY_TUNIN5_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
 }
 
@@ -104,12 +111,12 @@ function loadVars($delay = 0) {
     parityTuningLoggerTesting ("loadVars($delay)");
     if ($delay > 0) sleep($delay);
 
-	if (! file_exists(PARITY_TUNING_VAR_FILE)) {		// Protection against running plugin while system initialising so this file not yet created
-		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_VAR_FILE));
+	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initialising so this file not yet created
+		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_EMHTTP_VAR_FILE));
 		return;
 	}
 
-   	$vars = parse_ini_file(PARITY_TUNING_VAR_FILE);
+   	$vars = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
     $size = $vars['mdResyncSize'];
 	$pos  = $vars['mdResyncPos'];
 	$GLOBALS['parityTuningVar']        = $vars;

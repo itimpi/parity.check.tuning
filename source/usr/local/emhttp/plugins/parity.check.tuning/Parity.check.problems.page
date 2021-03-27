@@ -199,12 +199,12 @@ _(Method used to specify start and stop points)_:
 : <input type="radio" 
         name="parityProblemType" 
         value="sector" 
-        <?=($parityTuningCfg['parityProblemType'] == "sector" ? "checked" : "") . "\n"?>
+        <?=($parityProblemType == "sector" ? "checked" : "") . "\n"?>
         onclick="changeProblemType(this.form)"> _(Sector Numbers)_
 <input type="radio" 
         name="parityProblemType" 
         value="percent"
-        <?=($parityTuningCfg['parityProblemType'] == "percent" ? "checked" : "") . "\n"?>
+        <?=($parityProblemType == "percent" ? "checked" : "") . "\n"?>
         onclick="changeProblemType(this.form)"> _(Percentage)_
 
 :parityProblems_type_plug:
@@ -216,7 +216,7 @@ _(Start point for check)_:
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartSector"
-         value="<?=$parityTuningCfg['parityProblemStartSector']?>"
+         value="<?=$parityProblemStartSector?>"
          onchange="changeProblemStartSector(this.form)"> _(sector)_ 
          </select>
 </span>
@@ -224,7 +224,7 @@ _(Start point for check)_:
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartPercent"
-         value="<?=$parityTuningCfg['parityProblemStartPercent']?>"
+         value="<?=$pparityProblemStartPercent?>"
          onchange="changeProblemStartPercent(this.form)"> _(percent)_
 </span>
 
@@ -241,14 +241,14 @@ _(End point for check)_:
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndSector"
-         value="<?=$parityTuningCfg['parityProblemEndSector']?>"
+         value="<?=$parityProblemEndSector?>"
          onchange="changeProblemEndSector(this.form)"> _(sector)_
 </span>
 <span id="parityProblemPercentEnd">
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndPercent"
-         value="<?=$parityTuningCfg['parityProblemEndPercent']?>"
+         value="<?=$parityProblemEndPercent?>"
          onchange="changeProblemEndPercent(this.form)"> _(percent)_
 </span>
 
@@ -261,8 +261,8 @@ _(End point for check)_:
 _(Write Corrections to Parity)_:
 : <select name="parityProblemCorrect" 
           size='1' class='narrow'>
-    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityProblemCorrect, "0", _("No")) . "\n"?>
+    <?=mk_option($parityProblemCorrect, "1", _("Yes")) . "\n"?>
   </select>
 
 :parityProblems_correct_plug:

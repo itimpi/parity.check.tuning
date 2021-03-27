@@ -217,8 +217,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onChange="presetParityTuning(this.form)">
-     <?=mk_option($parityTuningCfg['parityTuningIncrements'], "0", _("No")) . "\n"?>
-     <?=mk_option($parityTuningCfg['parityTuningIncrements'], "1", _("Yes")) . "\n"?>
+     <?=mk_option($parityTuningIncrements, "0", _("No")) . "\n"?>
+     <?=mk_option($parityTuningIncrements, "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_increments_plug:
@@ -233,8 +233,8 @@ $(function() {
 : <select name="parityTuningUnscheduled" 
           size='1' class='narrow'
           onChange="presetParityTuning(this.form)">
-      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "0", _("No")) . "\n"?>
-      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningUnscheduled, "0", _("No")) . "\n"?>
+      <?=mk_option($parityTuningUnscheduled, "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_manual_plug:
@@ -248,8 +248,8 @@ $(function() {
 : <select name="parityTuningAutomatic" 
           size='1' class='narrow'
           onChange="checkAutomaticMode(this.form)">
-      <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "0", _("No")) . "\n"?>
-      <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningAutomatic, "0", _("No")) . "\n"?>
+      <?=mk_option($parityTuningAutomatic, "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_automatic_plug:
@@ -262,8 +262,8 @@ _(Increment frequency)_:
 : <select name="parityTuningFrequency" 
           size='1' class='narrow' 
           onchange="presetParityTuning(this.form)">
-     <?=mk_option($parityTuningCfg['parityTuningFrequency'], "0", _("Daily")) . "\n"?>a
-     <?=mk_option($parityTuningCfg['parityTuningFrequency'], "1", _("Custom")) . "\n"?>
+     <?=mk_option($parityTuningFrequency, "0", _("Daily")) . "\n"?>a
+     <?=mk_option($parityTuningFrequency, "1", _("Custom")) . "\n"?>
   </select>
   
 :parity_tune_frequency_plug:
@@ -277,7 +277,7 @@ _(Increment resume time)_:
   <input type="text"
          size='1' class='narrow'
          name="parityTuningResumeCustom"
-         value="<?=$parityTuningCfg['parityTuningResumeCustom']?>"
+         value="<?=$parityTuningResumeCustom?>"
          onblur="checkCustom(this)">
   &nbsp; _(entry in )_ <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> format
 </span>
@@ -286,13 +286,13 @@ _(Increment resume time)_:
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
      <?for ($d=0; $d<=23; $d++):?>
-         <?=mk_option($parityTuningCfg['parityTuningResumeHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
+         <?=mk_option($parityTuningResumeHour, strval($d), sprintf("%02d", $d)) . "\n"?>
      <?endfor;?>
   </select>
   <select name="parityTuningResumeMinute" 
           size='1' class='narrow'>
     <?for ($d=0; $d<=55; $d+=5):?>
-      <?=mk_option($parityTuningCfg['parityTuningResumeMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
+      <?=mk_option($parityTuningResumeMinute, strval($d), sprintf("%02d", $d)) . "\n"?>
     <?endfor;?>
   </select>
   &nbsp;&nbsp;HH:MM
@@ -311,7 +311,7 @@ _(Increment pause time)_:
    <input type="text"
           size='1' class='narrow'
           name="parityTuningPauseCustom"
-          value="<?=$parityTuningCfg['parityTuningPauseCustom']?>"
+          value="<?=$parityTuningPauseCustom?>"
           onblur="checkCustom(this)">
   &nbsp; _(entry in )_ <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> _(format)_
 </span>
@@ -320,13 +320,13 @@ _(Increment pause time)_:
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=23; $d++){?>
-        <?=mk_option($parityTuningCfg['parityTuningPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
+        <?=mk_option($parityTuningPauseHour, strval($d), sprintf("%02d", $d)) . "\n"?>
       <?}?>
     </select>
     <select name="parityTuningPauseMinute" 
             size='1' class='narrow'>
       <?for ($d=0; $d<=55; $d+=5):?>
-          <?=mk_option($parityTuningCfg['parityTuningPauseMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
+          <?=mk_option($pparityTuningPauseMinute, strval($d), sprintf("%02d", $d)) . "\n"?>
       <?endfor;?>
     </select>
     &nbsp;&nbsp;HH:MM
@@ -347,8 +347,8 @@ _(Send notifications for Pause or Resume of increments)_:
 : <select name="parityTuningNotify" 
           size='1' class='narrow'
           onchange="checkNotifications(this)">
-    <?=mk_option($parityTuningCfg['parityTuningNotify'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningNotify'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningNotify, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningNotify, "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_notify_plug:
@@ -364,8 +364,8 @@ _(Use increments for Parity-Sync/Data Rebuild operations)_:
 : <select name="parityTuningRecon" 
           size='1' class='narrow'
           onchange="confirmReconYes(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningRecon'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningRecon'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningRecon, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningRecon, "1", _("Yes")) . "\n"?>
   </select> <? if ($parityTuningNoParity) echo "<font color=#FF8C2F>_(You require a parity disk present for this option to be relevant)_</font>"; ?>
 
 :parity_tune_allops_plug:
@@ -381,8 +381,8 @@ _(Use increments for disk Clear operations)_:
 : <select name="parityTuningClear" 
           size='1' class='narrow'
           onchange="confirmClearYes(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningClear'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningClear'], "1", _("Yes")) . "\n"?>
+    <?=mk_option(parityTuningClear, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningClear, "1", _("Yes")) . "\n"?>
   </select> <? if ($parityTuningNoParity) echo "<font color=#FF8C2F>_(You require a parity disk present for this option to be relevant)_</font>"; ?>
 
 :parity_tune_clear_plug:
@@ -395,8 +395,8 @@ _(Resume running Array operations on next array start)_:
 : <select name="parityTuningRestart" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningRestart'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningRestart'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningRestart, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningRestart, "1", _("Yes")) . "\n"?>
   </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F>_(This option is only available with Unraid 6.9.0-rc2 or later)_</font>"; ?>
   
 :parity_tune_restart_plug:
@@ -421,8 +421,8 @@ _(Pause and Resume array operations if disks overheat)_:
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "1", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeat'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningHeat, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningHeat, "0", _("No")) . "\n"?>
   </select>
 
 
@@ -441,7 +441,7 @@ _(Pause an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $tempUnit ?> below warning disk temperature threshold
+         value="<?=$parityTuningHeatHigh?>">&deg;<?= $tempUnit ?> below warning disk temperature threshold
 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.
@@ -459,7 +459,7 @@ _(Resume an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $tempUnit ?> _(below warning disk temperature)_ threshold
+         value="<?=$parityTuningHeatLow?>">&deg;<?= $tempUnit ?> _(below warning disk temperature)_ threshold
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
@@ -474,8 +474,8 @@ _(Send notifications for temperature related Pause or Resume)_:
 : <select name="parityTuningHeatNotify" 
           size='1' class='narrow'
           onchange="checkNotifications(this)">
-    <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningHeatNotify, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningHeatNotify, "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_temp_notify_plug:
@@ -490,8 +490,8 @@ _(High disk temperatures can shutdown server)_:
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("Disabled")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Enabled")) . "\n"?>
+    <?=mk_option($parityTuningHeatShutdown, "0", _("Disabled")) . "\n"?>
+    <?=mk_option($parityTuningHeatShutdown, "1", _("Enabled")) . "\n"?>
 
   </select>
 
@@ -510,7 +510,7 @@ _(Shutdown server at)_:
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
            type='text'
-           value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $tempUnit ?> below critical disk temperature threshold
+           value="<?=$parityTuningHeatCritical?>">&deg;<?= $tempUnit ?> below critical disk temperature threshold
   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shutdown of the server is triggered.
@@ -526,9 +526,9 @@ _(Parity Check Tuning logging level)_:
 : <select name="parityTuningLogging" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "0", _("Basic")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "1", _("Debug")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "2", _("Testing")) . "\n"?>
+    <?=mk_option($parityTuningLogging, "0", _("Basic")) . "\n"?>
+    <?=mk_option($parityTuningLogging, "1", _("Debug")) . "\n"?>
+    <?=mk_option($parityTuningLogging, "2", _("Testing")) . "\n"?>
   </select>
 
 :parity_tune_debug_plug:
