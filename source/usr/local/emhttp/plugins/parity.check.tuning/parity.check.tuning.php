@@ -355,6 +355,9 @@ switch ($command) {
 			parityTuningLoggerTesting('Resume ignored as partial check in progress');
 			break;
 		}
+		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE()))) {
+			parityTuningProgressWrite(operationTriggerType());
+		}
 		if ($parityTuningRunning) {
 			parityTuningLoggerDebug(sprintf('... %s %s', actionDescription($parityTuningAction, $parityTuningCorrecting), _('already running')));
 			break;
@@ -378,6 +381,9 @@ switch ($command) {
 		if (parityTuningPartial()) {
 			parityTuningLoggerTesting('Pause ignored as partial check in progress');
 			break;
+		}
+		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE()))) {
+			parityTuningProgressWrite(operationTriggerType());
 		}
 		if (! $parityTuningRunning) {
 			parityTuningLoggerDebug(sprintf('... %s %s!', actionDescription($parityTuningAction, $parityTuningCorrecting), _('already paused')));
@@ -597,8 +603,12 @@ end_array_started:
 			parityTuningLoggerDebug (sprintf(_('Array stopping while %s was in progress %s'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted()));
 		    parityTuningProgressWrite('STOPPING');
 			if ($parityTuningRestartOK) {
-			    sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
-			    saveRestartInformation();
+				if ($parityTuningAction == 'check') {
+					sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+					saveRestartInformation();
+				} else {
+					sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+				}
 			} else {
 				parityTuningLoggerDebug('Unraid version ' . $parityTuningUnraidVersion['version'] . ' too old to support restart');
 			}
@@ -1084,12 +1094,15 @@ END_PROGRESS_FOR_LOOP:
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
 		$msg  = sprintf(_('%s %s %s (%d errors)'),
-						operationTriggerType(), actionDescription($startAction, $mdResyncCorr), $exitStatus, $corrected);
+						_(strtolower(operationTriggerType())), 
+						actionDescription($startAction, $mdResyncCorr), 
+						$exitStatus, 
+						$corrected);
 		$desc = sprintf(_('%s %s, %s %s, %s %d, %s %s'),
-									_('Elapsed Time'),his_duration($elapsed),
-									_('Runtime'), his_duration($duration),
-									_('Increments'), $increments,
-									_('Average Speed'),$speed);
+						_('Elapsed Time'),his_duration($elapsed),
+						_('Runtime'), his_duration($duration),
+						_('Increments'), $increments,
+						_('Average Speed'),$speed);
 		parityTuningLogger($msg);
 		parityTuningLogger($desc);
 		sendNotification($msg, $desc, ($exitCode == 0 ? 'normal' : 'warning'));

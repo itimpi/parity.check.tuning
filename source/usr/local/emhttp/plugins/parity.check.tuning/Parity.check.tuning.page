@@ -391,7 +391,7 @@ _(Use increments for disk Clear operations)_:
 >Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at **No**.   In addition, a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 :end
 
-_(Resume running Array operations on next array start)_:
+_(Resume parity checks on next array start)_:
 : <select name="parityTuningRestart" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form)">
@@ -400,7 +400,8 @@ _(Resume running Array operations on next array start)_:
   </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F>_(This option is only available with Unraid 6.9.0-rc2 or later)_</font>"; ?>
   
 :parity_tune_restart_plug:
-> Unraid will normally abandon an array operation (parity check, parity sync, read check, disk rebuild, disk clear) if the sytem is shutdown, rebooted  or the array is stopped (with the only option being to restart the array operation from the beginning).  Setting this option allows such operations to be restarted by this plugin from the point they had reached as long as the following criteria are met:  
+> Unraid will normally abandon a parity check if the sytem is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
+> Setting this option allows parity checks to be restarted by this plugin from the point they had reached as long as the following criteria are met:  
 >* The array was shutdown tidily  
 >* The user must not have made any changes to the array configuration.
 >
