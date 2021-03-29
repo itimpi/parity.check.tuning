@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.02.28">
-<!ENTITY md5 "a66e5bb9097ff65e17ab3da5b7a4ccfd">
+<!ENTITY version "2021.03.29">
+<!ENTITY md5 "93ef963721644b3210cb3c3b0b59f659">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,11 +23,23 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2021.03.29
+ - New: Setting added for specifying automatic parity checks after unclean shutdown to be run in increments.
+ - New: Add number of errors so far to Pause notifications when not zero.
+ - New: Updated Help text to cover new option for pausing Automatic checks.
+ - New: Give detailed notification at end of Parity Sync/Rebuild and Clear operations.
+ - New: Improved output fron CLI 'status' option.
+ - Fix: Was incorrectly pausing manual checks when option only set for scheduled checks.
+ - Fix: An empty plugin setting could cause (non-fatal) parse error in monitor operation.
+ - Fix: Internal code reorganization to better handle state after an unclean shutdown.
+ - Fix: Updated Help text (primarily to use markdown syntax more extensively instead of embedded HTML).
+ - Issue:  Translations file has not yet been updated to reflect changes in this release - will happen later.
+ 
 ###2021.02.28
  - New: Updates to description file to mention newest facilities.
- - Fix: Various spelling mistakes in Release notes (thanks to techie2000)
- - Fix: Re-ordered fields on Settings page
- - Fix: Manually initiated parity reads/checks could incorrectly be treated as scheduled ones for pause/resume 
+ - Fix: Various spelling mistakes in Release notes (thanks to techie2000).
+ - Fix: Re-ordered fields on Settings page.
+ - Fix: Manually initiated parity reads/checks could incorrectly be treated as scheduled ones for pause/resume.
  
 ###2021.02.14
  - Fix: Pause/Resume to be scheduled for unscheduled array operations even if standard increments not also enabled.
