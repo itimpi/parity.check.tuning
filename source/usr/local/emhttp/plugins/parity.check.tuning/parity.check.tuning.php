@@ -109,7 +109,6 @@ switch ($command) {
 							parityTuningLoggerTesting('analyze previous progress before starting new one');
 							parityTuningProgressAnalyze();
                         }
-                        parityTuningInactiveCleanup();
                         // Work out what type of trigger
                         if ($argv[2] == 'crond') {
 							parityTuningLoggerDebug ('... ' . _('appears to be a regular scheduled check'));
@@ -208,7 +207,7 @@ switch ($command) {
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
 			$trigger = operationTriggerType();
-			parityTuningLoggerDebug ($trigger . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting));
+			parityTuningLoggerDebug (strtolower($trigger) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting));
 			parityTuningProgressWrite ($trigger);
 		}
 
@@ -355,7 +354,7 @@ switch ($command) {
 			parityTuningLoggerTesting('Resume ignored as partial check in progress');
 			break;
 		}
-		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE()))) {
+		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE))) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
 		if ($parityTuningRunning) {
@@ -382,7 +381,7 @@ switch ($command) {
 			parityTuningLoggerTesting('Pause ignored as partial check in progress');
 			break;
 		}
-		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE()))) {
+		if ($parityTuningActive && (! file_exists(PARITY_TUNING_PROGRESS_FILE))) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
 		if (! $parityTuningRunning) {
@@ -588,7 +587,7 @@ end_array_started:
 		}
 		parityTuningProgressAnalyze();
 		parityTuningDeleteFile(PARITY_TUNING_PROGRESS_FILE);
-		suppressMonitorNotification();
+		if ($parityTuningAction == 'check') suppressMonitorNotification();
 		break;
 
     case 'stopping':
@@ -630,8 +629,11 @@ end_array_started:
         break;
 
     case 'status':
-    	if (isArrayOperationActive()) parityTuningLogger(actionDescription($parityTuningAction, $parityTuningCorrecting) . ($parityTuningRunning ? '' : ' PAUSED ') .  parityTuningCompleted());
-    	break;
+		parityTuningLogger(_('Status') . ': ' 
+							. (isArrayOperationActive()
+							   ? (strtolower(operationTriggerType()) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting) . ($parityTuningRunning ? '' : ' PAUSED ') .  parityTuningCompleted())
+							   : _('No array operation currently in progress')));
+		break;
 
     case 'check':
 	    $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
@@ -1206,7 +1208,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    sendNotification ($op, $desc .  (strlen($desc) > 0 ? '<br>' : '') . actionDescription($GLOBALS['parityTuningAction'], $GLOBALS['parityTuningCorrecting'])
+    sendNotification ($op, $desc . (strlen($desc) > 0 ? '<br>' : '') . actionDescription($GLOBALS['parityTuningAction'], $GLOBALS['parityTuningCorrecting'])
     							 			. parityTuningCompleted(), $type);
 }
 
@@ -1388,6 +1390,17 @@ function configuredAction() {
     return $result;
 }
 
+//	get the display form of the trigger type in a manner that is compatible with multi-language support
+
+function displayTriggerType($trigger) {
+	switch ($trigger) {
+		case 'AUTOMATIC':	return _('Automatic');
+		case 'MANUAL':		return _('Manual');
+		case 'SCHEDULED':	return _('Scheduled');
+		default:			return '';
+	}
+}
+
 
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)
@@ -1397,8 +1410,8 @@ function operationTriggerType() {
 
 	$action    = $GLOBALS['parityTuningAction'];
 	$actionDescription = actionDescription($action, $GLOBALS['parityTuningCorrecting']);
-	if (! startsWith(Saction, 'check')) {
-		parityTuningLoggerDebug ('... ' . _('not a parity check so always treat it as an automatic operation'));
+	if (! startsWith($action, 'check')) {
+		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
 		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and schedluled $actionDescription");
 		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $actionDescription");
