@@ -34,10 +34,20 @@ if (empty($files)) {
     echo "\nPLUGIN: $plugin\n";
 }
 
+// Carry out PHP syntax check on all .php and .page files
+
+$failcount = syntaxCheckDirectory($cwd);
+$failcount += syntaxCheckDirectory($cwd . "/source/usr/local/emhttp/plugins/$plugin");
+echo "\nINFO: $failcount files failed syntax check\n";
+if ($failcount != 0) {
+	echo "ERROR: Fix syntax errors before trying again\n";
+	exit -5;
+}
+
 // Check that the plugin has actually been installed
 
 if (!is_dir("/boot/config/plugins/$plugin")) {
-    echo "\nERROR: $plugin is not currently installed\n";
+    echo "ERROR: $plugin is not currently installed\n";
     exit (-1);
 }
 
@@ -50,7 +60,7 @@ system ("chmod -R 755 /usr/local/emhttp/plugins/$plugin");
 // set up files for English multi-landuage support
 $dir="/usr/local/emhttp/languages/en_US";
 if (file_exists($dir)) {
-    system ("cp -v -r -u *.txt $dir");		// Copy across new tranrlations file
+    system ("cp -v -r -u *.txt $dir");		// Copy across new translations file
     system ("chmod -c 644 $dir/*.txt");		// set required permissions
     system ("rm -vf $dir/*.dot");			// remove .dot file to activate re-read of translations file
 }
@@ -66,4 +76,39 @@ if (file_exists("archives/$pkg.txz")) {
 echo "\n";
 system ("date");
 echo "INFO: Files copied\n\n";
+
+// Look through the supplied directory for any .php or .page files to syntax check
+
+function syntaxCheckDirectory($path) {
+	$failcount = 0;
+	// echo "checking directory $path\n";
+	$fileList = glob("$path/*.page");
+	foreach($fileList as $filename){
+		if (! syntaxCheckFile($filename)) $failcount++;
+	}
+	$fileList = glob("$path/*.php");
+	foreach($fileList as $filename){
+		if (! syntaxCheckFile($filename)) $failcount++;
+	}
+	return $failcount;
+}
+
+// Run a PHP syntax check on the supplied file
+
+function syntaxCheckFile($filename) {
+	// echo "checking file $filename\n";
+	$output=null;
+	$retval=null;
+	exec("php -l $filename", $output, $retval);
+	if ($retval == 0) {
+		return true;
+	} else {
+		// echo "Returned with status $retval and output:\n";
+		// print_r($output);
+		echo "\nINFO: " . basename($filename);
+		passthru("php -l $filename");
+		return false;
+	}
+}
+
 ?>

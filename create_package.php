@@ -36,6 +36,16 @@ if (empty($files)) {
 $cwd = dirname(__FILE__);
 chdir ($cwd);
 
+// Carry out PHP syntax check on all .php and .page files in the plugin
+
+$failcount = syntaxCheckDirectory($cwd);
+$failcount += syntaxCheckDirectory($cwd . "/source/usr/local/emhttp/plugins/$plugin");
+echo "\nINFO: $failcount files failed syntax check\n";
+if ($failcount != 0) {
+	echo "ERROR: Fix syntax errors before trying again\n";
+	exit -5;
+}
+
 // Ensure permissions are correct for runtime use
 exec ("chown -R root *");
 exec ("chgrp -R root *");
@@ -50,10 +60,16 @@ $pkg = "$plugin-$ver";
 echo "\nCreating package $pkg\n\n";
 
 @unlink ("../$pkg.pkg");
-// @TODO  Might want to consider supressing makepkg output?
 exec ("chown -R root *");
 exec ("chgrp -R root *");
-exec ("makepkg --chown y ../$pkg.txz");
+$output=null;
+$retval=null;
+// @TODO  Might want to consider supressing makepkg output?
+exec ("makepkg --chown y ../$pkg.txz", $output, $retval);
+if ($retval != 0) {
+	echo "\nERROR: Package creation failed (return value $retval)\n";
+	exit -5;
+}
 chdir ("$cwd");
 $md5 = exec ("md5sum $pkg.txz");
 echo "\nMD5: $md5\n";
@@ -103,6 +119,39 @@ exec ("chmod -R 755 *");
 chdir ($cwd);
 exit (0);
 
+// Look through the supplied directory for any .php or .page files to syntax check
+
+function syntaxCheckDirectory($path) {
+	$failcount = 0;
+	// echo "checking directory $path\n";
+	$fileList = glob("$path/*.page");
+	foreach($fileList as $filename){
+		if (! syntaxCheckFile($filename)) $failcount++;
+	}
+	$fileList = glob("$path/*.php");
+	foreach($fileList as $filename){
+		if (! syntaxCheckFile($filename)) $failcount++;
+	}
+	return $failcount;
+}
+
+// Run a PHP syntax check on the supplied file
+
+function syntaxCheckFile($filename) {
+	// echo "checking file $filename\n";
+	$output=null;
+	$retval=null;
+	exec("php -l $filename", $output, $retval);
+	if ($retval == 0) {
+		return true;
+	} else {
+		// echo "Returned with status $retval and output:\n";
+		// print_r($output);
+		echo "\nINFO: " . basename($filename);
+		passthru("php -l $filename");
+		return false;
+	}
+}
 
 function startsWith($haystack, $beginning, $caseInsensitivity = false)
 {
