@@ -42,13 +42,16 @@ loadVars(0);
 
 ?>
 <?if (!$translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$parityTuningPlugin/Parity.check.problems.page"))?>
+<?eval('?>'.parse_file("$docroot/plugins/" . PARITY_TUNING_PLUGIN . "/Parity.check.problems.page"))?>
 <?else:?>
 <? 
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . "</p>";
-if (!$parityTuningRestartOK)   echo "<p class='notice'>" . _('Requires Unraid 6.9.0-rc2 or later') . "</p>"; 
+if (!$parityTuningRestartOK)   echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
 if ($parityTuningActive) 
     echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
+loadVars(0);
+if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
+
 ?>
 
 <script>

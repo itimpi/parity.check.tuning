@@ -42,7 +42,7 @@ $parityTuningTempUnit      = $dynamixCfg['display']['unit'];
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
-$parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.9.0-rc1','>') > 0);
+$parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
 
 // Configuration information
 

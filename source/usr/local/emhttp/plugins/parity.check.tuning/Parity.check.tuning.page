@@ -28,7 +28,7 @@ $noscript = false;
 require_once "$docroot/plugins/$plugin/Legacy.php";
 ?>
 <?if (!$translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$parityTuningPlugin/Parity.check.tuning.page"))?>
+<?eval('?>'.parse_file("$docroot/plugins/" . PARITY_TUNING_PLUGIN . "/Parity.check.tuning.page"))?>
 <?else:?>
 <? 
 if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires Unraid 6.7 or later') . "</p>"; 
@@ -211,7 +211,7 @@ $(function() {
 >**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning
 :end
 
-<?= sprintf(_('Use increments for %s %s'), _('Scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
+<?= sprintf(_('Use increments for %s %s'), _('scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningIncrements" 
           size='1' class='narrow' 
           onClick="presetParityTuning(this.form)"
@@ -229,7 +229,7 @@ $(function() {
 >**CAUTION:**  The default unRaid behaviour is that if the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  
 :end
 
-<?= sprintf(_('Use increments for %s %s'), _('Manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
+<?= sprintf(_('Use increments for %s %s'), _('manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningUnscheduled" 
           size='1' class='narrow'
           onChange="presetParityTuning(this.form)">
@@ -244,7 +244,7 @@ $(function() {
 > With this option set to **Yes** then if you manually start a Parity Check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
 :end
 
-<?= sprintf(_('Use increments for %s %s'), _('Automatic'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
+<?= sprintf(_('Use increments for %s %s'), _('automatic'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningAutomatic" 
           size='1' class='narrow'
           onChange="checkAutomaticMode(this.form)">
@@ -397,7 +397,7 @@ _(Resume parity checks on next array start)_:
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningRestart, "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningRestart, "1", _("Yes")) . "\n"?>
-  </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F>_(This option is only available with Unraid 6.9.0-rc2 or later)_</font>"; ?>
+  </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F>_(This option is only available with Unraid 6.9.0 or later)_</font>"; ?>
   
 :parity_tune_restart_plug:
 > Unraid will normally abandon a parity check if the sytem is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
@@ -442,7 +442,7 @@ _(Pause an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatHigh?>">&deg;<?= $tempUnit ?> below warning disk temperature threshold
+         value="<?=$parityTuningHeatHigh?>">&deg;<?= $parityTuningTempUnit ?> below warning disk temperature threshold
 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.
@@ -460,7 +460,7 @@ _(Resume an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatLow?>">&deg;<?= $tempUnit ?> _(below warning disk temperature)_ threshold
+         value="<?=$parityTuningHeatLow?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature)_ threshold
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
@@ -511,7 +511,7 @@ _(Shutdown server at)_:
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
            type='text'
-           value="<?=$parityTuningHeatCritical?>">&deg;<?= $tempUnit ?> below critical disk temperature threshold
+           value="<?=$parityTuningHeatCritical?>">&deg;<?= $parityTuningTempUnit ?> below critical disk temperature threshold
   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shutdown of the server is triggered.
