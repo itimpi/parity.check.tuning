@@ -167,3 +167,5 @@ function endsWith($haystack, $ending, $caseInsensitivity = false){
     else
         return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
 }
+?>
+

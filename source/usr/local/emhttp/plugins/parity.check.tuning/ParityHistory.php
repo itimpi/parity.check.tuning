@@ -1,4 +1,4 @@
-<?PHP
+iF<?PHP
 /* Copyright 2005-2020, Lime Technology
  * Copyright 2012-2020, Bergware International.
  * Amendments Copyright 2019-2021, Dave Walker (itimpi)

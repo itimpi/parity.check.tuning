@@ -54,7 +54,7 @@ if (!$transFile) {
 	exit(3);
 }
 
-echo "\nINFO:  Validating syntax of translations file $transname.txt\n";
+echo "\nINFO:  Validating syntax of translations file $transName.txt\n";
 
 while (($line = fgets($transFile)) != false) {
 	$lineCount++;
@@ -95,11 +95,11 @@ if ($errorCount > 0) {
 	echo "INFO:  Fix these before trying again\n\n";
 	exit (6);
 }
-
+echo "INFO:  No syntax errors detected in translations file $transName.txt\n";
 
 // Create zip
 
-echo "\nINFO: Creating zip file $transname.txt\n";
+echo "\nINFO: Creating zip file\n";
 @unlink ("$transName.zip");
 // passthru ("zip -v \"$transName.zip\" \"$transName.txt\"");
 passthru ("zip -v \"$transName.zip\" *.txt");
@@ -108,7 +108,7 @@ echo ("You can now use Developer mode in Tools->Language to load this into a run
 
 exit (0);
 
-// Handle informing user about zn error thzt hzs been detected
+// Handle informing user about an error thzt has been detected
 
 function errorLine ($reason) {
 	$GLOBALS['errorCount']++;

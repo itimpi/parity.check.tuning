@@ -23,16 +23,19 @@ define('PARITY_TUNING_PLUGIN',      'parity.check.tuning');
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
 define('PLUGINS_DIR' ,              CONFIG_DIR . '/plugins');
-define('PARITY_TUNING_EMHHTTP_DIR', EMHTTP_DIR . '/plugins/' . PARITY_TUNING_PLUGIN);
-define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHHTTP_DIR . '/' . PARITY_TUNING_PLUGIN . '.php');
+define('PARITY_TUNING_EMHTTP_DIR',  EMHTTP_DIR . '/plugins/' . PARITY_TUNING_PLUGIN);
+define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHTTP_DIR . '/' . PARITY_TUNING_PLUGIN . '.php');
 define('PARITY_TUNING_BOOT_DIR',    PLUGINS_DIR . '/' . PARITY_TUNING_PLUGIN);
 define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING_PLUGIN . '.');
 define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
-define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial chesk in progress (contains end sector value)
+define('PARITY_TUNING_LOG_FILE',    PARITY_TUNING_FILE_PREFIX . 'log');
+define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial check in progress (contains end sector value)
 
 define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
 define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
 define('PARITY_TUNIN5_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
+
+define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
@@ -54,6 +57,7 @@ if (file_exists(PARITY_TUNING_CFG_FILE)) {
 
 // Set defaults for any missing/new values
 setCfgValue('parityTuningLogging', '0');
+setCfgValue('parityTuningLogTarget', '0');
 setCfgValue('parityTuningIncrements', '0');
 setCfgValue('parityTuningFrequency', '0');
 setCfgValue('parityTuningUnscheduled', '0');
@@ -108,9 +112,10 @@ if (file_exists(PARITY_TUNIN5_EMHTTP_DISKS_FILE)) {
 // load some state information.
 // (written as a function to facilitate reloads)
 function loadVars($delay = 0) {
-    parityTuningLoggerTesting ("loadVars($delay)");
-    if ($delay > 0) sleep($delay);
-
+    if ($delay > 0) {
+		parityTuningLoggerTesting ("loadVars($delay)");
+		sleep($delay);
+	}
 	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initialising so this file not yet created
 		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_EMHTTP_VAR_FILE));
 		return;
@@ -156,16 +161,24 @@ function parityTuningPartial() {
 
 // Write message to syslog and also to console if in CLI mode
 // Change source according to whether doing partial check or not
-function parityTuningLogger($string) {
+function parityTuningLogger($string) {  
+  $logTarget = $GLOBALS['parityTuningLogTarget'];
   parityTuningLoggerCLI ($string);
+  $logName = parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning";
+  if ($logTarget > 0) {
+	 $line = date(PARITY_TUNING_DATE_FORMAT) . ' ' . $GLOBALS['parityTuningServer'] . " $logName: $string\n";
+	 file_put_contents(PARITY_TUNING_LOG_FILE, $line, FILE_APPEND | LOCK_EX);
+  }
   $string = str_replace("'","",$string);
-  $cmd = 'logger -t "' . (parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning") . '" "' . $string . '"';
-  shell_exec($cmd);
+  if ($logTarget < 2)  {
+	$cmd = 'logger -t "' . $logName . '" "' . $string . '"';
+	shell_exec($cmd);
+  }
 }
 
 // Write message to syslog if debug or testing logging active
 function parityTuningLoggerDebug($string) {
-  if ($GLOBALS['parityTuningLogging'] > 0) parityTuningLogger('DEBUG: ' . $string);
+  if ($GLOBALS['parityTuningLogging'] > 0) parityTuningLogger('DEBUG:   ' . $string);
 }
 
 // Write message to syslog if testing logging active

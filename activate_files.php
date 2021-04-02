@@ -51,7 +51,7 @@ if (!is_dir("/boot/config/plugins/$plugin")) {
     exit (-1);
 }
 
-echo "\nINFO: Copying files from 'source' to runtime position";
+echo "\nINFO: Copying files from 'source' to runtime position\n";
 system ("cp -v -r -u source/* /");
 system ("chown -R root /usr/local/emhttp/plugins/$plugin");
 system ("chgrp -R root /usr/local/emhttp/plugins/$plugin");

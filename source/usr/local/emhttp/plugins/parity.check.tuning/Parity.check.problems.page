@@ -183,20 +183,20 @@ function startCheck(form) {
        disabled
        id = "parityProblemCmd">
  
-The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin 
+_(The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin)_.
 
-The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future.  
-***(feedback is welcomed on the basic concept and ideas for improvement***
+_(The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future)_  
+***_((feedback is welcomed on the basic concept and ideas for improvement)_***.
 
-It is intended to help pin down and resolve problems after a parity check has been run and errors have been reported.
+_(This assistant is intended to help pin down and resolve problems after a parity check has been run and errors have been reported)_.
 
-The idea is that this assistant can be used after a parity check (or read check) has reported problems and logged the details of the problem sector(s) to the syslog.
+_(The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog)_.
 
-In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.   
-If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.
-This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk. 
+_(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)~.   
+_(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.
+_(This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk)_. 
 
-**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
+**_(IMPORTANT)_**:  _(This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved)_.
 
 _(Method used to specify start and stop points)_:
 : <input type="radio" 
@@ -212,6 +212,11 @@ _(Method used to specify start and stop points)_:
 
 :parityProblems_type_plug:
 > Select the way you want to specify the start and end points.
+>
+> You are likely to want to use absolute sector numbers if there are ones that have previously been listed in the syslog as being an error.
+> Using absolute sector numbers tends to be more pecise and lead to shorter tests but can be more effort to set up.
+>
+> The alternative is to use percentages.  When using percentages then the sector numbers these represent are calculated as percentages of the largest parity disk.
 :end
 
 _(Start point for check)_:
@@ -268,10 +273,12 @@ _(Write Corrections to Parity)_:
     <?=mk_option($parityProblemCorrect, "1", _("Yes")) . "\n"?>
   </select>
 
+
 :parityProblems_correct_plug:
 > Specify whether you want to attempt to update parity to correct any error found,
 > or just do a read test to see if any parity errors are reported.
 :end
+
 
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
 

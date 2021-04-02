@@ -69,15 +69,20 @@ function presetParityTuning(form) {
   form.parityTuningHeatCritical.disabled= (form.parityTuningHeatShutdown.value !== '1');
   
   if (form.parityTuningFrequency.value == "1") {
-    document.getElementById('parityTuningcustomResume').style.display = "inline";
-    document.getElementById('parityTuningcustomPause').style.display  = "inline";
-    document.getElementById('parityTuningdailyResume').style.display  = "none";
-    document.getElementById('parityTuningdailyPause').style.display   = "none";
+    document.getElementById('parityTuningCustomResume').style.display = "inline";
+    document.getElementById('parityTuningCustomPause').style.display  = "inline";
+    document.getElementById('parityTuningDailyResume').style.display  = "none";
+    document.getElementById('parityTuningDailyPause').style.display   = "none";
   } else {
-    document.getElementById('parityTuningcustomResume').style.display = "none";
-    document.getElementById('parityTuningcustomPause').style.display  = "none";
-    document.getElementById('parityTuningdailyResume').style.display  = "inline";
-    document.getElementById('parityTuningdailyPause').style.display   = "inline";
+    document.getElementById('parityTuningCustomResume').style.display = "none";
+    document.getElementById('parityTuningCustomPause').style.display  = "none";
+    document.getElementById('parityTuningDailyResume').style.display  = "inline";
+    document.getElementById('parityTuningDailyPause').style.display   = "inline";
+  }
+  form.parityTuningLogTarget.disabled = false;
+  if (form.parityTuningLogging.value < "2") {
+     form.parityTuningLogTarget.value = "0";	// Only allow logging to flash in Testing Mode
+	 form.parityTuningLogTarget.disabled = true;
   }
 }
 
@@ -130,7 +135,7 @@ function checkTimeRange(form) {
           icon:"Warning"});
     }
 }
-b
+
 function checkHeatLow(form) {
   var difference = form.parityTuningHeatLow.value - form.parityTuningHeatHigh.value;
   if (difference < 1 ) {
@@ -154,13 +159,26 @@ function checkLoggingMode (form) {
             break;
     case "1":
             swal({title: "_(Do you really want Debug logging mode)_?",
-            text:"_(Debug mode is intended to give users a feel for when the plugin is active)_ . _(Debug mode can generate frequent additional entries in the syslog file so do not leave debug mode active if you are not interested in this information)_.",
+            text:"_(Debug mode is intended to give users a feel for when the plugin is active)_ . _(Debug mode can generate frequent additional log entries in the syslog file so do not leave debug mode active if you are not interested in this information)_.",
             icon:"Warning"});
             break;
 
     case "2":
             swal({title: "_(Do you really want testing mode)_?",
-            text:"_(Testing mode is normally only used by the plugin author or when gathering evidence of a suspected bug in the plugin)_ . _(Testing mode is very verbose and generates a lot of additional entries in the syslog file so you do not want it enabled unless this is really necessary)_.",
+            text:"_(Testing mode is normally only used by the plugin author or when gathering evidence of a suspected bug in the plugin)_ . _(Testing mode is very verbose and generates a lot of additional log entries so you do not want it enabled unless this is really necessary)_.",
+            icon:"Warning"});
+            break;
+    } // end switch
+}
+
+function checkLoggingTarget (form) {
+    switch (form.parityTuningLogTarget.value) {
+    case "0":
+            break;
+    case "1":
+	case "2":
+            swal({title: "_(Do you really want to log to the flash drive)_?",
+            text:"_(Logging to the flash drive can can cause a lot additional writes thus potentially shortening its lifetime)_ . _(Do not leave this active if you are not interested in this information)_. _(CAUTION)_: _(At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually)_.",
             icon:"Warning"});
             break;
     } // end switch
@@ -194,7 +212,7 @@ $(function() {
        value="updatecron">
 
 :parity_tune_explain_plug:
-> The main purpose of this plugin is to allow you to limit parity checks to running at times that will not inconvenience you.
+> The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.
 >
 >If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
 >
@@ -273,7 +291,7 @@ _(Increment frequency)_:
 :end
 
 _(Increment resume time)_:
-: <span id="parityTuningcustomResume">
+: <span id="parityTuningCustomResume">
   <input type="text"
          size='1' class='narrow'
          name="parityTuningResumeCustom"
@@ -281,7 +299,7 @@ _(Increment resume time)_:
          onblur="checkCustom(this)">
   &nbsp; _(entry in )_ <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> format
 </span>
-<span id="parityTuningdailyResume">
+<span id="parityTuningDailyResume">
   <select name="parityTuningResumeHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
@@ -307,7 +325,7 @@ _(Increment resume time)_:
 :end
 
 _(Increment pause time)_:
-: <span id="parityTuningcustomPause">
+: <span id="parityTuningCustomPause">
    <input type="text"
           size='1' class='narrow'
           name="parityTuningPauseCustom"
@@ -315,7 +333,7 @@ _(Increment pause time)_:
           onblur="checkCustom(this)">
   &nbsp; _(entry in )_ <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> _(format)_
 </span>
-<span id="parityTuningdailyPause">
+<span id="parityTuningDailyPause">
   <select name="parityTuningPauseHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
@@ -442,7 +460,7 @@ _(Pause an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatHigh?>">&deg;<?= $parityTuningTempUnit ?> below warning disk temperature threshold
+         value="<?=$parityTuningHeatHigh?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_
 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.
@@ -460,7 +478,7 @@ _(Resume an array operation at)_:
          size='1' class='narrow'
          type='text'
          onchange="checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatLow?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature)_ threshold
+         value="<?=$parityTuningHeatLow?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
@@ -523,19 +541,25 @@ _(Shutdown server at)_:
 
 &nbsp;
 
-_(Parity Check Tuning logging level)_:
+_(Parity Check Tuning logging)_:
 : <select name="parityTuningLogging" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
     <?=mk_option($parityTuningLogging, "0", _("Basic")) . "\n"?>
     <?=mk_option($parityTuningLogging, "1", _("Debug")) . "\n"?>
     <?=mk_option($parityTuningLogging, "2", _("Testing")) . "\n"?>
-  </select>
-
-:parity_tune_debug_plug:
-> Control the level of detail in entries written the syslog file.  The level of detail can be increased to help with debugging any problems using this plugin might encounter.
+  </select>  <select name="parityTuningLogTarget"
+          size='1' class='narrow'
+		  onchange="presetParityTuning(this.form); checkLoggingTarget(this.form)">
+		  <?=mk_option($parityTuningLogTarget, "0", _("Syslog only")) . "\n"?>
+          <?=mk_option($parityTuningLogTarget, "1", _("Syslog and Flash")) . "\n"?>
+          <?=mk_option($parityTuningLogTarget, "2", _("Flash only")) . "\n"?>
+	  </select>
+	  
+:parity_tune_logging_plug:
+> Control the level of detail in entries.  The level of detail can be increased to help with debugging any problems using this plugin might encounter.
 >
->Messages written to the syslog by this plugin are identified by the fact that they are shown as coming from  
+>Messages by this plugin are identified by the fact that they are shown as coming from  
 >* **Parity Check Tuning**  
 >* **Parity Problems Assistant**  
 >depending on which part of the plugin generated the messages
@@ -547,8 +571,13 @@ _(Parity Check Tuning logging level)_:
 >Finally there is an additional setting of **Testing** that is only intended for use by the developer but is left here for convenience.  It will write even more verbose messages to the syslog but these are not likely to be interesting (or even meaningful) to the average user.  These messages will have the word **TESTING** added to the start of messages. You should only run this level of logging if you have been asked to as it can quickly fill up your syslog if you are not careful.
 >
 >Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
+>
+>If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the inly oti/n allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
+To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flzsh drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
 :end
 
+
+	  
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
 
 : <input type="submit" 

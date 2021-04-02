@@ -55,10 +55,8 @@ define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); 
 define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  // Created if arry stopped with array operation active to hold restart info
 define('PARITY_TUNING_DISKS_FILE',     PARITY_TUNING_FILE_PREFIX . 'disks');    // Copy of disks.ini  info saved to allow check if disk configuration changed
 define('PARITY_TUNING_TIDY_FILE',      PARITY_TUNING_FILE_PREFIX . 'tidy');	    // Create when we think there was a tidy shutdown
-define('PARITY_TUNING_UNCLEAN_FILE',   PARITY_TUNING_FILE_PREFIX . 'unclean');  // Create when we think unclean shutdown forces a parity chack being abandoned
+define('PARITY_TUNING_UNCLEAN_FILE',   PARITY_TUNING_FILE_PREFIX . 'unclean');  // Create when we think unclean shutdown forces a parity check being abandoned
 
-
-define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 
 loadVars();
 
@@ -102,7 +100,7 @@ switch ($command) {
             case 'check':
                     loadVars(5);         // give time for start/resume
                     if ($argv[4] == 'resume') {
-                        parityTuningLoggerDebug ('... ' . sprintf ('to resume %s', actionDescription($parityTuningAction, $parityTuningCorrecting)));
+                        parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting)));
                         parityTuningProgressWrite('RESUME');            // We want state after resume has started
                     } else {
 						if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
@@ -123,7 +121,7 @@ switch ($command) {
                     break;
             case 'nocheck':
                     if ($argv[4] == 'pause') {
-                        parityTuningLoggerDebug ('...' . sprintf ('to pause %s', actionDescription($parityTuningAction, $parityTuningCorrecting)));
+                        parityTuningLoggerDebug ('...' . _('Pause' . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting)));
                         loadVars(5);         // give time for pause
                         parityTuningProgressWrite ("PAUSE");
                     } else {
@@ -142,7 +140,7 @@ switch ($command) {
 					}
             		break;
             default:
-                    parityTuningLoggerDebug('option not currently recognised');
+                    parityTuningLoggerDebug('Option not currently recognised');
                     break;
             }  // end of 'crond' switch
             break;
@@ -234,8 +232,10 @@ switch ($command) {
         $driveCount = 0;
         $arrayCount = 0;
         $status = '';
-        parityTuningLoggerTesting (sprintf(_('plugin temperature settings: pause %s, resume %s'),$parityTuningHeatHigh, $parityTuningHeatLow)
-                				   . ($parityTuningShutdown ? ', ' . sprintf(_('shutdown %s'), $parityTuningHeatCritical) : ''));
+        parityTuningLoggerTesting (_('plugin temperature settings') 
+									. ': ' . _('Pause') . ' ' .  $parityTuningHeatHigh 
+									. ', ' . _('Resume') . ' ' . $parityTuningHeatLow
+                				   . ($parityTuningShutdown ? (', ' . _('Shutdown') . ' ' . $parityTuningHeatCritical) . ')' : ''));
         foreach ($disks as $drive) {
             $name=$drive['name'];
             $temp = $drive['temp'];
