@@ -154,7 +154,7 @@ switch ($command) {
         // that we need to take some action on.  In particular disks overheating (or cooling back down).
         //
         // This is also the place where we can detect manual checks have been started.
-        // TODO: Check out if fe correctly detect automatic acti/ns such as a parity check after ans
+        // TODO: Check out if fe correctly detect automatic actions such as a parity check after ans
         //		 unclean shutdown or non xcheck operatiNs such as Disk Clear znd parity sync/disk rebuild
         //
         // The monitor frequency varies according to whether temperatures are being checked
@@ -960,6 +960,7 @@ function parityTuningProgressAnalyze() {
     $duration = $elapsed = $increments = $corrected = 0;
     $thisStart = $thisFinish = $thisElapsed = $thisDuration = $thisOffset = 0;
     $lastFinish = $exitCode = $firstSector = $reachedSector = 0;
+	$triggerType = '';
     $mdResyncAction = '';
 	$mdStartAction = '';		// This is toi handle case where COMPLETE reicord has wrong type
     foreach ($lines as $line) {
@@ -978,12 +979,15 @@ function parityTuningProgressAnalyze() {
         }
         switch ($op) {
         	case 'SCHEDULED':
-        			$scheduled = true;
+        			$triggerType = _('scheduled');
 					$startAction = $mdResyncAction;
         			break;
         	case 'AUTOMATIC':
+			        $triggerType = _('automatic');
+					$startAction = $mdResyncAction;
+					break;
         	case 'MANUAL':
-        	        $scheduled = false;
+        	        $triggerType = _('manual');
 					$startAction = $mdResyncAction;
         	        break;
         	case 'UNKNOWN':
@@ -1095,11 +1099,9 @@ END_PROGRESS_FOR_LOOP:
 		$speed .= "$unit/s";
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
+		$actionType = actionDescription($startAction, $mdResyncCorr);
 		$msg  = sprintf(_('%s %s %s (%d errors)'),
-						_(strtolower(operationTriggerType())), 
-						actionDescription($startAction, $mdResyncCorr), 
-						$exitStatus, 
-						$corrected);
+						$triggerType, $actionType, $exitStatus, $corrected);
 		$desc = sprintf(_('%s %s, %s %s, %s %d, %s %s'),
 						_('Elapsed Time'),his_duration($elapsed),
 						_('Runtime'), his_duration($duration),
@@ -1110,7 +1112,7 @@ END_PROGRESS_FOR_LOOP:
 		sendNotification($msg, $desc, ($exitCode == 0 ? 'normal' : 'warning'));
 		
 		if (! startsWith($mdResyncAction,'check')) {
-			parityTuningLoggerDebug('array action was not Parity Check - it was '. actionDescription($mdResyncAction, $mdResyncCorr));
+			parityTuningLoggerDebug("array action was not Parity Check - it was $actionType"); 
 			parityTuningLoggerDebug('... so update to parity check history not appropriate');
 			parityTuningDeleteFile($scheduledFile);   // should not exist but lets play safe!
 		} else {
@@ -1149,7 +1151,8 @@ END_PROGRESS_FOR_LOOP:
 			$gendate = date(PARITY_TUNING_DATE_FORMAT,$lastFinish);
 			if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
 
-			$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$elapsed|$increments|$type[0]\n";
+			// $generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$elapsed|$increments|$type[0]\n";
+			$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$elapsed|$increments|$triggerType $actionType\n";
 			parityTuningLoggerDebug("log record generated from progress: $generatedRecord");    $lines[$matchLine] = $generatedRecord;
 			$myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
 			file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes

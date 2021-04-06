@@ -594,7 +594,7 @@ To facilitate with debugging problems then in Testing mode you can log the messa
 : <input type="button" 
        name="showHistory" 
        value="_(History)_" 
-       onclick="openBox('/webGui/include/ParityHistory.php','Parity/Read-Check History',600,900,false)">_(Click to show parity-check history)_
+       onclick="openBox('/webGui/include/ParityHistory.php','Parity/Read-Check History',600,900,false,'dd')">_(Click to show parity-check history)_
        <a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
 <?endif;?>
 

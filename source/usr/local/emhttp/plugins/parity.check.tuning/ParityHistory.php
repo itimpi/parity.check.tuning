@@ -1,4 +1,4 @@
-iF<?PHP
+<?PHP
 /* Copyright 2005-2020, Lime Technology
  * Copyright 2012-2020, Bergware International.
  * Amendments Copyright 2019-2021, Dave Walker (itimpi)
@@ -92,12 +92,11 @@ if (file_exists($log)) {
     if ($speed==0) $speed = _('Unavailable');
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
     if ($duration>0||$status<>0) {
-    	$list[] = "<tr><td>$date</td><td>".his_duration($duration)."</td><td>$speed</td><td>"
-    			.($status==0?_('OK'):($status==-4?_('Canceled'):($status==-5?_('Aborted'):'&nbsp;' . $status)))."</td><td>$error</td>"
-                .($extended?('<td>'.($elapsed==0?'Unknown':his_duration($elapsed)).'</td>'
-                            .'<td>'.($increments==0?_('Unavailable'):$increments).'</td>'):'')
-                . "<td>$type</td>"
-    			."</tr>";
+    	$list[] = '<tr align="center"><td align="center">'.$date.'</td><td> '.his_duration($duration).' </td><td> '.$speed.' </td><td> '
+    			.($status==0?_('OK'):($status==-4?_('Canceled'):($status==-5?_('Aborted'):'' . $status))).'</td><td> '.$error . ' </td>'
+                .($extended?('<td> '.($elapsed==0?'Unknown':his_duration($elapsed)).' </td>'
+                            .'<td>&nbsp;'.($increments==0?_('Unavailable'):$increments).' </td>'):'')
+                .'<td> '.$type.' </td></tr>';
     }
   }
   fclose($handle);
