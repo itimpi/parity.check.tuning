@@ -534,7 +534,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
         	parityTuningLoggerTesting ('Appears that scheduled pause/resume was active when array stopped');
             if (! isParityCheckActivePeriod()) {
 				parityTuningLoggerDebug(_('Outside time slot for running scheduled parity checks'));
-				loadVars(15);		// allow time for Unraid standard notificaton to be output before attempting pause (monitor runs every minute)
+				loadVars(15);		// allow time for Unraid standard notification to be output before attempting pause (monitor runs every minute)
            		goto RUN_PAUSE;
            	}
         }
@@ -559,11 +559,11 @@ end_array_started:
 				parityTuningProgressAnalyze();
 				parityTuningInactiveCleanup();
 				createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
-				sendNotification (sprintf('%s %s %s %s',
+				sendNotification (sprintf('%s %s %s',
 										_('Automatic unRaid'), 
-										actionDescription($parityTuningAction, $parityTuningCorrecting), 
-										('will be started'), 
-										_('Unclean shutdown detected')), 
+										actionDescription($parityTuningAction,$parityTuningCorrecting), 
+										('will be started')), 
+										_('Unclean shutdown detected'), 
 										'warning');
 				loadVars(5);
 				suppressMonitorNotification();
