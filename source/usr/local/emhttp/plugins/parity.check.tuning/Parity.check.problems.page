@@ -27,6 +27,7 @@ $translations = file_exists("$docroot/webGui/include/Translations.php");
 $noscript = false;
 require_once "$docroot/plugins/$plugin/Legacy.php";
 loadVars(0);
+parityProblemBuildSectorList();
 
 // Build a list of sectors from syslog that have reported errors
 // (Need to filter to latest date to remove old parity checks)
@@ -36,9 +37,15 @@ loadVars(0);
 // recovery thread: P corrected, sector=496
 // recovery thread: P incorrect, sector=432
 
-// function parityProblemBuildSectorList() {
-//     exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector="', $results));
-// }
+function parityProblemBuildSectorList() {
+	parityTuningLoggerTesting('Scanning syslog for sectors corrected/incorrect');
+    exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector="', $results1));
+	parityTuningLoggerTesting(count($results1) . ' entries for sectors corrected');
+	exec (escapeshellarg('cat /etc/log/syslog | fgrep "incorrect, sector="', $results2));
+	parityTuningLoggerTesting(count($results2) . ' entries for sectors incorrect');
+	exec (escapeshellarg('cat /etc/log/syslog | fgrep -regex ".*recovery thread.*sector=.*"', $results3));
+	parityTuningLoggerTesting(count($results3) . ' entries using regex');
+}
 
 ?>
 <?if (!$translations):?>
@@ -214,7 +221,7 @@ _(Method used to specify start and stop points)_:
 > Select the way you want to specify the start and end points.
 >
 > You are likely to want to use absolute sector numbers if there are ones that have previously been listed in the syslog as being an error.
-> Using absolute sector numbers tends to be more pecise and lead to shorter tests but can be more effort to set up.
+> Using absolute sector numbers tends to be more precise and lead to shorter tests but can be more effort to set up.
 >
 > The alternative is to use percentages.  When using percentages then the sector numbers these represent are calculated as percentages of the largest parity disk.
 :end
@@ -239,9 +246,9 @@ _(Start point for check)_:
 :parityProblems_start_plug:
 > Select where you want the check to be started from.  You can specify the start point as either a sector number or as a percentage of the size of the largest parity disk.
 >
-> Specifying absolute sectors is likely to be of particular use when you have extracted the sector numbers from the *syslog* when the original parity chesk reported errors on those sectors. In a future version of this plugin the plugin may be enhanced to automatically extract such sectors from the *syslog* and give you a drop down list but this feature is not yet implemented.
+> Specifying absolute sectors is likely to be of particular use when you have extracted the sector numbers from the *syslog* when the original parity check reported errors on those sectors. In a future version of this plugin the plugin may be enhanced to automatically extract such sectors from the *syslog* and give you a drop down list but this feature is not yet implemented.
 >
-> In practice for technical reasons the check may start slighty earlier than the point you specify, but this will only be by a small amount.
+> In practice for technical reasons the check may start slightly earlier than the point you specify, but this will only be by a small amount.
 :end
 
 _(End point for check)_:

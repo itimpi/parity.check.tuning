@@ -9,7 +9,7 @@ Tag="gear"
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
  *'
- * Limetech is given expliit permission to use this code in any way they like.
+ * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -31,7 +31,7 @@ require_once "$docroot/plugins/$plugin/Legacy.php";
 <?eval('?>'.parse_file("$docroot/plugins/" . PARITY_TUNING_PLUGIN . "/Parity.check.tuning.page"))?>
 <?else:?>
 <? 
-if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires Unraid 6.7 or later') . "</p>"; 
+if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires unRaid 6.7 or later') . "</p>"; 
 ?>
 <script>
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
@@ -97,7 +97,7 @@ function confirmReconYes(form) {
 function confirmClearYes(form) {
     if (form.parityTuningClear.value == '1') {
         swal({title: "_(Do you really want this)_?",
-              text: "_(Pausing an disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage)_.  _(On most systems a disk Clear operation does not advesely affect performance so typically this option is left disabled)_.",
+              text: "_(Pausing an disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage)_.  _(On most systems a disk Clear operation does not adversely affect performance so typically this option is left disabled)_.",
               icon: "Warning"});
     }
 }
@@ -140,7 +140,7 @@ function checkHeatLow(form) {
   var difference = form.parityTuningHeatLow.value - form.parityTuningHeatHigh.value;
   if (difference < 1 ) {
     swal({title: "_(Temperature Pause and Resume)_?",
-          text:"_(The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both relative to the disk temperature warning value)_",
+          text:"_(The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature)_",
           icon:"Warning"});
     }
 }
@@ -178,7 +178,7 @@ function checkLoggingTarget (form) {
     case "1":
 	case "2":
             swal({title: "_(Do you really want to log to the flash drive)_?",
-            text:"_(Logging to the flash drive can can cause a lot additional writes thus potentially shortening its lifetime)_ . _(Do not leave this active if you are not interested in this information)_. _(CAUTION)_: _(At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually)_.",
+            text:"_(Logging to the flash drive can cause a lot additional writes thus potentially shortening its lifetime)_ . _(Do not leave this active if you are not interested in this information)_. _(CAUTION)_: _(At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually)_.",
             icon:"Warning"});
             break;
     } // end switch
@@ -244,7 +244,7 @@ $(function() {
 >
 >If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
 >
->**CAUTION:**  The default unRaid behaviour is that if the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  
+>**CAUTION:**  The default unRaid behavior is that if the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  
 :end
 
 <?= sprintf(_('Use increments for %s %s'), _('manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
@@ -271,9 +271,9 @@ $(function() {
   </select>
 
 :parity_tune_automatic_plug:
-> if the unRaid system is not shutdown cleanly then the next time the array is started unRaid will automatically start a non-correcting parity check (or a read check if you have no parity disk). This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issus.  The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
+> if the unRaid system is not shutdown cleanly then the next time the array is started unRaid will automatically start a non-correcting parity check (or a read check if you have no parity disk). This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issues.  The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
 > 
-> If this option is set then the check will be allowed to run for a few minutes (as any errors after an unclean sheutdown are most likely to be at the start of the disks as they were not unmounted cleanly) and then automatically put the check into a paused state (if outside the time specified for running increments) and then the  remainder of the check subsequently run in increments according to the time slots specified for running increments.
+> If this option is set then the check will be allowed to run for a few minutes (as any errors after an unclean shutdown are most likely to be at the start of the disks as they were not unmounted cleanly) and then automatically put the check into a paused state (if outside the time specified for running increments) and then the  remainder of the check subsequently run in increments according to the time slots specified for running increments.
 :end
 
 _(Increment frequency)_:
@@ -404,7 +404,7 @@ _(Use increments for disk Clear operations)_:
   </select> <? if ($parityTuningNoParity) echo "<font color=#FF8C2F>_(You require a parity disk present for this option to be relevant)_</font>"; ?>
 
 :parity_tune_clear_plug:
-> Should disk Clear operations be run using increments.<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected.  The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data.
+> Should disk Clear operations be run using increments.<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected.  The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in unRaid and start using it for storing data.
 >
 >Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at **No**.   In addition, a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 :end
@@ -418,7 +418,7 @@ _(Resume parity checks on next array start)_:
   </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F>_(This option is only available with Unraid 6.9.0 or later)_</font>"; ?>
   
 :parity_tune_restart_plug:
-> Unraid will normally abandon a parity check if the sytem is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
+> Unraid will normally abandon a parity check if the system is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
 > Setting this option allows parity checks to be restarted by this plugin from the point they had reached as long as the following criteria are met:  
 >* The array was shutdown tidily  
 >* The user must not have made any changes to the array configuration.
@@ -450,7 +450,7 @@ _(Pause and Resume array operations if disks overheat)_:
 >
 >The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.
 >
->A much better solution is to improve the cooling in your case so that the disks never overheat.   In practise this may not always prove practical.
+>A much better solution is to improve the cooling in your case so that the disks never overheat.   In practice this may not always prove practical.
 >
 >If the array operation was part of running an increment then it will not be resumed outside the time allotted for the increment.   If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
 :end
@@ -518,7 +518,7 @@ _(High disk temperatures can shutdown server)_:
 > If set to **Yes** then automatically start a tidy shutdown of the server if any disk in the array or a cache pool reach the defined temperature threshold.
 > The temperatures are checked against the thresholds set for the **Critical** disk temperature levels. If a Critical temperature has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (*<a href="Settings/DisplaySettings">Settings->Display Settings</a>) will be used.
 >
->This option intended to be triggered if for some reason the system's cooling system is insufficient or if it has failed in some way. The idea is that you want to do a tidy shutdown before the disks become damaged due to overheating badly.   The shutdown that is triggered is functionally the same as would be the case of pressing the Shutdown button on the Main page of the Unraid GUI.  If notifications are enabled then you are sent one to indicate that this has happened.
+>This option intended to be triggered if for some reason the system's cooling system is insufficient or if it has failed in some way. The idea is that you want to do a tidy shutdown before the disks become damaged due to overheating badly.   The shutdown that is triggered is functionally the same as would be the case of pressing the Shutdown button on the Main page of the unRaid GUI.  If notifications are enabled then you are sent one to indicate that this has happened.
 >
 >When the server is started up again after such a shutdown then when the array is started you will be notified that a temperature related shutdown happened in case you were not aware of the reason.
 >
@@ -533,7 +533,7 @@ _(Shutdown server at)_:
   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shutdown of the server is triggered.
-> You may want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.
+> You may want a small positive value to trigger the pause before unRaid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.
 >
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
@@ -572,8 +572,8 @@ _(Parity Check Tuning logging)_:
 >
 >Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
 >
->If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the inly oti/n allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
-To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flzsh drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
+>If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the inly option allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
+>To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flash drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
 :end
 
 

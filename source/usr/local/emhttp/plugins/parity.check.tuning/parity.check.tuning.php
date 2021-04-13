@@ -140,7 +140,7 @@ switch ($command) {
 					}
             		break;
             default:
-                    parityTuningLoggerDebug('Option not currently recognised');
+                    parityTuningLoggerDebug('Option not currently recognized');
                     break;
             }  // end of 'crond' switch
             break;
@@ -155,14 +155,14 @@ switch ($command) {
         //
         // This is also the place where we can detect manual checks have been started.
         // TODO: Check out if fe correctly detect automatic actions such as a parity check after ans
-        //		 unclean shutdown or non xcheck operatiNs such as Disk Clear znd parity sync/disk rebuild
+        //		 unclean shutdown or non-check operations such as Disk Clear and parity sync/disk rebuild
         //
         // The monitor frequency varies according to whether temperatures are being checked
         // or partial parity checks zre active as then we do it more often.
 
 		reportStatusFiles();
 		if (! file_exists(PARITY_TUNIN5_EMHTTP_DISKS_FILE)) {
-			parityTuningLoggerTesting('System appears to still be initialising - disk information not available');
+			parityTuningLoggerTesting('System appears to still be initializing - disk information not available');
 			break;
 		}
 
@@ -706,7 +706,7 @@ end_array_started:
     case '--help':
     default:
         parityTuningLogger ('');       // Blank line to help break up debug sequences
-        parityTuningLogger (_('ERROR') . ': ' . sprintf(_('Unrecognised option %s'), $command));
+        parityTuningLogger (_('ERROR') . ': ' . _('Unrecognized option').' '.$command);
         parityTuningLoggerCLI (_('Usage') . ': ' . basename($argv[0]) . ' <' . _('action') . '>');
 		parityTuningLoggerCLI (_('where action is one of'));
 		parityTuningLoggerCLI ('  pause            ' . _('Pause a running array operation'));

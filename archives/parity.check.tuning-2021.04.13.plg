@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.04.13">
-<!ENTITY md5 "c93111e32ab679d0adc555c16a7aaa8c">
+<!ENTITY version "2021.04.06">
+<!ENTITY md5 "b52b6846dd4c44e3c5f66d14353085d4">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -24,7 +24,7 @@
 
 <CHANGES>
 ###2021.04.13
- - Fix: Translation text related fixes (no functional changes)
+ - Fix: Translation text fixes (no functional changes)
  
 ###2021.04.06
  - Fix: Regression that could trigger error message when displaying Parity Historyi
