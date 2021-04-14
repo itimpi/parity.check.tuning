@@ -93,6 +93,7 @@ where action is one of=
 ; Notifications
 aborted due to Unclean shutdown=
 array stopping so progress will be lost=
+; The type of array operation (parity check, clear, rebuild) will be appended to the following text
 Automatic unRaid=
 Average Speed=
 completed=
