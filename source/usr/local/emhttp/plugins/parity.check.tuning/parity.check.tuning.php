@@ -6,24 +6,24 @@
  * It can be triggered in a variety of ways such as an Unraid event; a cron job;
  * a page file command; or from another script.
  *
- * It takes a parameter descrbing the action required.
+ * It takes a parameter describing the action required.
  *
  * In can also be called via CLI as the command 'parity.check' to expose functionality
  * that relates to parity checking.
- *ieg
+ *
  * Copyright 2019-2021, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
  *
- * Limetech is given expliit permission to use this code in any way they like.
+ * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
 
-// error_reporting(E_ALL);		 // This option shiuld only be enabled for testing purposes
+// error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
 
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
@@ -37,7 +37,7 @@ if ($translations) {
   $_SERVER['REQUEST_URI'] = 'paritychecktuning';
   require_once "$docroot/webGui/include/Translations.php";
 } else {
-  // legacy support (without javascript)
+  // legacy support (without JavaScript)
   $noscript = true;
   require_once "$docroot/plugins/$plugin/Legacy.php";
 }
@@ -154,8 +154,6 @@ switch ($command) {
         // that we need to take some action on.  In particular disks overheating (or cooling back down).
         //
         // This is also the place where we can detect manual checks have been started.
-        // TODO: Check out if fe correctly detect automatic actions such as a parity check after ans
-        //		 unclean shutdown or non-check operations such as Disk Clear and parity sync/disk rebuild
         //
         // The monitor frequency varies according to whether temperatures are being checked
         // or partial parity checks zre active as then we do it more often.
@@ -341,7 +339,7 @@ switch ($command) {
         break;
 
     // A resume of an array operation has been requested.
-	// This could be via a scheduled cron task or a cLI command
+	// This could be via a scheduled cron task or a CLI command
 	
     case 'resume':
         parityTuningLoggerDebug (_('Resume request'));
@@ -367,8 +365,8 @@ switch ($command) {
 		}
         break;
 
-    // A pausee of an array operation has been requested.
-	// This could be via a scheduled cron task or a cLI command
+    // A pause of an array operation has been requested.
+	// This could be via a scheduled cron task or a CLI command
 	
     case 'pause':
         parityTuningLoggerDebug(_('Pause request'));
@@ -456,6 +454,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
     	break;
 
 	// runs with when system startup complete and array is fully started
+	
     case 'started':
         parityTuningLoggerDebug (_('Array has just been started'));
 		reportStatusFiles();
@@ -534,7 +533,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
         	parityTuningLoggerTesting ('Appears that scheduled pause/resume was active when array stopped');
             if (! isParityCheckActivePeriod()) {
 				parityTuningLoggerDebug(_('Outside time slot for running scheduled parity checks'));
-				loadVars(15);		// allow time for Unraid standard notification to be output before attempting pause (monitor runs every minute)
+				loadVars(15);		// allow time for unRaid standard notification to be output before attempting pause (monitor runs every minute)
            		goto RUN_PAUSE;
            	}
         }
@@ -682,7 +681,7 @@ end_array_started:
         // fallthru to usage section
 
 
-	// Potential Unraid event types on which no action is (currently) being taken by this plugin?
+	// Potential unRaid event types on which no action is (currently) being taken by this plugin?
 	// They are being caught at the moment so we can see when they actually occur.
 
 	case 'stopped':
@@ -750,7 +749,7 @@ function saveRestartInformation() {
 	}
 }
 
-// Check the stored disk information against the surrent assignement
+// Check the stored disk information against the current assignment
 //	Return Values
 //		0 (false)	Disks appear unchanged
 //		-1			New disk present (New Config used?)
@@ -800,7 +799,7 @@ function parityTuningMarkerTidy($name) {
 	return $name;
 }
 
-// Helps break debug information into blocks to identify entrie for a given entry point
+// Helps break debug information into blocks to identify entries for a given entry point
 
 //       ~~~~~~~~~~~~~~~
 function spacerDebugLine($strt = true, $cmd) {
@@ -833,7 +832,7 @@ function tempInDisplayUnit($temp) {
 }
 
 // Get the temperature in Celsius compensating
-// if needed for fact dirplay in Fahrenheit
+// if needed for fact display in Fahrenheit
 
 //		 ~~~~~~~~~~~~~~~~~~
 function tempFromDisplayUnit($temp) {
@@ -906,7 +905,7 @@ function parityTuningProgressWrite($msg) {
 
 //  Function that looks to see if a previously running array operation has finished.
 //  If it has analyze the progress file to create a history record.
-//  We then update the standard Unraid history file.  
+//  We then update the standard unRaid history file.  
 //	If needed we patch an existing record.
 
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -945,7 +944,7 @@ function parityTuningProgressAnalyze() {
         return;        // Cannot analyze a file that cannot be read!
     }
     // Check if file was completed
-    // TODO:  Consider removing this check when anaylyze fully debugged
+    // TODO:  Consider removing this check when analyze fully debugged
     if (count($lines) < 2) {
         parityTuningLoggerDebug('Progress file appears to be incomplete');
         return;
@@ -967,7 +966,7 @@ function parityTuningProgressAnalyze() {
     	parityTuningLoggerTesting("$line");
         list($op,$stamp,$timestamp,$sbSynced,$sbSynced2,$sbSyncErrs, $sbSyncExit, $mdState,
              $mdResync, $mdResyncPos, $mdResyncSize, $mdResyncCorr, $mdResyncAction, $desc) = explode ('|',$line);
-		// A progress file can have a time offset which we can determine by comaparing text and binary timestamps
+		// A progress file can have a time offset which we can determine by comparing text and binary timestamps
 		// (This will only be relevant when testing Progress files submitted as part of a problem report)
         if (! $increments) {
         	$temp = strtotime(substr($stamp, 9, 3) . substr($stamp,4,4) . substr($stamp,0,5) . substr($stamp,12));
@@ -1051,7 +1050,7 @@ function parityTuningProgressAnalyze() {
 
             case 'RESTART CANCELLED':
         	case 'ABORTED': // Indicates that a parity check has been aborted due to unclean shutdown,
-        					// (or Unraid version too old) so ignore this record
+        					// (or unRaid version too old) so ignore this record
 					$exitCode = -5;
 					goto END_PROGRESS_FOR_LOOP;
             // TODO:  Included for completeness although could possibly be removed when debugging complete?
@@ -1245,9 +1244,9 @@ function sendTempNotification ($op, $desc, $type = 'normal') {
 }
 
 // Suppress notifications about array operations from monitor task
-// (dupicate processing from task but without notification specific steps)
+// (duplicate processing from task but without notification specific steps)
 // Should also stop monitor from adding parity history entries
-// TODO: Check for each Unraid release that there are not version dependent changes
+// TODO: Check for each unRaid release that there are not version dependent changes
 
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function suppressMonitorNotification() {
@@ -1298,7 +1297,7 @@ function suppressMonitorNotification() {
 }
 
 //	log presence of any plugin files indicating status
-//  useful when terting the plugin
+//  useful when testing the plugin
 
 //       ~~~~~~~~~~~~~~~~~
 function reportStatusFiles() {
@@ -1361,7 +1360,7 @@ function configuredAction() {
 	$action     = $GLOBALS['parityTuningAction'];
 	$actionDescription = actionDescription($action, $GLOBALS['parityTuningCorrecting']);
 
-	// check configured options zgainst array operation type in progress
+	// check configured options against array operation type in progress
 
     $triggerType = operationTriggerType();
     if (startsWith($action,'recon')) {

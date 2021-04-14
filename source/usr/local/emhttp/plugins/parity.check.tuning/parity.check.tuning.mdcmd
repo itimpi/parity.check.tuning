@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This is a custom version of the Unraid standard 'mdcmd' command that 
+# This is a custom version of the unRaid standard 'mdcmd' command that 
 # adds the capability to detect exactly when certain events were initiated.
 # This is to try and detect the cases where a parity check was initiated
 # manually rather than as a standard scheduled task.  All original functionality

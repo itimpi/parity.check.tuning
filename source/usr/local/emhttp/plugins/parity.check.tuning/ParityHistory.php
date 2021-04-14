@@ -11,7 +11,7 @@
  * all copies or substantial portions of the Software.
  *
  * This version patched by Dave Walker (itimpi) to add Elapsed Time and Increments columns to displayed information
- * (also modified with legacy support to work on Unraid versions prior to 6.9)
+ * (also modified with legacy support to work on unRaid versions prior to 6.9)
  */
 ?>
 <?

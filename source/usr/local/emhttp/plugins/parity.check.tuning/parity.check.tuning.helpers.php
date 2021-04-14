@@ -8,7 +8,7 @@
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
  *oig
- * Limetech is given expliit permission to use this code in any way they like.
+ * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -116,7 +116,7 @@ function loadVars($delay = 0) {
 		parityTuningLoggerTesting ("loadVars($delay)");
 		sleep($delay);
 	}
-	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initialising so this file not yet created
+	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initializing so this file not yet created
 		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_EMHTTP_VAR_FILE));
 		return;
 	}
