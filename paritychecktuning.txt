@@ -141,7 +141,9 @@ Testing mode is normally only used by the plugin author or when gathering eviden
 Testing mode is very verbose and generates a lot of additional log entries so you do not want it enabled unless this is really necessary=
 The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
 The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
+The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the unRaid level=
 This might affect array integrity=
+Unusually large value=
 
 Temperature Pause and Resume=
 
@@ -314,9 +316,9 @@ updated cron settings are in %s=
 :end
 
 :parity_tune_hot_plug:
-> Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the disk temperatures exceeds the limits you have set.
+> Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if the disk temperatures exceeds the limits you have set. 
 >
->The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.
+>The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.  It is assumed that normally you would want the array operation to be paused before the value set at the unRaid level as the Warning Threshold.
 >
 >A much better solution is to improve the cooling in your case so that the disks never overheat.   In practice this may not always prove practical.
 >
@@ -324,10 +326,11 @@ updated cron settings are in %s=
 :end
 
 :parity_tune_warn_plug:
-> This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.
+> This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered. If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
+>
 > You normally want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature warning threshold has been reached for a disk.
 >
-> If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
+> As an example if the Warning threshold for a drive is 50C then setting a pause value of 5 would cause the plugin to pause the operation if that drive reached 45C (50-5).
 >
 >If there is no active array operation then no action will be taken even if disk temperatures exceed the specified threshold.
 >
@@ -336,6 +339,7 @@ updated cron settings are in %s=
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
+>
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
 >If a disk ever gets spun down the temperature is not readily available so it will be assumed that this criteria has been met

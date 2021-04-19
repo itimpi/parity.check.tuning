@@ -136,6 +136,14 @@ function checkTimeRange(form) {
     }
 }
 
+function checkHeatVeryLarge(value) {
+	if (value > 20) {
+	    swal({title: "_(Unusually large value)_?",
+          text:"_(The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the unRaid level)_",
+          icon:"Warning"});
+	}
+}
+
 function checkHeatLow(form) {
   var difference = form.parityTuningHeatLow.value - form.parityTuningHeatHigh.value;
   if (difference < 1 ) {
@@ -446,9 +454,9 @@ _(Pause and Resume array operations if disks overheat)_:
 
 
 :parity_tune_hot_plug:
-> Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the disk temperatures exceeds the limits you have set.
+> Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if the disk temperatures exceeds the limits you have set. 
 >
->The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.
+>The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.  It is assumed that normally you would want the array operation to be paused before the value set at the unRaid level as the Warning Threshold.
 >
 >A much better solution is to improve the cooling in your case so that the disks never overheat.   In practice this may not always prove practical.
 >
@@ -459,14 +467,13 @@ _(Pause an array operation at)_:
 : <input name="parityTuningHeatHigh" 
          size='1' class='narrow'
          type='text'
-         onchange="checkHeatLow(this.form)"
+         onchange="checkHeatVeryLarge(this.form.parityTuningHeatHigh.value),checkHeatLow(this.form)"
          value="<?=$parityTuningHeatHigh?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_
 
 :parity_tune_warn_plug:
-> This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered.
-> You normally want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature warning threshold has been reached for a disk.
+> This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered. If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 >
-> If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
+> You normally want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature warning threshold has been reached for a disk.
 >
 >If there is no active array operation then no action will be taken even if disk temperatures exceed the specified threshold.
 >
@@ -477,11 +484,12 @@ _(Resume an array operation at)_:
 : <input name="parityTuningHeatLow" 
          size='1' class='narrow'
          type='text'
-         onchange="checkHeatLow(this.form)"
+         onchange="checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
          value="<?=$parityTuningHeatLow?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
+>
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
 >If a disk ever gets spun down the temperature is not readily available so it will be assumed that this criteria has been met

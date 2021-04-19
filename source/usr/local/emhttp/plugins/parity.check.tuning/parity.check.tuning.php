@@ -28,7 +28,7 @@
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 
-// Multi-language support3
+// Multi-language support
 
 $plugin = 'parity.check.tuning';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
@@ -203,7 +203,8 @@ switch ($command) {
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
 			$trigger = operationTriggerType();
-			parityTuningLoggerDebug (strtolower($trigger) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting));
+			parityTuningLoggerDebug (strtolower($trigger) . ' ' 
+						. actionDescription($parityTuningAction, $parityTuningCorrecting));
 			parityTuningProgressWrite ($trigger);
 		}
 
