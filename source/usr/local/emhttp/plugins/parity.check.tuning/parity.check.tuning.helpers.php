@@ -39,7 +39,7 @@ define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 
 $parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
-$parityTuningTempUnit      = $dynamixCfg['display']['unit'];
+$parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
 
 // Handle Unraid version dependencies

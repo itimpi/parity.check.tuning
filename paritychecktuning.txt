@@ -195,7 +195,7 @@ Temperature monitoring switched off=
 Unscheduled array operation in progress=
 using scheduled mode of %s=
 warm=
-with all drives below temperature threshold for a Pause=
+with all array drives below temperature threshold for a Pause=
 
 
 ; Syslog messages (with testing logging enabled)

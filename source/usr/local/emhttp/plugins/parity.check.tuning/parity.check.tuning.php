@@ -282,7 +282,7 @@ switch ($command) {
 				file_put_contents (PARITY_TUNING_CRITICAL_FILE, "$drives\n");
 				$msg = (sprintf('%s: ',_('Following drives overheated')) . $drives);
 				if ($parityTuningActive) {
-					parityTuningLoggerTesting('array operationis active');
+					parityTuningLoggerTesting('array operation is active');
 					$msg .= '<br>' . _('Abandoned ') . actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted();
 				}
 				sendNotification (_('Array shutdown'), $msg, 'alert');
@@ -305,7 +305,7 @@ switch ($command) {
         if ($parityTuningRunning) {
         	// Check if we need to pause because at least one drive too hot
             if (count($hotDrives) == 0) {
-                parityTuningLoggerDebug (sprintf('%s %s',actionDescription($parityTuningAction, $parityTuningCorrecting), _('with all drives below temperature threshold for a Pause')));
+                parityTuningLoggerDebug (sprintf('%s %s',actionDescription($parityTuningAction, $parityTuningCorrecting), _('with all array drives below temperature threshold for a Pause')));
             } else {
                 $drives = listDrives($hotDrives);
                 file_put_contents (PARITY_TUNING_HOT_FILE, "$drives\n");

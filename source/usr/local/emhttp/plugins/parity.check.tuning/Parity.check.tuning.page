@@ -110,12 +110,24 @@ $(document).ready(function(){
 function checkCustom(fld) {
     var res = fld.value.split(" ");
 
-    if ((res.length != 5) || (res[4] == "")) {
+    if ((res.length != 5) || (res[0] == "") ||(res[4] == "")) {
         swal({title: "_(Error in custom entry)_",
               text: "_(A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week)_.  _(Click on the crontab link to get more details on valid formats)_.",
               icon:"Error"});
+		// Disable Apply button as saving invalid Custom entry will cause problems later
+		document.getElementById('Apply').disabled = true;
     }
 }
+
+function checkCustomOptions(form) {
+	if (form.parityTuningFrequency.value == '1') {
+		var fld = form.parityTuningPauseCustom;
+		checkCustom(fld);
+		fld = form.parityTuningResumeCustom;
+		checkCustom(fld);
+	}
+}
+
 
 function checkNotifications (me) {
 <? if ($dynamixCfg['notify']['system'] == "" ): ?>
@@ -591,7 +603,8 @@ _(Parity Check Tuning logging)_:
 : <input type="submit" 
         name="#apply" 
         value="_(Apply)_" 
-        id='Apply'>
+        id='Apply'
+		onclick="checkCustomOptions(this.form)">
 <input type="button" 
         id="DONE" 
         value="_(Done)_"

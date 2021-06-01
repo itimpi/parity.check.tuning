@@ -27,6 +27,7 @@ $translations = file_exists("$docroot/webGui/include/Translations.php");
 $noscript = false;
 require_once "$docroot/plugins/$plugin/Legacy.php";
 loadVars(0);
+
 parityProblemBuildSectorList();
 
 // Build a list of sectors from syslog that have reported errors
@@ -37,14 +38,14 @@ parityProblemBuildSectorList();
 // recovery thread: P corrected, sector=496
 // recovery thread: P incorrect, sector=432
 
-function parityProblemBuildSectorList() {
-	parityTuningLoggerTesting('Scanning syslog for sectors corrected/incorrect');
-    exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector="', $results1));
-	parityTuningLoggerTesting(count($results1) . ' entries for sectors corrected');
-	exec (escapeshellarg('cat /etc/log/syslog | fgrep "incorrect, sector="', $results2));
-	parityTuningLoggerTesting(count($results2) . ' entries for sectors incorrect');
-	exec (escapeshellarg('cat /etc/log/syslog | fgrep -regex ".*recovery thread.*sector=.*"', $results3));
-	parityTuningLoggerTesting(count($results3) . ' entries using regex');
+ function parityProblemBuildSectorList() {
+//	parityTuningLoggerTesting('Scanning syslog for sectors corrected/incorrect');
+//    exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector=", $results1'));
+//	parityTuningLoggerTesting(count($results1) . ' entries for sectors corrected');
+//	exec (escapeshellarg('cat /etc/log/syslog | fgrep "incorrect, sector=", $results2'));
+//	parityTuningLoggerTesting(count($results2) . ' entries for sectors incorrect');
+//	exec (escapeshellarg('cat /etc/log/syslog | fgrep -regex ".*recovery thread.*sector=.*"', $results3));
+//	parityTuningLoggerTesting(count($results3) . ' entries using regex');
 }
 
 ?>
@@ -199,8 +200,9 @@ _(This assistant is intended to help pin down and resolve problems after a parit
 
 _(The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog)_.
 
-_(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)~.   
-_(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.
+_(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)_.  
+ 
+_(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.  
 _(This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk)_. 
 
 **_(IMPORTANT)_**:  _(This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved)_.
