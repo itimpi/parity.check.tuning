@@ -33,7 +33,7 @@ define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // 
 
 define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
 define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
-define('PARITY_TUNIN5_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
+define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
 
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 
@@ -104,8 +104,8 @@ function setCfgValue ($key, $value) {
 	$GLOBALS[$key] = $cfgFile[$key];
 }
 
-if (file_exists(PARITY_TUNIN5_EMHTTP_DISKS_FILE)) {
-	$disks=parse_ini_file(PARITY_TUNIN5_EMHTTP_DISKS_FILE, true);
+if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
+	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
 }
 

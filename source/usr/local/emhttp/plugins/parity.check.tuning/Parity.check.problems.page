@@ -53,8 +53,8 @@ parityProblemBuildSectorList();
 <?eval('?>'.parse_file("$docroot/plugins/" . PARITY_TUNING_PLUGIN . "/Parity.check.problems.page"))?>
 <?else:?>
 <? 
-if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . "</p>";
-if (!$parityTuningRestartOK)   echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
+if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
+if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
 if ($parityTuningActive) 
     echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
 loadVars(0);
@@ -63,7 +63,7 @@ if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Arr
 ?>
 
 <script>
-var totalSectors = <?=$parityTuningSize?>;
+var totalSectors = <?=($parityTuningSize * 2)?>;
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
 
 $(function() {
@@ -164,9 +164,13 @@ function startCheck(form) {
     if (checkStartEnd(form)) {
        (document.getElementById('parityProblemFile')).disabled = false;
        (document.getElementById('parityProblemCmd')).disabled  = false;
-       (document.getElementById('parityProblemFile')).value = "<?=$parityTuningPhpFile?>";
+       (document.getElementById('parityProblemFile')).value = "<?=PARITY_TUNING_PHP_FILE?>";
        (document.getElementById('parityProblemCmd')).value  = "partial";
     }
+}
+	
+function showSectors(form) {
+	alert ("Option still under development and not yet ready for use");
 }
 
 </script>
@@ -201,6 +205,8 @@ _(This assistant is intended to help pin down and resolve problems after a parit
 _(The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog)_.
 
 _(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)_.  
+_(It is also not uncommon (particularly on Ryzen based systems) to get random parity errors if the RAM is overclocked)_.  
+_(An XMP profile **is** an overclock, and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting)_.
  
 _(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.  
 _(This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk)_. 
@@ -295,7 +301,23 @@ _(Write Corrections to Parity)_:
      value="_(Start Check)_" 
      id="parityProblemCheck"
      onclick="startCheck(this.form)">
+ <input type="button" 
+     value="_(Show Sector Numbers)_" 
+     id="showErrorSectors"
+     onclick="showSectors(this.form)">_(Click to show Error Sectors from syslog)_
      
+:parityProblems_check_plug:
+> When you click on the option to **Start Check** then a partial check is initiated that
+> will cover the start and end points that you have specified.  It will be a correcting check 
+> if the option to **Write Corrections** is set to **Yes**, and a read-check otherwise.
+:end
+
+:parityProblems_sectors_plug:
+> When you click on the option to **Show Sector Numbers** then the a dialog will be shown
+> that extracts entries from the syslog that have shown any sectors for which any parity
+> sector is displayed and whether the it was being corrected or is a parity error.
+:end
+
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
 
 : <input type="submit" 

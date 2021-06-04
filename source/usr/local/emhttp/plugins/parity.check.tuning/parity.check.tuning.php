@@ -159,7 +159,7 @@ switch ($command) {
         // or partial parity checks zre active as then we do it more often.
 
 		reportStatusFiles();
-		if (! file_exists(PARITY_TUNIN5_EMHTTP_DISKS_FILE)) {
+		if (! file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 			parityTuningLoggerTesting('System appears to still be initializing - disk information not available');
 			break;
 		}
@@ -168,8 +168,9 @@ switch ($command) {
 
 		if (parityTuningPartial()) {
 			if ($parityTuningActive) {
-				if ($parityTuningPos < $parityProblemEndSector) {
-					parityTuningLoggerTesting ("Partial check: sector reached:$parityTuningPos, end sector:$parityProblemEndSector");
+				$parityTuningSector = $parityTuningPos * 2;
+				if ($parityTuningSector < $parityProblemEndSector) {
+					parityTuningLoggerTesting ("Partial check: sector reached:$parityTuningSector, end sector:$parityProblemEndSector");
 					break;
 				}
 				parityTuningLoggerTesting('Stop partial check');
@@ -261,7 +262,8 @@ switch ($command) {
 				//  Check all array and cache drives for critical temperatures
 				//  TODO: find way to include unassigned devices?
 				if ((($temp != "*" )) && ($temp >= $critical)) {
-					parityTuningLoggerTesting(sprintf('Drive %s%s appears to be critical', tempInDisplayUnit($temp), $parityTuningTempUnit));
+					parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $drive, tempInDisplayUnit($temp), $parityTuningTempUnit,
+					$criticale, $parityTuningTempUnit));
 					$criticalDrives[$name] = $temp;
 					$status = 'critical';
 				}
@@ -370,7 +372,6 @@ switch ($command) {
 	// This could be via a scheduled cron task or a CLI command
 	
     case 'pause':
-        parityTuningLoggerDebug(_('Pause request'));
         reportStatusFiles();
         if (! isArrayOperationActive()) {
             parityTuningLoggerTesting('Pause ignored as no array operation in progress');
@@ -402,8 +403,8 @@ RUN_PAUSE:	// Can jump here after doing a restart
 	
     case 'partial':
         reportStatusFiles();
+		createMarkerFile(PARITY_TUNING_PARTIAL_FILE);	// Create file to indicate partial check
 		parityTuningLoggerTesting("sectors $parityProblemStartSector-$parityProblemEndSector, correct $parityProblemCorrect");
-		createMarkerFile(PARITY_TUNING_PARTIAL_FILE);			// Create file to indicate partial check
 		updateCronEntries();
 		$startSector = $parityProblemStartSector;
 		$startSector -= ($startSector % 8);				// start Sector numbers must be multiples of 8
