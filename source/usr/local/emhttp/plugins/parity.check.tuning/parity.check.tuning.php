@@ -241,10 +241,9 @@ switch ($command) {
             $temp = $drive['temp'];
             if ((!startsWith($drive['status'],'DISK_NP')) & ($name != 'flash')) {
                 $driveCount++;
-                $critical  = ($drive['maxTemp'] ?? $dynamixCfg['display']['max']) - $parityTuningHeatCritical;
-                $hot  = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningHeatHigh;
-                $cool = ($drive['hotTemp'] ?? $dynamixCfg['display']['hot']) - $parityTuningHeatLow;
-
+                $critical  = ($drive['maxTemp'] ?? ($dynamixCfg['display']['max']??55)) - $parityTuningHeatCritical;
+                $hot  = ($drive['hotTemp'] ?? ($dynamixCfg['display']['hot']??45)) - $parityTuningHeatHigh;
+                $cool = ($drive['hotTemp'] ?? ($dynamixCfg['display']['hot']??45)) - $parityTuningHeatLow;
 				// Check array drives for other over-heating
 				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
 					$arrayCount++;

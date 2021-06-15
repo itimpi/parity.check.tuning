@@ -28,25 +28,6 @@ $noscript = false;
 require_once "$docroot/plugins/$plugin/Legacy.php";
 loadVars(0);
 
-parityProblemBuildSectorList();
-
-// Build a list of sectors from syslog that have reported errors
-// (Need to filter to latest date to remove old parity checks)
-//
-// Example syslog messages
-// ~~~~~~~~~~~~~~~~~~~~~~~
-// recovery thread: P corrected, sector=496
-// recovery thread: P incorrect, sector=432
-
- function parityProblemBuildSectorList() {
-//	parityTuningLoggerTesting('Scanning syslog for sectors corrected/incorrect');
-//    exec (escapeshellarg('cat /etc/log/syslog | fgrep "corrected, sector=", $results1'));
-//	parityTuningLoggerTesting(count($results1) . ' entries for sectors corrected');
-//	exec (escapeshellarg('cat /etc/log/syslog | fgrep "incorrect, sector=", $results2'));
-//	parityTuningLoggerTesting(count($results2) . ' entries for sectors incorrect');
-//	exec (escapeshellarg('cat /etc/log/syslog | fgrep -regex ".*recovery thread.*sector=.*"', $results3));
-//	parityTuningLoggerTesting(count($results3) . ' entries using regex');
-}
 
 ?>
 <?if (!$translations):?>
@@ -65,6 +46,7 @@ if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Arr
 <script>
 var totalSectors = <?=($parityTuningSize * 2)?>;
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
+var myWin;
 
 $(function() {
   if ( typeof caPluginUpdateCheck === "function" ) {
@@ -83,8 +65,8 @@ $(document).ready(function(){
   oForm.parityProblemEndPercent.disabled   = isDisabled;  
   oForm.parityProblemCorrect.disabled      = isDisabled;
   oForm.parityProblemCheck.disabled        = isDisabled;
-  changeProblemType(oForm);
-  // TODO: Investigate whether their is a more elegant/efficient solution than forcing page refreshes?
+  setProblemType(oForm);
+  // TODO: Investigate whether there is a more elegant/efficient solution than forcing page refreshes?
   if (active) setTimeout(refreshPage, 1000 * 30);
 });
 
@@ -92,7 +74,7 @@ function refreshPage() {
     window.location.reload(true);
 }
 
-function changeProblemType(form) { 
+function setProblemType(form) { 
     if (form.parityProblemType.value == "sector") {
         document.getElementById('parityProblemSectorStart').style.display  = "inline";
         document.getElementById('parityProblemSectorEnd').style.display    = "inline";
@@ -104,6 +86,11 @@ function changeProblemType(form) {
         document.getElementById('parityProblemSectorStart').style.display  = "none";
         document.getElementById('parityProblemSectorEnd').style.display    = "none";
     }
+	checkStartEnd(form);
+}
+function changeProblemType(form) { 
+	setProblemType(form);
+	form.parityProblemCheck.disabled = true;
 }
 
 function checkStartEnd(form) {
@@ -122,7 +109,8 @@ function checkStartEnd(form) {
           icon:"Error"});
         returnValue = false;
     }
-    form.parityProblemCheck.disabled = (returnValue == false);
+	// Check button only available if Apply not enabled (i.e. values saved)
+	form.parityProblemCheck.disabled = !(document.getElementById('Apply').disabled);
     return returnValue;
 
 }
@@ -131,6 +119,7 @@ function changeProblemStartSector(form) {
     var v = form.parityProblemStartSector.value / totalSectors * 100;
     updateIfChanged(form.parityProblemStartPercent, v.toFixed(1));
     checkStartEnd(form);
+
 }
 
 function updateIfChanged(fld, newVal) {
@@ -168,10 +157,17 @@ function startCheck(form) {
        (document.getElementById('parityProblemCmd')).value  = "partial";
     }
 }
-	
-function showSectors(form) {
-	alert ("Option still under development and not yet ready for use");
+
+// centre popup relative to Unraid browser window
+
+function positionPopup() {
+	var left = window.screenX + 300;
+	var top  = window.screenY + 300;
+	myWin.moveBy(left,top);
+	// myWin.resizeTo(600,900);
+	myWin.focus();
 }
+
 
 </script>
 
@@ -205,8 +201,8 @@ _(This assistant is intended to help pin down and resolve problems after a parit
 _(The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog)_.
 
 _(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)_.  
-_(It is also not uncommon (particularly on Ryzen based systems) to get random parity errors if the RAM is overclocked)_.  
-_(An XMP profile **is** an overclock, and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting)_.
+<?=sprintf('It is also not uncommon, particularly on %s based systems, to get random parity errors if the RAM is overclocked','<a href="https://forums.unraid.net/topic/46802-faq-for-unraid-v6/page/2/?tab=comments#comment-819173" target="_blank">Ryzen/ThreadRipper</a>')?> (_(an XMP profile **is** an overclock)_),  
+_(and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting)_.
  
 _(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.  
 _(This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk)_. 
@@ -247,7 +243,7 @@ _(Start point for check)_:
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartPercent"
-         value="<?=$pparityProblemStartPercent?>"
+         value="<?=$parityProblemStartPercent?>"
          onchange="changeProblemStartPercent(this.form)"> _(percent)_
 </span>
 
@@ -303,8 +299,8 @@ _(Write Corrections to Parity)_:
      onclick="startCheck(this.form)">
  <input type="button" 
      value="_(Show Sector Numbers)_" 
-     id="showErrorSectors"
-     onclick="showSectors(this.form)">_(Click to show Error Sectors from syslog)_
+     id="showErrorSector"
+	 onclick = "myWin=window.open('/plugins/parity.check.tuning/Parity.check.entries.php?+&csrf_token=<?=$parityTuningCsrf?>,'errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
      
 :parityProblems_check_plug:
 > When you click on the option to **Start Check** then a partial check is initiated that

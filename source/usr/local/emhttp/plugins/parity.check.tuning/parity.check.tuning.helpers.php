@@ -125,6 +125,7 @@ function loadVars($delay = 0) {
     $size = $vars['mdResyncSize'];
 	$pos  = $vars['mdResyncPos'];
 	$GLOBALS['parityTuningVar']        = $vars;
+	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
 	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
     $GLOBALS['parityTuningPos']        = $pos;
     $GLOBALS['parityTuningSize']       = $size;

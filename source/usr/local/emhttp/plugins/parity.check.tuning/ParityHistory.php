@@ -106,7 +106,4 @@ if ($list)
 else
   echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
 ?>
-</tbody></table>
-<div style="text-align:center;margin-top:12px"><input type="button" value="<?=_('Done')?>" onclick="top.Shadowbox.close()"></div>
-</body>
-</html>
+ 
