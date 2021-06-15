@@ -162,9 +162,9 @@ function startCheck(form) {
 
 function positionPopup() {
 	var left = window.screenX + 300;
-	var top  = window.screenY + 300;
+	var top  = window.screenY + 200;
 	myWin.moveBy(left,top);
-	// myWin.resizeTo(600,900);
+	// myWin.resizeTo(600,800);
 	myWin.focus();
 }
 
@@ -300,7 +300,7 @@ _(Write Corrections to Parity)_:
  <input type="button" 
      value="_(Show Sector Numbers)_" 
      id="showErrorSector"
-	 onclick = "myWin=window.open('/plugins/parity.check.tuning/Parity.check.entries.php?+&csrf_token=<?=$parityTuningCsrf?>,'errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
+	 onclick = "myWin=window.open('/plugins/parity.check.tuning/Parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
      
 :parityProblems_check_plug:
 > When you click on the option to **Start Check** then a partial check is initiated that
