@@ -407,7 +407,7 @@ $(function() {
           onchange="confirmReconYes(this.form)">
     <?=mk_option($parityTuningRecon, "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningRecon, "1", _("Yes")) . "\n"?>
-  </select> <? if ($parityTuningNoParity) echo "<font color=#FF8C2F><?=_('You require a parity disk present for this option to be relevant')?></font>"; ?>
+  </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' ._('You require a parity disk present for this option to be relevant') . '</font>'; ?>
 
 :parity_tune_allops_plug:
 > Should operations that involve building new parity or rebuilding a failed disk be run using increments?
@@ -424,7 +424,7 @@ $(function() {
           onchange="confirmClearYes(this.form)">
     <?=mk_option(parityTuningClear, "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningClear, "1", _("Yes")) . "\n"?>
-  </select> <? if ($parityTuningNoParity) echo "<font color=#FF8C2F><?=_('You require a parity disk present for this option to be relevant')_</font>"; ?>
+  </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' . _('You require a parity disk present for this option to be relevant') . '_</font>'; ?>
 
 :parity_tune_clear_plug:
 > Should disk Clear operations be run using increments.<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected.  The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in unRaid and start using it for storing data.
@@ -438,7 +438,7 @@ $(function() {
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningRestart, "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningRestart, "1", _("Yes")) . "\n"?>
-  </select><? if (!$parityTuningRestartOK) echo "<font color=#FF8C2F><?=_('This option is only available with Unraid 6.9.0 or later')?></font>"; ?>
+  </select><? if (!$parityTuningRestartOK) echo '<font color=#FF8C2F>' . _('This option is only available with Unraid 6.9.0 or later') . '</font>'; ?>
   
 :parity_tune_restart_plug:
 > Unraid will normally abandon a parity check if the system is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
