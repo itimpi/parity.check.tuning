@@ -16,24 +16,26 @@ Tag="gear"
  */
 // error_reporting(E_ALL);      // Enhanced error reporting for use when debugging
 
-require_once '/usr/local/emhttp/webGui/include/Helpers.php';
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
 // Multi-language support
 
 $plugin = 'parity.check.tuning';
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
-// legacy support (with javascript)
-$noscript = false;
-require_once "$docroot/plugins/$plugin/Legacy.php";
-loadVars(0);
-
-
+require_once "$docroot/plugins/$plugin/Legacy.php"
 ?>
 <?if (!$translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/" . PARITY_TUNING_PLUGIN . "/Parity.check.problems.page"))?>
+<?$noscript = false;	//legacy support (with javascript)?>
+<?eval('?>'.parse_file("$docroot/plugins/parity.check.tuning/Parity.check.problems.page"))?>
 <?else:?>
 <? 
+// read translations
+parse_plugin('paritychecktuning');
+
+require_once '/usr/local/emhttp/webGui/include/Helpers.php';
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
+
+loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
 if ($parityTuningActive) 
@@ -191,35 +193,32 @@ function positionPopup() {
        disabled
        id = "parityProblemCmd">
  
-_(The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin)_.
 
-_(The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future)_  
-***_((feedback is welcomed on the basic concept and ideas for improvement)_***.
+:parityProblems_intro_plug:
+The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
+The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
+**(feedback is welcomed on the basic concept and ideas for improvement)**.<p/>
+The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog.  
+In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.<p/>
+It is also not uncommon, particularly on  based systems, to get random parity errors if the RAM is overclocked
+(an XMP profile **is** an overclock),  
+and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
+If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
+This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk.<p/>
+**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
+:end
 
-_(This assistant is intended to help pin down and resolve problems after a parity check has been run and errors have been reported)_.
-
-_(The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog)_.
-
-_(In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks)_.  
-<?=sprintf('It is also not uncommon, particularly on %s based systems, to get random parity errors if the RAM is overclocked','<a href="https://forums.unraid.net/topic/46802-faq-for-unraid-v6/page/2/?tab=comments#comment-819173" target="_blank">Ryzen/ThreadRipper</a>')?> (_(an XMP profile **is** an overclock)_),  
-_(and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting)_.
- 
-_(If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs)_.  
-_(This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk)_. 
-
-**_(IMPORTANT)_**:  _(This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved)_.
-
-_(Method used to specify start and stop points)_:
+<?=_('Method used to specify start and stop points')?>:
 : <input type="radio" 
         name="parityProblemType" 
         value="sector" 
         <?=($parityProblemType == "sector" ? "checked" : "") . "\n"?>
-        onclick="changeProblemType(this.form)"> _(Sector Numbers)_
+        onclick="changeProblemType(this.form)"> <?=_('Sector Numbers')?>
 <input type="radio" 
         name="parityProblemType" 
         value="percent"
         <?=($parityProblemType == "percent" ? "checked" : "") . "\n"?>
-        onclick="changeProblemType(this.form)"> _(Percentage)_
+        onclick="changeProblemType(this.form)"> <?=_('Percentage')?>
 
 :parityProblems_type_plug:
 > Select the way you want to specify the start and end points.
@@ -230,13 +229,13 @@ _(Method used to specify start and stop points)_:
 > The alternative is to use percentages.  When using percentages then the sector numbers these represent are calculated as percentages of the largest parity disk.
 :end
 
-_(Start point for check)_:
+<?=_('Start point for check')?>:
 : <span id="parityProblemSectorStart">
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartSector"
          value="<?=$parityProblemStartSector?>"
-         onchange="changeProblemStartSector(this.form)"> _(sector)_ 
+         onchange="changeProblemStartSector(this.form)"> <?=_('sector')?>
          </select>
 </span>
 <span id="parityProblemPercentStart">
@@ -244,7 +243,7 @@ _(Start point for check)_:
          size='1' class='narrow'
          name="parityProblemStartPercent"
          value="<?=$parityProblemStartPercent?>"
-         onchange="changeProblemStartPercent(this.form)"> _(percent)_
+         onchange="changeProblemStartPercent(this.form)"> <?=_('percent')?>
 </span>
 
 :parityProblems_start_plug:
@@ -255,20 +254,20 @@ _(Start point for check)_:
 > In practice for technical reasons the check may start slightly earlier than the point you specify, but this will only be by a small amount.
 :end
 
-_(End point for check)_:
+<?=_('End point for check')?>:
 : <span id="parityProblemSectorEnd">
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndSector"
          value="<?=$parityProblemEndSector?>"
-         onchange="changeProblemEndSector(this.form)"> _(sector)_
+         onchange="changeProblemEndSector(this.form)"> <?=_('sector')?>
 </span>
 <span id="parityProblemPercentEnd">
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndPercent"
          value="<?=$parityProblemEndPercent?>"
-         onchange="changeProblemEndPercent(this.form)"> _(percent)_
+         onchange="changeProblemEndPercent(this.form)"> <?=_('percent')?>
 </span>
 
 :parityProblems_end_plug:
@@ -277,13 +276,12 @@ _(End point for check)_:
 > In practice for technical reasons the check may end later than the point you specify as a check is only made once a minute to see if the end point has been reached.
 :end
 
-_(Write Corrections to Parity)_:
+<?=_('Write Corrections to Parity')?>:
 : <select name="parityProblemCorrect" 
           size='1' class='narrow'>
     <?=mk_option($parityProblemCorrect, "0", _("No")) . "\n"?>
     <?=mk_option($parityProblemCorrect, "1", _("Yes")) . "\n"?>
   </select>
-
 
 :parityProblems_correct_plug:
 > Specify whether you want to attempt to update parity to correct any error found,
@@ -294,11 +292,11 @@ _(Write Corrections to Parity)_:
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
 
 : <input type="submit" 
-     value="_(Start Check)_" 
+     value="<?=_('Start Check')?>" 
      id="parityProblemCheck"
      onclick="startCheck(this.form)">
  <input type="button" 
-     value="_(Show Sector Numbers)_" 
+     value="<?=_('Show Sector Numbers')?>" 
      id="showErrorSector"
 	 onclick = "myWin=window.open('/plugins/parity.check.tuning/Parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
      

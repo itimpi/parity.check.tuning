@@ -22,9 +22,10 @@ $plugin = 'parity.check.tuning';
 $docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 if ($translations) {
-  // $_SERVER['REQUEST_URI'] = 'main';
   $_SERVER['REQUEST_URI'] = 'paritychecktuning';
   require_once "$docroot/webGui/include/Translations.php";
+  // read translations
+  parse_plugin('paritychecktuning');
 } else {
   // legacy support (without javascript)
   $noscript = true;

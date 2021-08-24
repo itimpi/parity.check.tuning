@@ -1,8 +1,13 @@
 ; Translation text for the Parity Check Tuning plugin
 
+; PART 1 - text strings
+
 ; Parity Check Settings Page
+
+Parity Check Tuning=
 automatic=
 Basic=
+below critical disk temperature threshold=
 below warning disk temperature threshold=
 CAUTION=
 Click to show parity-check history=
@@ -15,7 +20,6 @@ High disk temperatures can shutdown server=
 Increment frequency=
 Increment pause time=
 Increment resume time=
-manual=
 No parity check entries found in syslog=
 ParityRead-Check History=Parity/Read-Check History=
 Parity Check=
@@ -33,6 +37,9 @@ scheduled=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
 Shutdown server at=
+Syslog only=
+Syslog and Flash=
+Flash only=
 Testing=
 Unscheduled=
 Use increments for %s %s=
@@ -41,32 +48,37 @@ Use increments for Parity-SyncData Rebuild operations=Use increments for Parity-
 You require a parity disk present for this option to be relevant=
 
 ; Parity Problems Assistant page
-
-The Parity Problems Assistant is part of the Parity Check Tuning plugin=The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin= 
-The current status is EXPERIMENTAL and it is always possible that this assistant may be removed in the future=The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future  
-feedback is welcomed on the basic concept and ideas for improvement=
-This assistant is intended to help pin down and resolve problems after a parity check has been run and errors have been reported=
-The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog=
-In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks=  
-It is also not uncommon, particularly on %s based systems, to get random parity errors if the RAM is overclocked=
-an XMP profile is an overclock=an XMP profile **is** an overclock
-and the motherboardCPU combination may impose also limits that are lower than the RAM is capable of supporting=and the motherboard/CPU combination may impose also limits that are lower than the RAM is capable of supporting
-If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs=
-This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk= 
-This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved=
+Parity Problems Assistant=
+; page intro text
+:parityProblems_intro_plug:
+The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
+The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
+**(feedback is welcomed on the basic concept and ideas for improvement)**.<p/>
+The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog.  
+In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.<p/>
+It is also not uncommon, particularly on **Ryzen/ThreadRipper** based systems, to get random parity errors if the RAM is overclocked
+(an XMP profile **is** an overclock),  
+and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
+If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
+This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk.<p/>
+**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
+:end
+; fields
 Click to show Error Sectors from syslog=
 End point for check=
 Method used to specify start and stop points=
 Only read checks can be performed=
+percent=
 Percentage=
+sector=
 Sector Numbers=
 Show Sector Numbers=
 Start Check=
 Start point for check=
 Write Corrections to Parity=
 
-
 ; PHP file messages
+
 Analyze results from an array operation=
 Array being shutdown due to drive overheating=
 Array operation will not be restarted=
@@ -98,6 +110,7 @@ Usage=
 where action is one of=
 
 ; Notifications
+
 aborted due to Unclean shutdown=
 array stopping so progress will be lost=
 ; The type of array operation (parity check, clear, rebuild) will be appended to the following text
@@ -118,7 +131,6 @@ Runtime=
 Scheduled pause=
 Unclean shutdown detected=
 will be started=
-
 
 ; Swal warnings
 
@@ -151,8 +163,6 @@ The Resume value must be greater than the Pause one for the heat related Pause a
 The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the unRaid level=
 This might affect array integrity=
 Unusually large value=
-
-Temperature Pause and Resume=
 
 ; Syslog messages (with debug logging disabled)
 
@@ -204,9 +214,9 @@ using scheduled mode of %s=
 warm=
 with all array drives below temperature threshold for a Pause=
 
-
 ; Syslog messages (with testing logging enabled)
 ; (almost certainly not worth translating these as they are mainly of use to the plugin developer)
+
 analyze previous progress before starting new one=
 Array not started so no action taken=
 Drive %s%s appears to be critical=
@@ -214,6 +224,11 @@ Plugin temperature settings=
 shutdown %s=
 Shutdown not actioned as running in TESTING mode=
 updated cron settings are in %s=
+
+; PART 2 - TEXT Blocks ant HELP text
+
+End point for check=
+Method used to specify start and stop points=
 
 ; Help text on settings page
 ; These could perhaps be left in English to keep translation task easier)
@@ -419,4 +434,24 @@ updated cron settings are in %s=
 > In practice for technical reasons the check may end later than the point you specify as a check is only made once a minute to see if the end point has been reached.
 :end
 
+:parityProblems_correct_plug:
+> Specify whether you want to attempt to update parity to correct any error found,
+> or just do a read test to see if any parity errors are reported.
+:end
 
+:parityProblems_correct_plug:
+> Specify whether you want to attempt to update parity to correct any error found,
+> or just do a read test to see if any parity errors are reported.
+:end
+
+:parityProblems_check_plug:
+> When you click on the option to **Start Check** then a partial check is initiated that
+> will cover the start and end points that you have specified.  It will be a correcting check 
+> if the option to **Write Corrections** is set to **Yes**, and a read-check otherwise.
+:end
+
+:parityProblems_sectors_plug:
+> When you click on the option to **Show Sector Numbers** then the a dialog will be shown
+> that extracts entries from the syslog that have shown any sectors for which any parity
+> sector is displayed and whether the it was being corrected or is a parity error.
+:end

@@ -25,22 +25,25 @@
 
 // error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
 
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
-require_once '/usr/local/emhttp/webGui/include/Helpers.php';
-
 // Multi-language support
 
 $plugin = 'parity.check.tuning';
+$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 if ($translations) {
   // add translations
   $_SERVER['REQUEST_URI'] = 'paritychecktuning';
   require_once "$docroot/webGui/include/Translations.php";
+  // read translations
+  parse_plugin('paritychecktuning');
 } else {
   // legacy support (without JavaScript)
   $noscript = true;
-  require_once "$docroot/plugins/$plugin/Legacy.php";
+  require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
 }
+
+require_once '/usr/local/emhttp/webGui/include/Helpers.php';
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
 // Some useful constants local to this file
 // Marker files are used to try and indicate state type information
@@ -922,17 +925,17 @@ function parityTuningProgressAnalyze() {
     }
 
     if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-        parityTuningLoggerTesting(' no progress file to anaylse');
+        parityTuningLoggerTesting(' no progress file to analyze');
         return;
     }
 
     if (file_exists($restartFile)) {
-	    parityTuningLoggerTesting(' restart pending - so not time to analyze progess');
+	    parityTuningLoggerTesting(' restart pending - so not time to analyze progress');
 	    return;
     }
 
     if ($var['mdResyncPos'] != 0) {
-        parityTuningLoggerTesting(' array operation still running - so not time to analyze progess');
+        parityTuningLoggerTesting(' array operation still running - so not time to analyze progress');
         return;
     }
     spacerDebugLine(true, 'ANALYSE PROGRESS');
@@ -962,7 +965,7 @@ function parityTuningProgressAnalyze() {
     $lastFinish = $exitCode = $firstSector = $reachedSector = 0;
 	$triggerType = '';
     $mdResyncAction = '';
-	$mdStartAction = '';		// This is toi handle case where COMPLETE reicord has wrong type
+	$mdStartAction = '';		// This is to handle case where COMPLETE record has wrong type
     foreach ($lines as $line) {
     	parityTuningLoggerTesting("$line");
         list($op,$stamp,$timestamp,$sbSynced,$sbSynced2,$sbSyncErrs, $sbSyncExit, $mdState,
@@ -1077,7 +1080,7 @@ END_PROGRESS_FOR_LOOP:
     switch ($exitCode) {
     	case 0:  $exitStatus = _("finished");
     			 break;
-        case -4: $exitStatus = _("cancelled");
+        case -4: $exitStatus = _("canceled");
                  break;
         case -5: $exitStatus = _("aborted");
         		 break;
@@ -1112,11 +1115,13 @@ END_PROGRESS_FOR_LOOP:
 		sendNotification($msg, $desc, ($exitCode == 0 ? 'normal' : 'warning'));
 		
 		if (! startsWith($mdResyncAction,'check')) {
+			// TODO: Consider whether other array operation types to be recorded in history
+			// 		 Would need to work out drives involved?
 			parityTuningLoggerDebug("array action was not Parity Check - it was $actionType"); 
 			parityTuningLoggerDebug('... so update to parity check history not appropriate');
 			parityTuningDeleteFile($scheduledFile);   // should not exist but lets play safe!
 		} else {
-			// Now we want to patch the entry in the standard parity log file
+			// Now we want to patch the entry in the standard parity history file
 			suppressMonitorNotification();
 			$parityLogFile = '/boot/config/parity-checks.log';
 			$lines = file($parityLogFile, FILE_SKIP_EMPTY_LINES);

@@ -18,21 +18,23 @@
 
 // multi language support
 
-$plugin = 'parity.check.tuning';
+$plugin = "parity.check.tuning";
 $docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 if ($translations) {
-  // $_SERVER['REQUEST_URI'] = 'main';
+  // add translations
   $_SERVER['REQUEST_URI'] = 'paritychecktuning';
   require_once "$docroot/webGui/include/Translations.php";
+  // read translations
+  parse_plugin('paritychecktuning');
 } else {
   // legacy support (without javascript)
   $noscript = true;
-  require_once "$docroot/plugins/$plugin/Legacy.php";
+  require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
 }
 
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 require_once '/usr/local/emhttp/webGui/include/Helpers.php';
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.jelpers.php';
 
 ?>
 <!DOCTYPE html>
@@ -68,16 +70,19 @@ require_once '/usr/local/emhttp/webGui/include/Helpers.php';
 	$cmd = 'cat /var/log/syslog | fgrep "kernel: md: recovery thread: "';
 	parityTuningLoggerTesting('... using command: ' . $cmd);
 	exec ($cmd, $results, $resultCode);	
-	parityTuningLoggerTesting("resultCode: $resultCode, " . count($results) . ' parity check related entries found in syslog');
-	if (count($results) == 0) {
-		echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>"._('No parity check entries found in syslog')."!</td></tr>";
-	} else {
+	$entryCount = 0;
+	if (count($results) > 0) {
+		// Note: Can be none zero if TESTING mode active - need to allow for this
 		foreach ($results as $line) {
 			if (! strpos($line,'TESTING')) {
 				echo "<tr><td>$line</td></tr>";
 			}
 		}
 	}
+	if ($entryCount == 0) {
+		echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>"._('No parity check entries found in syslog')."!</td></tr>";
+	}
+	parityTuningLoggerTesting("resultCode: $resultCode, " . count($results) . ' parity check related entries found in syslog');
 ?>
 </tbody></table>
 <div style="text-align:center;margin-top:12px"><input type="button" value="<?=_('Done')?>" onclick="window.close()"></div>
