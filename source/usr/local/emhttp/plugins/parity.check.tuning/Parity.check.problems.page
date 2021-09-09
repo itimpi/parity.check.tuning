@@ -14,27 +14,18 @@ Tag="gear"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+ 
 // error_reporting(E_ALL);      // Enhanced error reporting for use when debugging
 
+require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
-// Multi-language support
-
-$plugin = 'parity.check.tuning';
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/$plugin/Legacy.php"
+// Multi-language legacy support
 ?>
 <?if (!$translations):?>
 <?$noscript = false;	//legacy support (with javascript)?>
 <?eval('?>'.parse_file("$docroot/plugins/parity.check.tuning/Parity.check.problems.page"))?>
 <?else:?>
 <? 
-// read translations
-parse_plugin('paritychecktuning');
-
-require_once '/usr/local/emhttp/webGui/include/Helpers.php';
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
-
 loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 

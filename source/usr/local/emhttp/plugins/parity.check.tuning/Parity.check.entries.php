@@ -15,27 +15,9 @@
  */
 ?>
 <?
-
-// multi language support
-
-$plugin = "parity.check.tuning";
-$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-if ($translations) {
-  // add translations
-  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
-  require_once "$docroot/webGui/include/Translations.php";
-  // read translations
-  parse_plugin('paritychecktuning');
-} else {
-  // legacy support (without javascript)
-  $noscript = true;
-  require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
-}
-
-require_once '/usr/local/emhttp/webGui/include/Helpers.php';
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.jelpers.php';
-
+// error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
+  
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 ?>
 <!DOCTYPE html>
 <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>">

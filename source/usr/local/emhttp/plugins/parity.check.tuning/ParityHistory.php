@@ -16,23 +16,9 @@
 ?>
 <?
 
-// multi language support
-
-$plugin = 'parity.check.tuning';
 $docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-if ($translations) {
-  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
-  require_once "$docroot/webGui/include/Translations.php";
-  // read translations
-  parse_plugin('paritychecktuning');
-} else {
-  // legacy support (without javascript)
-  $noscript = true;
-  require_once "$docroot/plugins/$plugin/Legacy.php";
-}
+require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
-require_once "$docroot/webGui/include/Helpers.php";
 extract(parse_plugin_cfg('dynamix',true));
 
 $month = [' Jan '=>'-01-',' Feb '=>'-02-',' Mar '=>'-03-',' Apr '=>'-04-',' May '=>'-05-',' Jun '=>'-06-',' Jul '=>'-07-',' Aug '=>'-08-',' Sep '=>'-09-',' Oct '=>'-10-',' Nov '=>'-11-',' Dec '=>'-12-'];

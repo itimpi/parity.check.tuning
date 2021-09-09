@@ -18,6 +18,8 @@
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $parityTuningNotify = "$docroot/webGui/scripts/notify";
 
+require_once "$docroot/webGui/include/Helpers.php";
+
 // Set up some useful constants used in multiple files
 define('PARITY_TUNING_PLUGIN',      'parity.check.tuning');
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
@@ -37,7 +39,6 @@ define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
 
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 
-$parityTuningCLI 		   = (basename($argv[0]) == 'parity.check');
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
@@ -83,6 +84,8 @@ setCfgValue('parityProblemEndSector', 100);
 setCfgValue('parityProblemEndPercent', 0);
 setCfgValue('parityProblemCorrect', 'no');
 
+$parityTuningCLI 		 = (basename($argv[0]) == 'parity.check');
+parityTuningLoggerTesting("CLI Mode: $parityTuningCLI");
 
 // Set a value if not already set for the configuration file
 // ... and set a variable of the same name to the current value
@@ -102,6 +105,28 @@ function setCfgValue ($key, $value) {
 	}
 	$GLOBALS['parityTuningCfg'][$key] = $cfgFile[$key];		// TODO: Not sure thir is actually needed any more
 	$GLOBALS[$key] = $cfgFile[$key];
+}
+
+// Multi-Language support code always required
+
+$plugin = 'parity.check.tuning';
+$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+if ($translations) {
+  // add translations
+  session_start();
+  if (!isset($_SESSION['locale'])) {
+	parityTuningLoggerTesting("setting locale from dynamix setting");
+	$_SESSION['locale'] = $dynamixCfg['display']['locale'];
+  }
+  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
+  require_once "$docroot/webGui/include/Translations.php";
+  parse_plugin('paritychecktuning');
+  parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+} else {
+  $noscript = true;  	// legacy support (without JavaScript)
+  require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
+  parityTuningLoggerTesting('Legacy Language support active');
 }
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
