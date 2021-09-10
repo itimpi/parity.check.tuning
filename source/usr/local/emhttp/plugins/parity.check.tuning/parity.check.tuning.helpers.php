@@ -85,7 +85,7 @@ setCfgValue('parityProblemEndPercent', 0);
 setCfgValue('parityProblemCorrect', 'no');
 
 $parityTuningCLI 		 = (basename($argv[0]) == 'parity.check');
-parityTuningLoggerTesting("CLI Mode: $parityTuningCLI");
+if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
 // Set a value if not already set for the configuration file
 // ... and set a variable of the same name to the current value
@@ -107,25 +107,18 @@ function setCfgValue ($key, $value) {
 	$GLOBALS[$key] = $cfgFile[$key];
 }
 
-// Multi-Language support code always required
+// Multi-Language support code enabler for non-GUI usage
 
-$plugin = 'parity.check.tuning';
-$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-if ($translations) {
-  // add translations
-  session_start();
-  if (!isset($_SESSION['locale'])) {
-	parityTuningLoggerTesting("setting locale from dynamix setting");
-	$_SESSION['locale'] = $dynamixCfg['display']['locale'];
-  }
-  $_SERVER['REQUEST_URI'] = 'paritychecktuning';
-  require_once "$docroot/webGui/include/Translations.php";
-  parse_plugin('paritychecktuning');
-  parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+if (file_exists("$docroot/webGui/include/Translations.php")) {
+	if (!isset($_SESSION['locale'])) {
+		parityTuningLoggerTesting("setting locale from dynamix setting");
+		$_SESSION['locale'] = $dynamixCfg['display']['locale'];
+	}
+	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
+	require_once "$docroot/webGui/include/Translations.php";
+    parse_plugin('paritychecktuning');
+	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
 } else {
-  $noscript = true;  	// legacy support (without JavaScript)
-  require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
   parityTuningLoggerTesting('Legacy Language support active');
 }
 

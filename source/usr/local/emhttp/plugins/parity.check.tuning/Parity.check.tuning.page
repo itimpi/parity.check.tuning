@@ -16,16 +16,19 @@ Tag="gear"
  */
 // error_reporting(E_ALL);
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once "$docroot/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
+// Multi-language support
 
-// Multi-language legacy support
+$plugin = 'parity.check.tuning';
+$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
 ?>
 <?if (!$translations):?>
-<?$noscript = false;	// legacy support (with javascript)?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/Parity.check.tuning.page"))?>
+<?eval('?>'.parse_file("$docroot/plugins/parity.check.tuning/Parity.check.tuning.page"))?>
 <?else:?>
 <? 
+require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
+
 if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires unRaid 6.7 or later') . "</p>"; 
 ?>
 <script>
