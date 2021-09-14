@@ -16,20 +16,13 @@ Tag="gear"
  */
 // error_reporting(E_ALL);
 
-// Multi-language support
-
-$plugin = 'parity.check.tuning';
-$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
-?>
-<?if (!$translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/parity.check.tuning/Parity.check.tuning.page"))?>
-<?else:?>
-<? 
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
-if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires unRaid 6.7 or later') . "</p>"; 
+// Multi-language support
+$translations = file_exists("/usr/local/emhttp/webGui/include/Translations.php");
+if (!$translations):
+eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
+else:
 ?>
 <script>
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
@@ -211,6 +204,8 @@ $(function() {
 
 </script>
 
+<?if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires unRaid 6.7 or later') . "</p>";?>
+
 <div class='pluginUpdate'></div>
 
 <form   markdown = "1" 
@@ -379,7 +374,7 @@ $(function() {
 >You also want to make sure that the time allocated to running increments is sufficient to expect the parity check to run to completion before the next check is scheduled to start.   Since most people only schedule parity checks to run infrequently (e.g. Monthly or Quarterly) then this is unlikely to be an issue but it is something to take into consideration.  
 :end
 
-<?sprintf(_('Send notifications for Pause or Resume of increments'))?>:
+<?=sprintf(_('Send notifications for Pause or Resume of increments'))?>:
 : <select name="parityTuningNotify" 
           size='1' class='narrow'
           onchange="checkNotifications(this)">

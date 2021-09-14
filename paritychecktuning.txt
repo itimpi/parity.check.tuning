@@ -124,6 +124,7 @@ errors=
 finished=
 Increments=
 NonCorrecting Parity Check=Non-Correcting Parity Check
+normal=
 Pause=
 Paused=
 Resume=
@@ -131,6 +132,7 @@ Resumed=
 Runtime=
 Scheduled pause=
 Unclean shutdown detected=
+warning=
 will be started=
 
 ; Swal warnings
@@ -188,10 +190,12 @@ but no action currently taken on started event=
 but no parity check was in progress when array stopped=
 Cancel request=
 cool=
-created cron entries for running increments=
-created cron entry for monitoring disk temperatures=
-created cron entry for scheduled pause and resume=
-created cron entry for default monitoring=
+Created cron entries for %s=
+; where %s will be one of the following 4 values
+default monitoring=
+monitoring disk temperatures=
+monitoring partial parity checks=
+scheduled pause and resume=
 Detected that array has not yet been started=
 Detected that array has just been started=
 detected that mdcmd had been called from %s with command %s=

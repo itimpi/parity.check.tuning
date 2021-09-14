@@ -15,13 +15,6 @@
  */
 ?>
 <?
-
-// Multi-language support
-
-$plugin = 'parity.check.tuning';
-$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
 extract(parse_plugin_cfg('dynamix',true));

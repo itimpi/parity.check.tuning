@@ -109,19 +109,25 @@ function setCfgValue ($key, $value) {
 
 // Multi-Language support code enabler for non-GUI usage
 
-if (file_exists("$docroot/webGui/include/Translations.php")) {
-	if (!isset($_SESSION['locale'])) {
-		parityTuningLoggerTesting("setting locale from dynamix setting");
-		$_SESSION['locale'] = $dynamixCfg['display']['locale'];
+$plugin = 'parity.check.tuning';
+if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
+	if (session_status()==PHP_SESSION_NONE && !isset($login_locale)) {
+		session_start();
+		if (!isset($_SESSION['locale'])) {
+			parityTuningLoggerTesting("setting locale from dynamix setting");
+			$_SESSION['locale'] = $dynamixCfg['display']['locale'];
+		}
+		parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+		$_SERVER['REQUEST_URI'] = 'paritychecktuning';
+		session_write_close();
 	}
-	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
 	require_once "$docroot/webGui/include/Translations.php";
-    parse_plugin('paritychecktuning');
-	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+	parse_plugin('paritychecktuning');
 } else {
-  parityTuningLoggerTesting('Legacy Language support active');
+	parityTuningLoggerTesting('Legacy Language support active');
 }
-
+require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
+	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');

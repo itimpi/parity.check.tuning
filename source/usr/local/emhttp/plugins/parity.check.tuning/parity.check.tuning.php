@@ -25,12 +25,6 @@
 
 // error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
 
-// Multi-language support
-
-$plugin = 'parity.check.tuning';
-$docroot = $docroot ?: $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/parity.check.tuning/Legacy.php";
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
 // Some useful constants local to this file
@@ -131,7 +125,7 @@ switch ($command) {
 					}
             		break;
             default:
-                    parityTuningLoggerDebug('Option not currently recognized');
+                    parityTuningLoggerDebug(_('Option not currently recognized'));
                     break;
             }  // end of 'crond' switch
             break;
@@ -1091,8 +1085,8 @@ END_PROGRESS_FOR_LOOP:
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
 		$actionType = actionDescription($startAction, $mdResyncCorr);
-		$msg  = sprintf(_('%s %s %s (%d errors)'),
-						$triggerType, $actionType, $exitStatus, $corrected);
+		$msg  = sprintf(_('%s %s %s (%d %s)'),
+						$triggerType, $actionType, $exitStatus, $corrected, _('errors'));
 		$desc = sprintf(_('%s %s, %s %s, %s %d, %s %s'),
 						_('Elapsed Time'),his_duration($elapsed),
 						_('Runtime'), his_duration($duration),
@@ -1100,7 +1094,7 @@ END_PROGRESS_FOR_LOOP:
 						_('Average Speed'),$speed);
 		parityTuningLogger($msg);
 		parityTuningLogger($desc);
-		sendNotification($msg, $desc, ($exitCode == 0 ? 'normal' : 'warning'));
+		sendNotification($msg, $desc, ($exitCode == 0 ? _('normal') : _('warning')));
 		
 		if (! startsWith($mdResyncAction,'check')) {
 			// TODO: Consider whether other array operation types to be recorded in history
@@ -1473,7 +1467,7 @@ function updateCronEntries() {
 	if (parityTuningPartial()) {
 		// Monitor every minutes during partial checks
 		$frequency = "*/1";
-		parityTuningLoggerDebug (_('created cron entry for monitoring partial parity checks'));
+		parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('monitoring partial parity checks')));
 	} else {
 		if ($GLOBALS['parityTuningIncrements'] || $GLOBALS['parityTuningUnscheduled']) {
 			if ($GLOBALS['parityTuningFrequency']) {
@@ -1487,16 +1481,16 @@ function updateCronEntries() {
 			}
 			$lines[] = "$resumetime " . PARITY_TUNING_PHP_FILE . ' "resume" &> /dev/null' . "\n";
 			$lines[] = "$pausetime " . PARITY_TUNING_PHP_FILE . ' "pause" &> /dev/null' . "\n";
-			parityTuningLoggerDebug (_('created cron entry for scheduled pause and resume'));
+			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('scheduled pause and resume')));
 		}
 		if ($GLOBALS['parityTuningHeat'] || $GLOBALS['parityTuningShutdown']) {
 			// Monitor every 7 minutes for temperature
 			$frequency = "*/7";
-			parityTuningLoggerDebug (_('created cron entry for monitoring disk temperatures'));
+			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('monitoring disk temperatures')));
 		} else {
 			// Once an hour if not monitoring more frequently for temperature
 			$frequency = "17";
-			parityTuningLoggerDebug (_('created cron entry for default monitoring'));
+			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('default monitoring')));
 		}
 	}
 	$lines[] = "$frequency * * * * " . PARITY_TUNING_PHP_FILE . ' "monitor" &>/dev/null' . "\n";
