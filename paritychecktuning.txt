@@ -161,6 +161,7 @@ Pausing an operation that is building parity or rebuilding a failed disk has a l
 Temperature Pause and Resume=
 Testing mode is normally only used by the plugin author or when gathering evidence of a suspected bug in the plugin=
 Testing mode is very verbose and generates a lot of additional log entries so you do not want it enabled unless this is really necessary=
+The Pause and Resume times cannot be identical=
 The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
 The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
 The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the unRaid level=

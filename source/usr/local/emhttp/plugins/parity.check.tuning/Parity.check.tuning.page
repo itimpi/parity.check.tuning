@@ -14,6 +14,13 @@ Tag="gear"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+?>
+<!--
+########################
+Parity.check.tuning.page
+########################
+-->
+<?
 // error_reporting(E_ALL);
 
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
@@ -107,15 +114,25 @@ function checkCustom(fld) {
               icon:"Error"});
 		// Disable Apply button as saving invalid Custom entry will cause problems later
 		document.getElementById('Apply').disabled = true;
-    }
+		return false;
+    } 
+	return true;
 }
 
 function checkCustomOptions(form) {
 	if (form.parityTuningFrequency.value == '1') {
-		var fld = form.parityTuningPauseCustom;
-		checkCustom(fld);
-		fld = form.parityTuningResumeCustom;
-		checkCustom(fld);
+		var fldPause = form.parityTuningPauseCustom;
+		if (checkCustom(fldPause)) {
+			var fldResume = form.parityTuningResumeCustom;
+			if (checkCustom(fldResume)) {
+				if (fldPause == fldResume) { 
+					swal({title: "_(Pause and Resume times)_?",
+						  text:"_(The Pause and Resume custom times cannot be identical)_.",
+						  icon:"Error"});
+					document.getElementById('Apply').disabled = true;
+				}
+			}
+		}
 	}
 }
 
@@ -130,13 +147,21 @@ function checkNotifications (me) {
 }
 
 function checkTimeRange(form) {
-  var difference = form.parityTuningPauseHour.value - form.parityTuningResumeHour.value;
-  if ( difference < 0) difference += 24;
-  if (difference > 12 ) {
-    swal({title: "_(Pause and Resume times)_?",
-          text:"_(The Pause and Resume times would give an increment length of more than 12 hours which is unusual)_.  Are you sure you have not got these the wrong way around?",
-          icon:"Warning"});
-    }
+    var difference = form.parityTuningPauseHour.value - form.parityTuningResumeHour.value;
+	if ((difference == 0)
+	&& (form.parityTuningPauseMinute.value == form.parityTuningResumeMinute.value)) {
+		swal({title: "_(Pause and Resume times)_?",
+			text:"_(The Pause and Resume times cannot be identical)_.",
+			icon:"Error"});
+		document.getElementById('Apply').disabled = true;
+		return;
+	}
+    if ( difference < 0) difference += 24;
+	if (difference > 12 ) {
+		swal({title: "_(Pause and Resume times)_?",
+			  text:"_(The Pause and Resume times would give an increment length of more than 12 hours which is unusual)_.  _(Are you sure you have not got these the wrong way around)_?",
+			  icon:"Warning"});
+	}
 }
 
 function checkHeatVeryLarge(value) {

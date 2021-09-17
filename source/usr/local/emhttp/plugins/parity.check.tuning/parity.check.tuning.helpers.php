@@ -111,16 +111,13 @@ function setCfgValue ($key, $value) {
 
 $plugin = 'parity.check.tuning';
 if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
-	if (session_status()==PHP_SESSION_NONE && !isset($login_locale)) {
-		session_start();
-		if (!isset($_SESSION['locale'])) {
-			parityTuningLoggerTesting("setting locale from dynamix setting");
-			$_SESSION['locale'] = $dynamixCfg['display']['locale'];
-		}
-		parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
-		$_SERVER['REQUEST_URI'] = 'paritychecktuning';
-		session_write_close();
-	}
+	$login_locale = '';
+	if (!isset($_SESSION['locale']) || ($_SESSION['locale']=='')) {
+		parityTuningLoggerTesting("setting locale from dynamix setting");
+		$_SESSION['locale'] = $login_locale = $dynamixCfg['display']['locale'];
+	}	
+	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
 	require_once "$docroot/webGui/include/Translations.php";
 	parse_plugin('paritychecktuning');
 } else {

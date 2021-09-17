@@ -1460,6 +1460,7 @@ function createMarkerFile ($filename) {
 //       ~~~~~~~~~~~~~~~~~
 function updateCronEntries() {
 //       ~~~~~~~~~~~~~~~~~
+	parityTuningLoggerTesting("Creating required cron entries");
 	parityTuningDeleteFile (PARITY_TUNING_CRON_FILE);
 	$lines = [];
 	$lines[] = "\n# Generated schedules for " . PARITY_TUNING_PLUGIN . "\n";
@@ -1467,7 +1468,7 @@ function updateCronEntries() {
 	if (parityTuningPartial()) {
 		// Monitor every minutes during partial checks
 		$frequency = "*/1";
-		parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('monitoring partial parity checks')));
+		parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('monitoring partial parity checks')));
 	} else {
 		if ($GLOBALS['parityTuningIncrements'] || $GLOBALS['parityTuningUnscheduled']) {
 			if ($GLOBALS['parityTuningFrequency']) {
@@ -1481,21 +1482,21 @@ function updateCronEntries() {
 			}
 			$lines[] = "$resumetime " . PARITY_TUNING_PHP_FILE . ' "resume" &> /dev/null' . "\n";
 			$lines[] = "$pausetime " . PARITY_TUNING_PHP_FILE . ' "pause" &> /dev/null' . "\n";
-			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('scheduled pause and resume')));
+			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('scheduled pause and resume')));
 		}
 		if ($GLOBALS['parityTuningHeat'] || $GLOBALS['parityTuningShutdown']) {
 			// Monitor every 7 minutes for temperature
 			$frequency = "*/7";
-			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('monitoring disk temperatures')));
+			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('monitoring disk temperatures')));
 		} else {
 			// Once an hour if not monitoring more frequently for temperature
 			$frequency = "17";
-			parityTuningLoggerDebug (_sprintf(_('Created cron entry for %s'),_('default monitoring')));
+			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('default monitoring')));
 		}
 	}
 	$lines[] = "$frequency * * * * " . PARITY_TUNING_PHP_FILE . ' "monitor" &>/dev/null' . "\n";
 	file_put_contents(PARITY_TUNING_CRON_FILE, $lines);
-	parityTuningLoggerTesting(sprintf(_('updated cron settings are in %s'),PARITY_TUNING_CRON_FILE));
+	parityTuningLoggerDebug(sprintf(_('updated cron settings are in %s'),PARITY_TUNING_CRON_FILE));
 	// Activate any changes
 	exec("/usr/local/sbin/update_cron");
 }
