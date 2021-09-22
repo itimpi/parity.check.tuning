@@ -94,7 +94,7 @@ function setCfgValue ($key, $value) {
 	if (! array_key_exists($key,$cfgFile)) {
 		$cfgFile[$key] = $value;
 	} else {
-		if (empty($cfgFile[$key]) || $cfgFile[$key]== ' ' ) {
+		if (!isset($cfgFile[$key]) || $cfgFile[$key]== ' ' ) {
 			$cfgFile[$key] = $value;
 		}
 		// Next 2 lines handle migration of settings to new values - will be removed in future release.
@@ -103,7 +103,7 @@ function setCfgValue ($key, $value) {
 		if ($cfgFile[$key] == "daily") $cfgFile[$key] = 0;
 		if ($cfgFile[$key] == "custom") $cfgFile[$key] = 1;
 	}
-	$GLOBALS['parityTuningCfg'][$key] = $cfgFile[$key];		// TODO: Not sure thir is actually needed any more
+	$GLOBALS['parityTuningCfg'][$key] = $cfgFile[$key];		// TODO: Not sure this is actually needed any more
 	$GLOBALS[$key] = $cfgFile[$key];
 }
 
@@ -121,9 +121,9 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	require_once "$docroot/webGui/include/Translations.php";
 	parse_plugin('paritychecktuning');
 } else {
+	require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
 	parityTuningLoggerTesting('Legacy Language support active');
 }
-require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
@@ -152,7 +152,7 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningSize']       = $size;
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
     $GLOBALS['parityTuningActive']     = ($pos > 0);              // If array action is active (paused or running)
-    $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array actimb on is running (i.e. not paused)
+    $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array action is running (i.e. not paused)
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }

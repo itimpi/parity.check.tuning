@@ -184,7 +184,7 @@ switch ($command) {
 			break;
 		}
 		
-		parityTuningLoggerDebug (_('Parity check appears to be ') . ($parityTuningRunning ?  _('paused') : _('running')));
+		parityTuningLoggerDebug (_('Parity check appears to be ') . ($parityTuningRunning ? _('running') : _('paused')));
 
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
