@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2021.10.10">
-<!ENTITY md5 "641678d6740bc2c9f12b59282f2cc09b">
+<!ENTITY md5 "f94535973b5d88927f274770847e9524">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -24,7 +24,7 @@
 
 <CHANGES>
 ###2021.10.10
- - New: Display plugin version in the GUI pages (top right)
+ - New: Display plugin version in the plugin's GUI pages (top right)
  
 ###2021.09.21
  - Fix: The Minutes field for Pause/Resume would not display correctly if set to 0
