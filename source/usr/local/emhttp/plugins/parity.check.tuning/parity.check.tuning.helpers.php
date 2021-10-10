@@ -29,19 +29,34 @@ define('PARITY_TUNING_EMHTTP_DIR',  EMHTTP_DIR . '/plugins/' . PARITY_TUNING_PLU
 define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHTTP_DIR . '/' . PARITY_TUNING_PLUGIN . '.php');  
 define('PARITY_TUNING_BOOT_DIR',    PLUGINS_DIR . '/' . PARITY_TUNING_PLUGIN);
 define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING_PLUGIN . '.');
+define('PARITY_TUNING_VERSION_FILE',PARITY_TUNING_FILE_PREFIX . 'version');
 define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
 define('PARITY_TUNING_LOG_FILE',    PARITY_TUNING_FILE_PREFIX . 'log');
 define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial check in progress (contains end sector value)
-
 define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
 define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
 define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
-
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
-
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
+// Multi-Language support code enabler for non-GUI usage
+
+$plugin = 'parity.check.tuning';
+if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
+	$login_locale = '';
+	if (!isset($_SESSION['locale']) || ($_SESSION['locale']=='')) {
+		parityTuningLoggerTesting("setting locale from dynamix setting");
+		$_SESSION['locale'] = $login_locale = $dynamixCfg['display']['locale'];
+	}	
+	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
+	require_once "$docroot/webGui/include/Translations.php";
+	parse_plugin('paritychecktuning');
+} else {
+	require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
+	parityTuningLoggerTesting('Legacy Language support active');
+}
 
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
@@ -87,6 +102,8 @@ setCfgValue('parityProblemCorrect', 'no');
 $parityTuningCLI 		 = (basename($argv[0]) == 'parity.check');
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
+$parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
+
 // Set a value if not already set for the configuration file
 // ... and set a variable of the same name to the current value
 function setCfgValue ($key, $value) {
@@ -107,23 +124,6 @@ function setCfgValue ($key, $value) {
 	$GLOBALS[$key] = $cfgFile[$key];
 }
 
-// Multi-Language support code enabler for non-GUI usage
-
-$plugin = 'parity.check.tuning';
-if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
-	$login_locale = '';
-	if (!isset($_SESSION['locale']) || ($_SESSION['locale']=='')) {
-		parityTuningLoggerTesting("setting locale from dynamix setting");
-		$_SESSION['locale'] = $login_locale = $dynamixCfg['display']['locale'];
-	}	
-	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
-	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
-	require_once "$docroot/webGui/include/Translations.php";
-	parse_plugin('paritychecktuning');
-} else {
-	require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
-	parityTuningLoggerTesting('Legacy Language support active');
-}
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);

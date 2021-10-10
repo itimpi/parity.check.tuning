@@ -466,9 +466,32 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningProgressWrite('ABORTED');
 			goto end_array_started;
 		}
-        // check if disk configuration has changed
 
-		switch (areDisksChanged()) {
+		// Check the stored disk information against the current assignments
+		//		0 (false)	Disks appear unchanged
+		//		-1			New disk present (New Config used?)
+		//		1			Disks changed in some other way
+
+		$disksCurrent = parse_ini_file (PARITY_TUNIN5_EMHTTP_DISKS_FILE, true);
+		$disksOld     = parse_ini_file (PARITY_TUNING_DISKS_FILE, true);
+		$disksOK = 0;
+		foreach ($disksCurrent as $drive) {
+			$name=$drive['name'];
+			if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
+				if ($disksCurrent[$name]['status']  == 'DISK-NEW') {
+					parityTuningLogger($name . ': ' . _('New'));
+					$disksOK = -1;
+				} else { 
+					if (($disksCurrent[$name]['id']     != $disksOld[$name]['id'])
+					||  ($disksCurrent[$name]['status'] != $disksOld[$name]['status'])
+					||  ($disksCurrent[$name]['size']   != $disksOld[$name]['size'])) {
+						if ($disksOK != 0) $disksOK = 1;
+						parityTuningLogger($name . ': ' . _('Changed'));
+					}
+				}
+			}
+		}
+		switch ($disksOK) {
 			case 0:			
 				parityTuningLoggerTesting ('Disk configuration appears to be unchanged');
 				break;
@@ -703,6 +726,7 @@ end_array_started:
 		parityTuningLoggerCLI ('  status           ' . _('Show the status of a running parity check'));
 		parityTuningLoggerCLI ('  cancel           ' . _('Cancel a running parity check'));
 //	    parityTuningLoggerCLI ('  partial          ' . _('Start partial parity check'));
+		parityTuningLoggerCLI ($parityTuningVersion);
 		if (! $parityTuningCLI) {
         	parityTuningLogger (_('Command Line was') . ':');
         	$cmd = ''; for ($i = 0; $i < count($argv) ; $i++) $cmd .= $argv[$i] . ' ';
@@ -733,37 +757,6 @@ function saveRestartInformation() {
 		file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
 		parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
 	}
-}
-
-// Check the stored disk information against the current assignment
-//	Return Values
-//		0 (false)	Disks appear unchanged
-//		-1			New disk present (New Config used?)
-//		1			Dirks changed in some other way
-
-//       ~~~~~~~~~~~~~~~~
-function areDisksChanged() {
-//       ~~~~~~~~~~~~~~~~
-	$disksCurrent = parse_ini_file (PARITY_TUNIN5_EMHTTP_DISKS_FILE, true);
-	$disksOld     = parse_ini_file (PARITY_TUNING_DISKS_FILE, true);
-	$disksOK = 0;
-	foreach ($disksCurrent as $drive) {
-		$name=$drive['name'];
-		if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
-			if ($disksCurrent[$name]['status']  == 'DISK-NEW') {
-				parityTuningLogger($name . ': ' . _('New'));
-				$disksOK = -1;
-			} else { 
-				if (($disksCurrent[$name]['id']     != $disksOld[$name]['id'])
-				||  ($disksCurrent[$name]['status'] != $disksOld[$name]['status'])
-				||  ($disksCurrent[$name]['size']   != $disksOld[$name]['size'])) {
-					if ($disksOK != 0) $disksOK = 1;
-					parityTuningLogger($name . ': ' . _('Changed'));
-				}
-			}
-		}
-	}
-	return $disksOK;
 }
 
 // Remove a file and if TESTING logging active then log it has happened

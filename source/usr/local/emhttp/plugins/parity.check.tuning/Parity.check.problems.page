@@ -178,10 +178,9 @@ function positionPopup() {
         method   = "POST" 
         action   = "/update.php" 
         target   = "progressFrame">
-        
 <input type="hidden" 
        name="#file"    
-       value="<?=PARITY_TUNING_CFG_FILE?>">      
+       value="<?=$fileManagerCfgFile?>">      
 <input type="hidden" 
        name="#command"
        disabled
@@ -189,9 +188,7 @@ function positionPopup() {
 <input type="hidden"
        name="#arg[1]"
        disabled
-       id = "parityProblemCmd">
- 
-
+       id = "parityProblemCmd"> <span style="float:right"><?=$parityTuningVersion?></span>
 :parityProblems_intro_plug:
 The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
 The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
@@ -310,7 +307,7 @@ This can be much faster than having to run a full parity check or read check to 
 > sector is displayed and whether the it was being corrected or is a parity error.
 :end
 
-&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
+&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
 
 : <input type="submit" 
      name="#apply" 

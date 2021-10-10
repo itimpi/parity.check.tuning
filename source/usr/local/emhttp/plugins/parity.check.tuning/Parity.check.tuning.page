@@ -28,7 +28,7 @@ require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.
 // Multi-language support
 $translations = file_exists("/usr/local/emhttp/webGui/include/Translations.php");
 if (!$translations):
-eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
+  eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
 else:
 ?>
 <script>
@@ -275,7 +275,7 @@ $(function() {
           onChange="presetParityTuning(this.form)">
      <?=mk_option($parityTuningIncrements, "0", _("No")) . "\n"?>
      <?=mk_option($parityTuningIncrements, "1", _("Yes")) . "\n"?>
-  </select>
+  </select><span style="float:right"><?=$parityTuningVersion?></span>
 
 :parity_tune_increments_plug:
 >Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
@@ -610,7 +610,7 @@ $(function() {
 >
 >Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugins activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
 >
->If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the inly option allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
+>If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the only option allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
 >To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flash drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
 :end
 
