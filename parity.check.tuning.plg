@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2021.09.22">
-<!ENTITY md5 "aa3450f32e4b90576794cc2abee524b1">
+<!ENTITY version "2021.10.10">
+<!ENTITY md5 "f94535973b5d88927f274770847e9524">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,8 +23,11 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2021.10.10
+ - New: Display plugin version in the plugin's GUI pages (top right)
+ 
 ###2021.09.21
- - Fix:  The Minutes field for Pause/Resume would not display correctly if set to 0
+ - Fix: The Minutes field for Pause/Resume would not display correctly if set to 0
  
 ###2021.09.17
  - Fix: Warning being generated in GUI from multi-language support code on Unraid 6.9.2
@@ -318,7 +321,7 @@ The 'post-install' script
 -->
 <FILE Run="/bin/bash">
   <INLINE>
-    # Ensure permissons correct (not sure why needed as should already be OK, but apparently not the case)
+    # Ensure permissions correct (not sure why needed as should already be OK, but apparently not always the case)
     chmod -R 755 /usr/local/emhttp/plugins/&plugin;
     chown -R root /usr/local/emhttp/plugins/&plugin;
     chgrp -R root /usr/local/emhttp/plugins/&plugin;
@@ -336,6 +339,7 @@ The 'post-install' script
           mv -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig
           ln -s /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
     fi
+	echo &version; > /boot/config/plugins/&plugin;/&plugin;.version;
 	# rm -rf /boot/config/plugins/&plugin;/&plugin;.log
     echo ""
     echo "----------------------------------------------------"
