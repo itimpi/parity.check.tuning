@@ -469,6 +469,21 @@ $(function() {
 >* If you want to use this feature by simply stopping the array without immediately using the **Reboot** or **Shutdown** buttons then you first need to manually **Pause** the array operation before using the **Stop** button.  If you to this and successfully stop the array then the array operation will now be resumed if you simply **Start** the array again, and also on the next array start after **Reboot** or **Shutdown**.
 :end
 
+&nbsp;
+
+<?=_('Pause array operations while mover running')?>:
+: <select name="parityTuningMover" 
+          size='1' class='narrow'
+          onClick="presetParityTuning(this.form)"
+          onBlur="presetParityTuning(this.form)"
+          onchange="presetParityTuning(this.form)">
+    <?=mk_option($parityTuningMover, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningMover, "0", _("No")) . "\n"?>
+  </select>
+  
+:parity_tune_mover_plug:
+>Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+:end
 
 &nbsp;
 
@@ -484,7 +499,7 @@ $(function() {
 
 
 :parity_tune_hot_plug:
-> Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if the disk temperatures exceeds the limits you have set. 
+>Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if the disk temperatures exceeds the limits you have set. 
 >
 >The temperatures are checked against the thresholds set for the Warning disk temperature levels. If a threshold has been defined for an individual drive (accessed by clicking on the drive in the Main tab) then this is the value used.  If not the global setting (set via *Settings->Display Settings*) will be used.  It is assumed that normally you would want the array operation to be paused before the value set at the unRaid level as the Warning Threshold.
 >

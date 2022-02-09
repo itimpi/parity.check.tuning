@@ -20,6 +20,8 @@ High disk temperatures can shutdown server=
 Increment frequency=
 Increment pause time=
 Increment resume time=
+Mover no longer running=
+Mover running=
 No parity check entries found in syslog=
 ParityRead-Check History=Parity/Read-Check History=
 Parity Check=
@@ -27,6 +29,7 @@ Parity Check Tuning logging=
 Parity Sync=
 Pause an array operation at=
 Pause and Resume array operations if disks overheat=
+Pause array operations while mover running=
 Read Check=
 Requires unRaid 67 or later=Requires unRaid 6.7 or later=
 Resume an array operation at=
@@ -346,6 +349,10 @@ Method used to specify start and stop points=
 >* If the array operation was within the time set for a scheduled increment to be running then on restarting the array operation it will be set to be paused if now outside the time set for running increments.  
 >* If the array operation was manually paused then the restarted array operation will also be paused  
 >* If you want to use this feature by simply stopping the array without immediately using the **Reboot** or **Shutdown** buttons then you first need to manually **Pause** the array operation before using the **Stop** button.  If you to this and successfully stop the array then the array operation will now be resumed if you simply **Start** the array again, and also on the next array start after **Reboot** or **Shutdown**.
+:end
+
+:parity_tune_mover_plug:
+>Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
 :end
 
 :parity_tune_hot_plug:

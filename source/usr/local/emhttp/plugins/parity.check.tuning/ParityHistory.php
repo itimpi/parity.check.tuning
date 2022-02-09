@@ -15,6 +15,8 @@
  */
 ?>
 <?
+// error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
+
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
 extract(parse_plugin_cfg('dynamix',true));
