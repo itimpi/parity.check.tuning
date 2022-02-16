@@ -36,7 +36,7 @@ else:
 loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
-if ($parityTuningActive) 
+if (isArrayOperationActive()) 
     echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
 loadVars(0);
 if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
@@ -56,7 +56,7 @@ $(function() {
 
 $(document).ready(function(){
   var oForm = document.getElementById('parityProblemPage');
-  var active = <?=($parityTuningActive)?"true":"false"?>;
+  var active = <?=(isArrayOperationActive())?"true":"false"?>;
   var isDisabled = active || noParity;
   oForm.parityProblemType.disabled         = isDisabled;
   oForm.parityProblemStartSector.disabled  = isDisabled;  

@@ -16,7 +16,6 @@
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$parityTuningNotify = "$docroot/webGui/scripts/notify";
 
 require_once "$docroot/webGui/include/Helpers.php";
 
@@ -54,6 +53,7 @@ setCfgValue('parityTuningIncrements', '0');
 setCfgValue('parityTuningFrequency', '0');
 setCfgValue('parityTuningUnscheduled', '0');
 setCfgValue('parityTuningAutomatic', '0');
+setCfgValue('parityTuningNotify', '1');
 setCfgValue('parityTuningRecon', '0');
 setCfgValue('parityTuningClear', '0');
 setCfgValue('parityTuningRestart', '0');
@@ -94,7 +94,7 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	parityTuningLoggerTesting('Legacy Language support active');
 }
 
-$parityTuningCLI 		 = (basename($argv[0]) == 'parity.check');
+$parityTuningCLI = (basename($argv[0]) == 'parity.check');
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
 $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
@@ -103,6 +103,7 @@ $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
 $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
+$parityTuningNewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
 
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
@@ -152,7 +153,6 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningPos']        = $pos;
     $GLOBALS['parityTuningSize']       = $size;
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
-    $GLOBALS['parityTuningActive']     = ($pos > 0);              // If array action is active (paused or running)
     $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array action is running (i.e. not paused)
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];

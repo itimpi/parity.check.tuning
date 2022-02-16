@@ -264,7 +264,7 @@ $(function() {
 >* You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.  
 >* The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.
 >
->**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning
+>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  For parity checks you can avoid this if you set the plugin option to resume parity checks on next array start.
 :end
 
 <?= sprintf(_('Use increments for %s %s'), _('scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
@@ -280,9 +280,7 @@ $(function() {
 :parity_tune_increments_plug:
 >Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
 >
->If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
->
->**CAUTION:**  The default unRaid behavior is that if the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  
+>If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.  
 :end
 
 <?= sprintf(_('Use increments for %s %s'), _('manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
@@ -482,7 +480,7 @@ $(function() {
   </select>
   
 :parity_tune_mover_plug:
->Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
 :end
 
 &nbsp;
