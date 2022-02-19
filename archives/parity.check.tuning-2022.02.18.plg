@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.02.18">
-<!ENTITY md5 "66e4f744a02cbfc9cb20b631affe25a4">
+<!ENTITY version "2022.02.14">
+<!ENTITY md5 "d10e363c825942b6babf80f48795d3f9">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,7 +23,7 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
-###2022.02.18
+###2022.02.16
  - Fix: Compatibility with new parity history record format introduced with Unraid 6.10.0rc3.
  - New: Include all array operation types in history (not just parity checks).
  - New: Option to pause parity checks while mover running.
