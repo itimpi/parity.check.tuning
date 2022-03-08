@@ -5,6 +5,6 @@ This will be of particular use to those who have large parity drives so that a f
 
 Also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds (or alternatively for the server to be shutdown).
  
-Starting with Unraid 6.9.0 it will also be possible for array operations to be restarted after an array stop/start or a shutdown/reboot.  In addition a Parity Problems Assistamt is introduced that allows for partial parity checks to be used to help with resolvinl parity check errors.
+Starting with Unraid 6.9.0 it will also be possible for array operations to be restarted after an array stop/start or a shutdown/reboot.  In addition a Parity Problems Assistant is introduced that allows for partial parity checks to be used to help with resolving parity check errors.
 
 

@@ -35,9 +35,15 @@ define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // 
 define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
 define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
 define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
-define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
+define('PARITY_TUNING_CABACKUP_FILE',PLUGINS_DIR . '/ca.backup2.plg'); 
+define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  // Created if array stopped with array operation active to hold restart info
+define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
+;
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
+
+$parityTuningCLI = (basename($argv[0]) == 'parity.check');
+
 // Configuration information
 
 if (file_exists(PARITY_TUNING_CFG_FILE)) {
@@ -64,6 +70,7 @@ setCfgValue('parityTuningPauseMinute', '30');
 setCfgValue('parityTuningResumeCustom', '15 0 * * *');
 setCfgValue('parityTuningPauseCustom', '30 3 * * *');
 setCfgValue('parityTuningMover', '1');
+setCfgValue('parityTuningCABackup', '1');
 setCfgValue('parityTuningHeat', '0');
 setCfgValue('parityTuningHeatHigh','3');
 setCfgValue('parityTuningHeatLow','8');
@@ -94,7 +101,6 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	parityTuningLoggerTesting('Legacy Language support active');
 }
 
-$parityTuningCLI = (basename($argv[0]) == 'parity.check');
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
 $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
@@ -153,6 +159,7 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningPos']        = $pos;
     $GLOBALS['parityTuningSize']       = $size;
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
+    $GLOBALS['parityTuningActive']     = ($pos > 0);
     $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array action is running (i.e. not paused)
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];

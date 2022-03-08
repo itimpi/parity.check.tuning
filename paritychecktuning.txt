@@ -9,6 +9,8 @@ automatic=
 Basic=
 below critical disk temperature threshold=
 below warning disk temperature threshold=
+CA Backup or Restore running=
+CA Backup or Restore no longer running=
 CAUTION=
 Click to show parity-check history=
 Data Rebuild=
@@ -29,6 +31,7 @@ Parity Check Tuning logging=
 Parity Sync=
 Pause an array operation at=
 Pause and Resume array operations if disks overheat=
+Pause array operations while appdata backup or restore running=
 Pause array operations while mover running=
 Read Check=
 Requires unRaid 67 or later=Requires unRaid 6.7 or later=
@@ -43,7 +46,8 @@ Shutdown server at=
 Syslog only=
 Syslog and Flash=
 Flash only=
-Testing=
+This option is only available if Appdata BackupRestore v2 plugin installed=This option is only available if Appdata Backup/Restore v2 plugin installed
+This option is only available with Unraid 6.9.0 or later=
 unknown=
 Unscheduled=
 Version=
@@ -351,6 +355,10 @@ Method used to specify start and stop points=
 
 :parity_tune_mover_plug:
 >Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+:end
+
+:parity_tune_backup_plug:
+>Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the Appdata Backup/Restore plugin is running a backup or restore of docker container data.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
 :end
 
 :parity_tune_hot_plug:

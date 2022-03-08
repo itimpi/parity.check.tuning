@@ -21,7 +21,7 @@ Parity.check.tuning.page
 ########################
 -->
 <?
-// error_reporting(E_ALL);
+error_reporting(E_ALL);
 
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
@@ -33,6 +33,7 @@ else:
 ?>
 <script>
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
+var noBackup = <?=(file_exists(PARITY_TUNING_CABACKUP_FILE) ? 'false' : 'true')?>;
 
 // Preset fields to be enabled/disabled as appropriate
 function presetParityTuning(form) {
@@ -58,6 +59,7 @@ function presetParityTuning(form) {
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
   form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
   form.parityTuningNotify.disabled       = parityTuningDisabled;
+  form.parityTuningCABackup.disabled     = noBackup;
   
   // Now the heat related options
   parityTuningDisabled = (form.parityTuningHeat.value == "0");
@@ -483,6 +485,20 @@ $(function() {
 >Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
 :end
 
+<?=_('Pause array operations while appdata backup or restore running')?>:
+: <select name="parityTuningCABackup"
+          size='1' class='narrow' 
+          onClick="presetParityTuning(this.form)"
+          onBlur="presetParityTuning(this.form)"
+          onchange="presetParityTuning(this.form)">
+    <?=mk_option($parityTuningCABackup, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCABackup, "0", _("No")) . "\n"?>
+  </select><? if (!file_exists(PARITY_TUNING_CABACKUP_FILE)) echo '<font color=#FF8C2F>' . _('This option is only available if Appdata Backup/Restore v2 plugin installed') . '</font>'; ?>
+
+:parity_tune_backup_plug:
+>Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the Appdata Backup/Restore plugin is running a backup or restore of docker container data.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+:end
+
 &nbsp;
 
 <?=_('Pause and Resume array operations if disks overheat')?>:
@@ -490,7 +506,7 @@ $(function() {
           size='1' class='narrow'
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
-          onchange="presetParityTuning(this.form)">
+          onchange="presetParityTuning(this.form)"> 
     <?=mk_option($parityTuningHeat, "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningHeat, "0", _("No")) . "\n"?>
   </select>
@@ -543,7 +559,7 @@ $(function() {
 <?=_('Send notifications for temperature related Pause or Resume')?>:
 : <select name="parityTuningHeatNotify" 
           size='1' class='narrow'
-          onchange="checkNotifications(this)">
+          onchange="checkNotifications(this)"> 
     <?=mk_option($parityTuningHeatNotify, "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningHeatNotify, "1", _("Yes")) . "\n"?>
   </select>

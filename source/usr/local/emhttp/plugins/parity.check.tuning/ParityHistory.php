@@ -20,8 +20,13 @@
 <?
 // error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
 
-require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
-
+// $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+// add translations
+// $_SERVER['REQUEST_URI'] = 'main';
+// require_once "$docroot/webGui/include/Translations.php";
+// 
+// require_once "$docroot/webGui/include/Helpers.php";
+require_once  '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 extract(parse_plugin_cfg('dynamix',true));
 
 $month = [' Jan '=>'-01-',' Feb '=>'-02-',' Mar '=>'-03-',' Apr '=>'-04-',' May '=>'-05-',' Jun '=>'-06-',' Jul '=>'-07-',' Aug '=>'-08-',' Sep '=>'-09-',' Oct '=>'-10-',' Nov '=>'-11-',' Dec '=>'-12-'];
@@ -52,6 +57,9 @@ function this_duration($time) {
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-fonts.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-popup.css")?>">
 </head>
+<style>
+table.share_status thead tr td:nth-child(2){width:20%}
+</style>
 <body>
 <?
 /*
@@ -81,13 +89,13 @@ if (file_exists($log)) {
 	// workout what format the record it in and handle accordingly
 	// parityTuningLoggerTesting("Parity History Record: $line");
 	switch (count(explode('|',$line))) {
-		case 5:	// legacy support
+		case 5:	// legacy Unraid support to 6.1-rc3
 			    // parityTuningLoggerTesting("... original Unraid format");
 				[$date,$duration,$speed,$status,$error] = explode('|',$line);
 				$type = $increment = $elapsed = $parityTuningAction = "";
 				$action = $parityTuningType = '-';
 				break;
-		case 6: // new standard format (adds operation type)
+		case 6: // new standard Unraid format (adds operation type) from 6.10.0-rc3 onwards
 			    // parityTuningLoggerTesting("... new Unraid format");
 				[$date,$duration,$speed,$status,$error,$action] = explode('|',$line);
 				$action = explode(' ',$action);
@@ -120,18 +128,21 @@ if (file_exists($log)) {
 				$action = "-";
 				break;
 		default:
-				ParityTuningLoggerTesting("unexpected number of fields in history record: $line");
+				ParityTuningLoggerTesting("ERROR:  Unexpected number of fields in history record: $line");
 		
 	}
     if ($speed==0) $speed = _('Unavailable');
-    $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
+
     if ($duration>0||$status<>0) {  // ignore dummy records
-    	$list[] = '<tr><td>'.$parityTuningType.'</td><td>&nbsp;'.$date.'<&nbsp;/td><td>&nbsp;'.this_duration($duration).'&nbsp;</td><td>&nbsp;'.$speed.'&nbsp;</td><td>&nbsp;'
-    			.($status==0?_('OK'):($status==-4?_('Canceled'):($status==-5?_('Aborted'):'' . $status))).'&nbsp;</td><td>&nbsp;'.$error . '&nbsp;</td>'
-                .($extended?('<td>&nbsp;'.($elapsed==0?'Unknown':this_duration($elapsed)).'&nbsp;</td>'
-                            .'<td>&nbsp;'.($increments==0?_('Unavailable'):$increments).'&nbsp;</td>')
-						   :'')
-                .'</tr>';
+	    $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
+		$size = $size ? my_scale($size*1024,$unit,-1)." $unit" : '-';
+        $duration = this_duration($duration);
+         // handle both old and new speed notation
+        $speed = $speed ? ($speed[-1]=='s' ? $speed : my_scale($speed,$unit,1)." $unit/s") : _('Unavailable');
+		$status = ($status==0 ? _('OK') : ($status==-4?_('Canceled'):($status==-5?_('Aborted') : $status)));
+		$elapsed = ($elapsed==0?'Unknown':this_duration($elapsed));
+		$increments = ($increments==0?_('Unavailable'):$increments);
+    	$list[] = "<tr><td>$parityTuningType</td><td>$date</td><td>$duration)</td><td>$speed</td><td>$status</td><td>$error</td><td>$elapsed</td><td >$increments</td></tr>";
     }
   }
   fclose($handle);
@@ -141,4 +152,7 @@ if ($list)
 else
   echo "<tr><td colspan='5' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
 ?>
- 
+ </tbody></table>
+<div style="text-align:center;margin-top:12px"><input type="button" value="<?=_('Done')?>" onclick="top.Shadowbox.close()"></div>
+</body>
+</html>

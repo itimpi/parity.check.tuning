@@ -36,8 +36,7 @@ else:
 loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
-if (isArrayOperationActive()) 
-    echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
+if ($parityTuningActive)   echo "<p class='notice'>" . actionDescription($parityTuningAction, $parityTuningCorrecting) . ' ' .  _('running') . "</p>"; 
 loadVars(0);
 if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
 
@@ -56,7 +55,7 @@ $(function() {
 
 $(document).ready(function(){
   var oForm = document.getElementById('parityProblemPage');
-  var active = <?=(isArrayOperationActive())?"true":"false"?>;
+  var active = <?=$parityTuningActive?"true":"false"?>;
   var isDisabled = active || noParity;
   oForm.parityProblemType.disabled         = isDisabled;
   oForm.parityProblemStartSector.disabled  = isDisabled;  
@@ -195,7 +194,7 @@ The current status is **EXPERIMENTAL** and it is always possible that this assis
 **(feedback is welcomed on the basic concept and ideas for improvement)**.<p/>
 The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog.  
 In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.<p/>
-It is also not uncommon, particularly on  based systems, to get random parity errors if the RAM is overclocked
+It is also not uncommon, particularly on **Ryzen/ThreadRipper** based systems, to get random parity errors if the RAM is overclocked
 (an XMP profile **is** an overclock),  
 and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
 If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
