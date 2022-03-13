@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tining plugin
  *
- * Copyright 2019-2021, Dave Walker (itimpi).
+ * Copyright 2019-2022, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -13,6 +13,9 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+
+// error_reporting(error_reporting() | E_STRICT | E_PARSE);
+// error_reporting(E_ALL);		 // This level should only be enabled for testing purposes
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -42,7 +45,9 @@ define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
-$parityTuningCLI = (basename($argv[0]) == 'parity.check');
+$parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
+
+parityTuningLoggerTesting('PHP error Reporting level: '.errorLevelAsText());
 
 // Configuration information
 
@@ -81,7 +86,7 @@ setCfgValue('parityProblemStartSector', 0);
 setCfgValue('parityProblemStartPercent', 0);
 setCfgValue('parityProblemEndSector', 100);
 setCfgValue('parityProblemEndPercent', 0);
-setCfgValue('parityProblemCorrect', 'no');
+setCfgValue('pari3tyProblemCorrect', 'no');
 
 // Multi-Language support code enabler for non-GUI usage
 
@@ -109,7 +114,7 @@ $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
 $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
-$parityTuningNewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
+$parityTuning3NewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
 
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
@@ -234,6 +239,41 @@ function endsWith($haystack, $ending, $caseInsensitivity = false){
         return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
     else
         return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
+}
+
+
+//	Convert the bit level error reporting to text values for display
+//       ~~~~~~~~~~~~~~~~
+function errorLevelAsText() {
+//       ~~~~~~~~~~~~~~~~~
+	$lvls = array(
+		'E_ERROR'=>E_ERROR,
+		'E_WARNING'=>E_WARNING,
+		'E_PARSE'=>E_PARSE,
+		'E_NOTICE'=>E_NOTICE,
+		'E_CORE_ERROR'=>E_CORE_ERROR,
+		'E_CORE_WARNING'=>E_CORE_WARNING,
+		'E_COMPILE_ERROR'=>E_COMPILE_ERROR,
+		'E_COMPILE_WARNING'=>E_COMPILE_WARNING,
+		'E_USER_ERROR'=>E_USER_ERROR,
+		'E_USER_WARNING'=>E_USER_WARNING,
+		'E_USER_NOTICE'=>E_USER_NOTICE,
+		'E_STRICT'=>E_STRICT, 
+		'E_RECOVERABLE_ERROR'=>E_RECOVERABLE_ERROR,
+		'E_DEPRECATED'=>E_DEPRECATED,
+		'E_USER_DEPRECATED'=>E_USER_DEPRECATED,
+	); 
+	$level = error_reporting();
+	if (($level & E_ALL) == E_ALL) return 'E_ALL';
+	
+	$ret = '';
+	foreach ($lvls as $key => $lvl) {
+		if (($level & $lvl) == $lvl) {
+			$ret.=(strlen($ret)==0)?"\$".dechex($level)."=":'|';
+			$ret .= $key;
+		}
+	}
+	return $ret;
 }
 
 ?>
