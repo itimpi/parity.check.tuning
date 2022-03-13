@@ -18,8 +18,6 @@
  */
 ?>
 <?
-// error_reporting(E_ALL);		 // This option should only be enabled for testing purposes
-
 // $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 // add translations
 // $_SERVER['REQUEST_URI'] = 'main';

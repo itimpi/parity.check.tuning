@@ -3,7 +3,7 @@ Title="Parity Problems Assistant"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2021, Dave Walker (itimpi).
+/* Copyright 2022, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -22,8 +22,6 @@ Parity.check.problems.page
 ##################33######
 -->
 <?
-// error_reporting(E_ALL);      // Enhanced error reporting for use when debugging
-
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
 // Multi-language support
