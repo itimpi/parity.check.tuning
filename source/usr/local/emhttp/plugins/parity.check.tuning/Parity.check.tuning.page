@@ -72,15 +72,24 @@ function presetParityTuning(form) {
 	case "1": // custom
 		document.getElementById('parityTuningCustomResume').style.display = "inline";
 		document.getElementById('parityTuningCustomPause').style.display  = "inline";
-		document.getElementById('parityTuningNormalResume').style.display  = "none";
-		document.getElementById('parityTuningNormalPause').style.display   = "none";
+		document.getElementById('parityTuningNormalResume').style.display = "none";
+		document.getElementById('parityTuningNormalPause').style.display  = "none";
 		break;
 	case "2": // weekly
-    case "0": // daily)
+	case "0": // daily)
+		if (form.parityTuningFrequency.value == 0) {
+			form.parityTuningResumeDay.style.display="none";
+			form.parityTuningPauseDay.style.display ="none";
+		} else {
+			form.parityTuningResumeDay.style.display="inline";
+			form.parityTuningPauseDay.style.display ="inline";
+		}
 		document.getElementById('parityTuningCustomResume').style.display = "none";
 		document.getElementById('parityTuningCustomPause').style.display  = "none";
 		document.getElementById('parityTuningNormalResume').style.display  = "inline";
 		document.getElementById('parityTuningNormalPause').style.display   = "inline";
+		break;
+		 
   }
   form.parityTuningLogTarget.disabled = false;
   if (form.parityTuningLogging.value < "2") {

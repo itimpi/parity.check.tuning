@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2022.03.14">
-<!ENTITY md5 "e1e20d03a2638c6f00edc0492c709fb0">
+<!ENTITY md5 "af7efc1f76f0ffced402748aecc91855">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">

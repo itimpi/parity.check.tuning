@@ -1578,14 +1578,28 @@ function updateCronEntries() {
 		parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('monitoring partial parity checks')));
 	} else {
 		if ($parityTuningCfg['parityTuningIncrements'] || $parityTuningCfg['parityTuningUnscheduled']) {
-			if ($parityTuningCfg['parityTuningFrequency']) {
-				$resumetime = $parityTuningCfg['parityTuningResumeCustom'];
-				$pausetime  = $parityTuningCfg['parityTuningPauseCustom'];
-			} else {
-				$resumetime = $parityTuningCfg['parityTuningResumeMinute'] . ' '
-							. $parityTuningCfg['parityTuningResumeHour'] . ' * * *';
-				$pausetime  = $parityTuningCfg['parityTuningPauseMinute'] . ' '
-							. $parityTuningCfg['parityTuningPauseHour'] . ' * * *';
+			switch ($parityTuningCfg['parityTuningFrequency']) {
+				case 1: // custom
+					$resumetime = $parityTuningCfg['parityTuningResumeCustom'];
+					$pausetime  = $parityTuningCfg['parityTuningPauseCustom'];
+					break;
+				case 0: // daily
+					$resumetime = $parityTuningCfg['parityTuningResumeMinute'] . ' '
+								. $parityTuningCfg['parityTuningResumeHour'] . ' * * *';
+					$pausetime  = $parityTuningCfg['parityTuningPauseMinute'] . ' '
+								. $parityTuningCfg['parityTuningPauseHour'] . ' * * *';
+					break;
+				case 2: // weekly
+					$resumetime = $parityTuningCfg['parityTuningResumeMinute'].' '
+								. $parityTuningCfg['parityTuningResumeHour'].' * *'
+								. $parityTuningCfg['parityTuningResumeDay'];
+					$pausetime  = $parityTuningCfg['parityTuningPauseMinute'].' '
+								. $parityTuningCfg['parityTuningPauseHour'].' * * '
+								. $parityTuningCfg['parityTuningPauseHour'];
+					break;
+				default:  // Error?
+					parityTuningLoggerDebug("Invalid frequency value: ".$parityTuningCfg['parityTuningFrequency']);
+					break;
 			}
 			$lines[] = "$resumetime " . PARITY_TUNING_PHP_FILE . ' "resume" &> /dev/null' . "\n";
 			$lines[] = "$pausetime " . PARITY_TUNING_PHP_FILE . ' "pause" &> /dev/null' . "\n";
