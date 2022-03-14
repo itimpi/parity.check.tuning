@@ -1,6 +1,6 @@
 <?PHP
 /*
- * Helper routines used by the parity.check.tining plugin
+ * Helper routines used by the parity.check.tuning plugin
  *
  * Copyright 2019-2022, Dave Walker (itimpi).
  *
@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 
-// error_reporting(error_reporting() | E_STRICT | E_PARSE);
+error_reporting(error_reporting() | E_STRICT | E_PARSE);
 // error_reporting(E_ALL);		 // This level should only be enabled for testing purposes
 
 // useful for testing outside Gui
@@ -32,6 +32,7 @@ define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHTTP_DIR . '/' . PARITY_TUNI
 define('PARITY_TUNING_BOOT_DIR',    PLUGINS_DIR . '/' . PARITY_TUNING_PLUGIN);
 define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING_PLUGIN . '.');
 define('PARITY_TUNING_VERSION_FILE',PARITY_TUNING_FILE_PREFIX . 'version');
+define('PARITY_TUNING_DEFAULTS_FILE',PARITY_TUNING_EMHTTP_DIR.'/'.PARITY_TUNING_PLUGIN.'.defaults');
 define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
 define('PARITY_TUNING_LOG_FILE',    PARITY_TUNING_FILE_PREFIX . 'log');
 define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial check in progress (contains end sector value)
@@ -42,55 +43,24 @@ define('PARITY_TUNING_CABACKUP_FILE',PLUGINS_DIR . '/ca.backup2.plg');
 define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  // Created if array stopped with array operation active to hold restart info
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 ;
+
+// Configuration information
+
+$parityTuningCfg=parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
+if (file_exists(PARITY_TUNING_CFG_FILE)) {
+	$parityTuningCfg=array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
+}
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
+
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
 $parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
 
 parityTuningLoggerTesting('PHP error Reporting level: '.errorLevelAsText());
 
-// Configuration information
-
-if (file_exists(PARITY_TUNING_CFG_FILE)) {
-	$parityTuningCfg = parse_ini_file(PARITY_TUNING_CFG_FILE);
-} else {
-	$parityTuningCfg = array();
-}
-
-// Set defaults for any missing/new values
-setCfgValue('parityTuningLogging', '0');
-setCfgValue('parityTuningLogTarget', '0');
-setCfgValue('parityTuningIncrements', '0');
-setCfgValue('parityTuningFrequency', '0');
-setCfgValue('parityTuningUnscheduled', '0');
-setCfgValue('parityTuningAutomatic', '0');
-setCfgValue('parityTuningNotify', '1');
-setCfgValue('parityTuningRecon', '0');
-setCfgValue('parityTuningClear', '0');
-setCfgValue('parityTuningRestart', '0');
-setCfgValue('parityTuningResumeHour', '0');
-setCfgValue('parityTuningResumeMinute', '15');
-setCfgValue('parityTuningPauseHour', '3');
-setCfgValue('parityTuningPauseMinute', '30');
-setCfgValue('parityTuningResumeCustom', '15 0 * * *');
-setCfgValue('parityTuningPauseCustom', '30 3 * * *');
-setCfgValue('parityTuningMover', '1');
-setCfgValue('parityTuningCABackup', '1');
-setCfgValue('parityTuningHeat', '0');
-setCfgValue('parityTuningHeatHigh','3');
-setCfgValue('parityTuningHeatLow','8');
-setCfgValue('parityTuningHeatShutdown', '0');
-setCfgValue('parityTuningHeatCritical', '1');
-setCfgValue('parityProblemType', 'sector');
-setCfgValue('parityProblemStartSector', 0);
-setCfgValue('parityProblemStartPercent', 0);
-setCfgValue('parityProblemEndSector', 100);
-setCfgValue('parityProblemEndPercent', 0);
-setCfgValue('pari3tyProblemCorrect', 'no');
-
 // Multi-Language support code enabler for non-GUI usage
 
-$plugin = 'parity.check.tuning';
+$plugin = PARITY_TUNING_PLUGIN;
 if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	$login_locale = '';
 	if (!isset($_SESSION['locale']) || ($_SESSION['locale']=='')) {
@@ -114,33 +84,12 @@ $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
 $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
-$parityTuning3NewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
+$parityTuningNewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
 
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
-}
-
-
-// Set a value if not already set for the configuration file
-// ... and set a variable of the same name to the current value
-function setCfgValue ($key, $value) {
-	$cfg = $GLOBALS['parityTuningCfg'];
-	if (! array_key_exists($key,$cfg)) {
-		$cfg[$key] = $value;
-	} else {
-		if (!isset($cfg[$key]) || $cfg[$key]== ' ' ) {
-			$cfg[$key] = $value;
-		}
-		// Next few lines handle migration of settings to new values - will be removed in future release.
-		if ($cfg[$key] == "no") $cfg[$key] = 0;
-		if ($cfg[$key] == "yes") $cfg[$key] = 1;
-		if ($cfg[$key] == "daily") $cfg[$key] = 0;
-		if ($cfg[$key] == "custom") $cfg[$key] = 1;
-	}
-	$GLOBALS['parityTuningCfg'][$key] = $cfg[$key];		// TODO: Not sure this is actually needed any more
-	$GLOBALS[$key] = $cfg[$key];
 }
 
 // load some state information.
@@ -197,11 +146,12 @@ function parityTuningPartial() {
 // Write message to syslog and also to console if in CLI mode
 // Change source according to whether doing partial check or not
 function parityTuningLogger($string) {  
-  $logTarget = $GLOBALS['parityTuningLogTarget'];
+  global $parityTuningCfg, $parityTuningServe;
+  $logTarget = $parityTuningCfg['parityTuningLogTarget'];
   parityTuningLoggerCLI ($string);
   $logName = parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning";
   if ($logTarget > 0) {
-	 $line = date(PARITY_TUNING_DATE_FORMAT) . ' ' . $GLOBALS['parityTuningServer'] . " $logName: $string\n";
+	 $line = date(PARITY_TUNING_DATE_FORMAT) . ' ' . $parityTuningServer . " $logName: $string\n";
 	 file_put_contents(PARITY_TUNING_LOG_FILE, $line, FILE_APPEND | LOCK_EX);
   }
   $string = str_replace("'","",$string);
@@ -213,16 +163,19 @@ function parityTuningLogger($string) {
 
 // Write message to syslog if debug or testing logging active
 function parityTuningLoggerDebug($string) {
-  if ($GLOBALS['parityTuningLogging'] > 0) parityTuningLogger('DEBUG:   ' . $string);
+  global $parityTuningCfg;
+  if ($parityTuningCfg['parityTuningLogging'] > 0) parityTuningLogger('DEBUG:   ' . $string);
 }
 
 // Write message to syslog if testing logging active
 function parityTuningLoggerTesting($string) {
-  if ($GLOBALS['parityTuningLogging'] > 1) parityTuningLogger('TESTING: ' . $string);
+  global $parityTuningCfg;
+  if ($parityTuningCfg['parityTuningLogging'] > 1) parityTuningLogger('TESTING: ' . $string);
 }
 
 function parityTuningLoggerCLI($string) {
-  	if ($GLOBALS['parityTuningCLI']) echo $string . "\n";
+	global $parityTuningCLI;
+  	if ($parityTuningCLI) echo $string . "\n";
 }
 
 // Useful matching functions

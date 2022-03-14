@@ -3,7 +3,7 @@ Title="Parity Check Tuning"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2019-2021, Dave Walker (itimpi).
+/* Copyright 2019-2022, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -21,8 +21,6 @@ Parity.check.tuning.page
 ########################
 -->
 <?
-error_reporting(E_ALL);
-
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
 
 // Multi-language support
@@ -52,9 +50,11 @@ function presetParityTuning(form) {
                            && (form.parityTuningClear.value == '0')
                            && (form.parityTuningHeat.value == '0'));
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
+  form.parityTuningResumeDay.disabled   = parityTuningDisabled;
   form.parityTuningResumeHour.disabled   = parityTuningDisabled;
   form.parityTuningResumeMinute.disabled = parityTuningDisabled;
   form.parityTuningResumeCustom.disabled = parityTuningDisabled;
+  form.parityTuningPauseDay.disabled    = parityTuningDisabled;
   form.parityTuningPauseHour.disabled    = parityTuningDisabled;
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
   form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
@@ -68,16 +68,19 @@ function presetParityTuning(form) {
   form.parityTuningHeatNotify.disabled  = parityTuningDisabled;
   form.parityTuningHeatCritical.disabled= (form.parityTuningHeatShutdown.value !== '1');
   
-  if (form.parityTuningFrequency.value == "1") {
-    document.getElementById('parityTuningCustomResume').style.display = "inline";
-    document.getElementById('parityTuningCustomPause').style.display  = "inline";
-    document.getElementById('parityTuningDailyResume').style.display  = "none";
-    document.getElementById('parityTuningDailyPause').style.display   = "none";
-  } else {
-    document.getElementById('parityTuningCustomResume').style.display = "none";
-    document.getElementById('parityTuningCustomPause').style.display  = "none";
-    document.getElementById('parityTuningDailyResume').style.display  = "inline";
-    document.getElementById('parityTuningDailyPause').style.display   = "inline";
+  switch (form.parityTuningFrequency.value) {
+	case "1": // custom
+		document.getElementById('parityTuningCustomResume').style.display = "inline";
+		document.getElementById('parityTuningCustomPause').style.display  = "inline";
+		document.getElementById('parityTuningNormalResume').style.display  = "none";
+		document.getElementById('parityTuningNormalPause').style.display   = "none";
+		break;
+	case "2": // weekly
+    case "0": // daily)
+		document.getElementById('parityTuningCustomResume').style.display = "none";
+		document.getElementById('parityTuningCustomPause').style.display  = "none";
+		document.getElementById('parityTuningNormalResume').style.display  = "inline";
+		document.getElementById('parityTuningNormalPause').style.display   = "inline";
   }
   form.parityTuningLogTarget.disabled = false;
   if (form.parityTuningLogging.value < "2") {
@@ -256,7 +259,7 @@ $(function() {
 >
 >If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
 >
->Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
+>Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days/weeks.
 > As an example of what this plugin can do assume
 >You have a parity check you have scheduled to start on the first of every month at midnight  
 >* Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.  
@@ -275,8 +278,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onChange="presetParityTuning(this.form)">
-     <?=mk_option($parityTuningIncrements, "0", _("No")) . "\n"?>
-     <?=mk_option($parityTuningIncrements, "1", _("Yes")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningIncrementst'], "0", _("No")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningIncrementst'], "1", _("Yes")) . "\n"?>
   </select><span style="float:right"><?=$parityTuningVersion?></span>
 
 :parity_tune_increments_plug:
@@ -289,8 +292,8 @@ $(function() {
 : <select name="parityTuningUnscheduled" 
           size='1' class='narrow'
           onChange="presetParityTuning(this.form)">
-      <?=mk_option($parityTuningUnscheduled, "0", _("No")) . "\n"?>
-      <?=mk_option($parityTuningUnscheduled, "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "0", _("No")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_manual_plug:
@@ -304,8 +307,8 @@ $(function() {
 : <select name="parityTuningAutomatic" 
           size='1' class='narrow'
           onChange="checkAutomaticMode(this.form)">
-      <?=mk_option($parityTuningAutomatic, "0", _("No")) . "\n"?>
-      <?=mk_option($parityTuningAutomatic, "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "0", _("No")) . "\n"?>
+      <?=mk_option($$parityTuningCfg['parityTuningAutomatic'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_automatic_plug:
@@ -318,14 +321,15 @@ $(function() {
 : <select name="parityTuningFrequency" 
           size='1' class='narrow' 
           onchange="presetParityTuning(this.form)">
-     <?=mk_option($parityTuningFrequency, "0", _("Daily")) . "\n"?>a
-     <?=mk_option($parityTuningFrequency, "1", _("Custom")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningFrequency'], "0", _("Daily")) . "\n"?>
+	 <?=mk_option($parityTuningCfg['parityTuningFrequency'], "2", _("Weekly")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningFrequency'], "1", _("Custom")) . "\n"?>
   </select>
   
 :parity_tune_frequency_plug:
 > The frequency at which parity check increments should be run.
 >
-> In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default.   To support any user looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times.  When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> utility.  
+> In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default. There is also a **Weekly** option for those who do infrequent checks.  To support any user looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times.  When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> utility.  
 :end
 
 <?=_('Increment resume time')?>:
@@ -333,22 +337,33 @@ $(function() {
   <input type="text"
          size='1' class='narrow'
          name="parityTuningResumeCustom"
-         value="<?=$parityTuningResumeCustom?>"
+         value="<?=$parityTuningCfg['parityTuningResumeCustom']?>"
          onblur="checkCustom(this)">
   &nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?>
 </span>
-<span id="parityTuningDailyResume">
+<span id="parityTuningNormalResume">
+  <select name="parityTuningResumeDay" 
+          size='1' class='narrow'
+          onChange="checkTimeRange(this.form)">
+	  <?=mk_option($parityTuningResumeDay , 0, 'Sunday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 1, 'Monday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 2, 'Tuesday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 3, 'Wednesday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 4, 'Thursday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 5, 'Friday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 6, 'Saturday') . "\n"?>
+  </select>
   <select name="parityTuningResumeHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
      <?for ($d=0; $d<=23; $d++):?>
-         <?=mk_option($parityTuningResumeHour, strval($d), sprintf("%02d", $d)) . "\n"?>
+         <?=mk_option($parityTuningCfg['parityTuningResumeHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
      <?endfor;?>
   </select>
   <select name="parityTuningResumeMinute" 
           size='1' class='narrow'>
     <?for ($d=0; $d<=55; $d+=5):?>
-      <?=mk_option($parityTuningResumeMinute, strval($d), sprintf("%02d", $d)) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
     <?endfor;?>
   </select>
   &nbsp;&nbsp;HH:MM
@@ -367,22 +382,33 @@ $(function() {
    <input type="text"
           size='1' class='narrow'
           name="parityTuningPauseCustom"
-          value="<?=$parityTuningPauseCustom?>"
+          value="<?=$parityTuningCfg['parityTuningPauseCustomr']?>"
           onblur="checkCustom(this)">
   &nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?>
 </span>
-<span id="parityTuningDailyPause">
+<span id="parityTuningNormalPause">
+  <select name="parityTuningPauseDay" 
+          size='1' class='narrow'
+          onChange="checkTimeRange(this.form)">
+	  <?=mk_option($parityTuningResumeDay , 0, 'Sunday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 1, 'Monday') . "\n"?>
+	  <?=mk_option($parityTuningResumeDay , 2, 'Tuesday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 3, 'Wednesday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 4, 'Thursday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 5, 'Friday') . "\n"?>
+      <?=mk_option($parityTuningResumeDay , 6, 'Saturday') . "\n"?>
+  </select>
   <select name="parityTuningPauseHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=23; $d++){?>
-        <?=mk_option($parityTuningPauseHour, strval($d), sprintf("%02d", $d)) . "\n"?>
+        <?=mk_option($parityTuningDPauseHour, strval($d), sprintf("%02d", $d)) . "\n"?>
       <?}?>
     </select>
     <select name="parityTuningPauseMinute" 
             size='1' class='narrow'>
       <?for ($d=0; $d<=55; $d+=5):?>
-          <?=mk_option($parityTuningPauseMinute, strval($d), sprintf("%02d", $d)) . "\n"?>
+          <?=mk_option($parityTuningCfg['parityTuningPauseMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?endfor;?>
     </select>
     &nbsp;&nbsp;HH:MM
@@ -403,8 +429,8 @@ $(function() {
 : <select name="parityTuningNotify" 
           size='1' class='narrow'
           onchange="checkNotifications(this)">
-    <?=mk_option($parityTuningNotify, "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningNotify, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningNotify'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningNotify'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_notify_plug:
@@ -420,8 +446,8 @@ $(function() {
 : <select name="parityTuningRecon" 
           size='1' class='narrow'
           onchange="confirmReconYes(this.form)">
-    <?=mk_option($parityTuningRecon, "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningRecon, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningRecon'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningRecon'], "1", _("Yes")) . "\n"?>
   </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' ._('You require a parity disk present for this option to be relevant') . '</font>'; ?>
 
 :parity_tune_allops_plug:
@@ -438,7 +464,7 @@ $(function() {
           size='1' class='narrow'
           onchange="confirmClearYes(this.form)">
     <?=mk_option(parityTuningClear, "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningClear, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningClear'], "1", _("Yes")) . "\n"?>
   </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' . _('You require a parity disk present for this option to be relevant') . '_</font>'; ?>
 
 :parity_tune_clear_plug:
@@ -451,8 +477,8 @@ $(function() {
 : <select name="parityTuningRestart" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningRestart, "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningRestart, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningRestart'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningRestart'], "1", _("Yes")) . "\n"?>
   </select><? if (!$parityTuningRestartOK) echo '<font color=#FF8C2F>' . _('This option is only available with Unraid 6.9.0 or later') . '</font>'; ?>
   
 :parity_tune_restart_plug:
@@ -477,8 +503,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningMover, "1", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningMover, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningMover'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningMover'], "0", _("No")) . "\n"?>
   </select>
   
 :parity_tune_mover_plug:
@@ -491,8 +517,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCABackup, "1", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningCABackup, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningCABackup'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningCABackup'], "0", _("No")) . "\n"?>
   </select><? if (!file_exists(PARITY_TUNING_CABACKUP_FILE)) echo '<font color=#FF8C2F>' . _('This option is only available if Appdata Backup/Restore v2 plugin installed') . '</font>'; ?>
 
 :parity_tune_backup_plug:
@@ -527,7 +553,7 @@ $(function() {
          size='1' class='narrow'
          type='text'
          onchange="checkHeatVeryLarge(this.form.parityTuningHeatHigh.value),checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatHigh?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
+         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered. If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
@@ -544,7 +570,7 @@ $(function() {
          size='1' class='narrow'
          type='text'
          onchange="checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
-         value="<?=$parityTuningHeatLow?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
+         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
 
 :parity_tune_low_plug:
 > This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
@@ -576,8 +602,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningHeatShutdown, "0", _("Disabled")) . "\n"?>
-    <?=mk_option($parityTuningHeatShutdown, "1", _("Enabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("Disabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Enabled")) . "\n"?>
 
   </select>
 
@@ -596,7 +622,7 @@ $(function() {
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
            type='text'
-           value="<?=$parityTuningHeatCritical?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below critical disk temperature threshold')?>
+           value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below critical disk temperature threshold')?>
   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold a disks temperature is allowed to reach before a shutdown of the server is triggered.
@@ -612,15 +638,15 @@ $(function() {
 : <select name="parityTuningLogging" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
-    <?=mk_option($parityTuningLogging, "0", _("Basic")) . "\n"?>
-    <?=mk_option($parityTuningLogging, "1", _("Debug")) . "\n"?>
-    <?=mk_option($parityTuningLogging, "2", _("Testing")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "0", _("Basic")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "1", _("Debug")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], "2", _("Testing")) . "\n"?>
   </select>  <select name="parityTuningLogTarget"
           size='1' class='narrow'
 		  onchange="presetParityTuning(this.form); checkLoggingTarget(this.form)">
-		  <?=mk_option($parityTuningLogTarget, "0", _("Syslog only")) . "\n"?>
-          <?=mk_option($parityTuningLogTarget, "1", _("Syslog and Flash")) . "\n"?>
-          <?=mk_option($parityTuningLogTarget, "2", _("Flash only")) . "\n"?>
+		  <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "0", _("Syslog only")) . "\n"?>
+          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "1", _("Syslog and Flash")) . "\n"?>
+          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "2", _("Flash only")) . "\n"?>
 	  </select>
 	  
 :parity_tune_logging_plug:
@@ -643,8 +669,6 @@ $(function() {
 >To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flash drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
 :end
 
-
-	  
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
 
 : <input type="submit" 

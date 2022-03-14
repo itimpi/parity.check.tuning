@@ -204,12 +204,12 @@ This can be much faster than having to run a full parity check or read check to 
 : <input type="radio" 
         name="parityProblemType" 
         value="sector" 
-        <?=($parityProblemType == "sector" ? "checked" : "") . "\n"?>
+        <?=($parityTuningCfg['parityProblemType'] == "sector" ? "checked" : "") . "\n"?>
         onclick="changeProblemType(this.form)"> <?=_('Sector Numbers')?>
 <input type="radio" 
         name="parityProblemType" 
         value="percent"
-        <?=($parityProblemType == "percent" ? "checked" : "") . "\n"?>
+        <?=($parityTuningCfg['parityProblemType'] == "percent" ? "checked" : "") . "\n"?>
         onclick="changeProblemType(this.form)"> <?=_('Percentage')?>
 
 :parityProblems_type_plug:
@@ -226,7 +226,7 @@ This can be much faster than having to run a full parity check or read check to 
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartSector"
-         value="<?=$parityProblemStartSector?>"
+         value="<?=$parityTuningCfg['parityProblemStartSector']?>"
          onchange="changeProblemStartSector(this.form)"> <?=_('sector')?>
          </select>
 </span>
@@ -234,7 +234,7 @@ This can be much faster than having to run a full parity check or read check to 
 <input type="text"
          size='1' class='narrow'
          name="parityProblemStartPercent"
-         value="<?=$parityProblemStartPercent?>"
+         value="<?=$parityTuningCfg['parityProblemStartPercent']?>"
          onchange="changeProblemStartPercent(this.form)"> <?=_('percent')?>
 </span>
 
@@ -251,14 +251,14 @@ This can be much faster than having to run a full parity check or read check to 
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndSector"
-         value="<?=$parityProblemEndSector?>"
+         value="<?=$parityTuningCfg['parityProblemEndSector']?>"
          onchange="changeProblemEndSector(this.form)"> <?=_('sector')?>
 </span>
 <span id="parityProblemPercentEnd">
 <input type="text"
          size='1' class='narrow'
          name="parityProblemEndPercent"
-         value="<?=$parityProblemEndPercent?>"
+         value="<?=$parityTuningCfg['parityProblemEndPercent']?>"
          onchange="changeProblemEndPercent(this.form)"> <?=_('percent')?>
 </span>
 
@@ -271,8 +271,8 @@ This can be much faster than having to run a full parity check or read check to 
 <?=_('Write Corrections to Parity')?>:
 : <select name="parityProblemCorrect" 
           size='1' class='narrow'>
-    <?=mk_option($parityProblemCorrect, "0", _("No")) . "\n"?>
-    <?=mk_option($parityProblemCorrect, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parityProblems_correct_plug:
