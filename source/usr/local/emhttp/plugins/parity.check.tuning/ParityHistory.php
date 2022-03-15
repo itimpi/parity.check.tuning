@@ -82,11 +82,14 @@ if ($lines != false) {
 $log = '/boot/config/parity-checks.log'; $list = [];
 if (file_exists($log)) {
   $handle = fopen($log, 'r');
+  $lineNumber = 0;
   while (($line = fgets($handle)) !== false) {
+	$lineNumber ++;
 	$date=$duration=$speed=$status=$error=$action=$elapsed=$increments=$parityTuningType='';
 	// workout what format the record it in and handle accordingly
 	// parityTuningLoggerTesting("Parity History Record: $line");
-	switch (count(explode('|',$line))) {
+	$fieldCount = count(explode('|',$line));
+	switch ($fieldCount) {
 		case 5:	// legacy Unraid support to 6.1-rc3
 			    // parityTuningLoggerTesting("... original Unraid format");
 				[$date,$duration,$speed,$status,$error] = explode('|',$line);
@@ -126,17 +129,17 @@ if (file_exists($log)) {
 				$action = "-";
 				break;
 		default:
-				ParityTuningLoggerTesting("ERROR:  Unexpected number of fields in history record: $line");
+				ParityTuningLoggerTesting("ERROR:  Unexpected number of fields ($fieldCount) in history record on line $lineNumber:");
+				ParityTuningLoggerTesting("        $line");
 		
 	}
     if ($speed==0) $speed = _('Unavailable');
 
     if ($duration>0||$status<>0) {  // ignore dummy records
 	    $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
-		$size = $size ? my_scale($size*1024,$unit,-1)." $unit" : '-';
         $duration = this_duration($duration);
          // handle both old and new speed notation
-        $speed = $speed ? ($speed[-1]=='s' ? $speed : my_scale($speed,$unit,1)." $unit/s") : _('Unavailable');
+        $speed = is_numeric($speed) ? ($speed[-1]=='s' ? $speed : my_scale($speed,$unit,1)." $unit/s") : _('Unavailable');
 		$status = ($status==0 ? _('OK') : ($status==-4?_('Canceled'):($status==-5?_('Aborted') : $status)));
 		$elapsed = ($elapsed==0?'Unknown':this_duration($elapsed));
 		$increments = ($increments==0?_('Unavailable'):$increments);

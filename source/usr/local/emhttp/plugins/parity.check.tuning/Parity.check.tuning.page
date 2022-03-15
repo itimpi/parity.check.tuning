@@ -91,11 +91,18 @@ function presetParityTuning(form) {
 		break;
 		 
   }
-  form.parityTuningLogTarget.disabled = false;
-  if (form.parityTuningLogging.value < "2") {
-     form.parityTuningLogTarget.value = "0";	// Only allow logging to flash in Testing Mode
-	 form.parityTuningLogTarget.disabled = true;
-  }
+
+  switch (form.parityTuningLogging.value) {
+	case "0": // Basic
+	case "1": // Debug
+		// Only allow logging to flash in Testing Mode
+		form.parityTuningLogTarget.value = "0";	
+		form.parityTuningLogTarget.style.display = "none";
+		break;
+  	case "2": // Testing
+		form.parityTuningLogTarget.style.display = "inline";
+		break;
+	}
 }
 
 function confirmReconYes(form) {
