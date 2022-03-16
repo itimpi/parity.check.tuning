@@ -716,6 +716,11 @@ end_array_started:
     	suppressMonitorNotification();
     	break;
 
+	case 'stopped':
+		if (!file_exists(PARITY_TUNING_RESTART_FILE)) {
+			parityTuningProgressAnalyze();
+			parityTuningInactiveCleanup();
+		}
     // Options that are only currently for CLI use
 
     case 'analyze':
@@ -779,7 +784,7 @@ end_array_started:
 	// Potential unRaid event types on which no action is (currently) being taken by this plugin?
 	// They are being caught at the moment so we can see when they actually occur.
 
-	case 'stopped':
+
 	case 'starting':
 		suppressMonitorNotification();
 	case 'driver_loaded':
