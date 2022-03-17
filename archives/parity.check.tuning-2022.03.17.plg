@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.16">
-<!ENTITY md5 "d6486cdcf665819fd265ca911a479c06">
+<!ENTITY version "2022.03.17">
+<!ENTITY md5 "c49762db10f8b02deb0515b066be6550">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,7 +23,7 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
-###2022.03.14
+###2022.03.17
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
  - Fix: regression that stopped Tools->Parity Problems Assistant page showing
  - New: added an option to run increments weekly for better alignment with 6.10.0-rc3
@@ -358,7 +358,7 @@ The 'post-install' script
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
-    echo " Copyright 2019-2021, Dave Walker (itimpi)"
+    echo " Copyright 2019-2022, Dave Walker (itimpi)"
     echo " Version: &version;"
     echo "----------------------------------------------------"
     echo ""

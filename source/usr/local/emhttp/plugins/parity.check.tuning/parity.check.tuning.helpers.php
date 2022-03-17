@@ -57,7 +57,7 @@ $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsi
 
 $parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
 
-parityTuningLoggerTesting('PHP error Reporting level: '.errorLevelAsText());
+parityTuningLoggerTesting('PHP error_reporting() set to '.errorLevelAsText());
 
 // Multi-Language support code enabler for non-GUI usage
 
@@ -106,16 +106,15 @@ function loadVars($delay = 0) {
 	}
 
    	$vars = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
-    $size = $vars['mdResyncSize'];
-	$pos  = $vars['mdResyncPos'];
 	$GLOBALS['parityTuningVar']        = $vars;
 	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
 	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
-    $GLOBALS['parityTuningPos']        = $pos;
-    $GLOBALS['parityTuningSize']       = $size;
+    $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
+    $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
-    $GLOBALS['parityTuningActive']     = ($pos > 0);
-    $GLOBALS['parityTuningRunning']    = ($vars['mdResync'] > 0); // If array action is running (i.e. not paused)
+    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0); // array action has been started
+	$GLOBALS['parityTuningPaused']    = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)); // Array action is paused
+    $GLOBALS['parityTuningRunning']    = ($GLOBALS['parityTuningActive'] && ($vars['mdResync']>0)); // Array action is running
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
@@ -223,7 +222,7 @@ function errorLevelAsText() {
 	$ret = '';
 	foreach ($lvls as $key => $lvl) {
 		if (($level & $lvl) == $lvl) {
-			$ret.=(strlen($ret)==0)?"\$".dechex($level)."=":'|';
+			$ret.=(strlen($ret)==0)?'':'|';
 			$ret .= $key;
 		}
 	}
