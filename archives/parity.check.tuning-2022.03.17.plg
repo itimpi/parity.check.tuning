@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.15">
-<!ENTITY md5 "88142ba964564e17090038503a83cf1f">
+<!ENTITY version "2022.03.16">
+<!ENTITY md5 "d6486cdcf665819fd265ca911a479c06">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
