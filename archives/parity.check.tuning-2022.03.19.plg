@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.18">
-<!ENTITY md5 "193d545d611a1def3b33d38a0bdaa082">
+<!ENTITY version "2022.03.19">
+<!ENTITY md5 "350cf583482fe764caa8c0e547871540">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,11 +23,12 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
-###2022.03.17
+###2022.03.19
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
  - Fix: regression that stopped Tools->Parity Problems Assistant page showing
  - New: added an option to run increments weekly for better alignment with 6.10.0-rc3
  - Fix: more 6.10.0-rc3 related changes and internal code tidying
+ - Fix: improvements in notification messages
  
 ###2022.02.18
  - Fix: Compatibility with new parity history record format introduced with Unraid 6.10.0rc3.

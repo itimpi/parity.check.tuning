@@ -32,9 +32,6 @@ require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.
 define('PARITY_TUNING_SYNC_FILE',      '/boot/config/forcesync');		        // Presence of file used by Unraid to detect unclean Shutdown (we currently ignore)
 define('PARITY_TUNING_CRON_FILE',      PARITY_TUNING_FILE_PREFIX . 'cron');	    // File created to hold current cron settings for this plugin
 define('PARITY_TUNING_PROGRESS_FILE',  PARITY_TUNING_FILE_PREFIX . 'progress'); // Created when array operation active to hold increment info
-define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
-define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
-define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 define('PARITY_TUNING_MOVER_FILE',     PARITY_TUNING_FILE_PREFIX . 'mover');	    // Created when paused because mover is running
 define('PARITY_TUNING_HOT_FILE',       PARITY_TUNING_FILE_PREFIX . 'hot');	    // Created when paused because at least one drive found to have reached 'hot' temperature
 define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); // Created when parused besause at least one drive found to reach critical temperature
@@ -197,6 +194,7 @@ switch ($command) {
 			parityTuningLoggerDebug (strtolower($trigger) . ' ' 
 						. actionDescription($parityTuningAction, $parityTuningCorrecting));
 			parityTuningProgressWrite ($trigger);
+			updateCronEntries();    // ensure reas/nably frequent monitor chechs
 		}
 
 		// Handle pause/resume around mover running
@@ -428,7 +426,7 @@ switch ($command) {
 			}				
 		}
 		if (configuredAction()) {
-			sendArrayNotification(isParityCheckActivePeriod() ? _('Scheduled resume') : _('Resumed'));
+			sendArrayNotification(_('Resumed'));
 			exec('/usr/local/sbin/mdcmd "check" "resume"');
 		}
         break;
@@ -460,7 +458,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			exec('/usr/local/sbin/mdcmd "nocheck" "pause"');
 			loadVars(5);
 			parityTuningLoggerTesting("Errors so far:  $parityTuningErrors");
-			sendArrayNotification ((isParityCheckActivePeriod() ? _('Scheduled pause') : _('Paused')) . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+			sendArrayNotification (_('Paused') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
 		}
         break;	
 		
@@ -514,7 +512,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningLogger(_('Unclean shutdown detected'));
 			suppressMonitorNotification();
 			if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-			  if ($parityTuningRestartOK) {
+			  if (!$parityTuningRestartOK) {
 			    sendNotification (_('Array operation will not be restarted'), _('Unclean shutdown detected'), 'alert');
 				parityTuningProgressWrite('RESTART CANCELLED');
 			  }
@@ -697,11 +695,23 @@ end_array_started:
 			parityTuningLoggerDebug (sprintf(_('Array stopping while %s was in progress %s'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted()));
 		    parityTuningProgressWrite('STOPPING');
 			if ($parityTuningRestartOK) {
-				if ($parityTuningAction == startsWith('check')) {
-					sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
-					saveRestartInformation();
+				if ($parityTuningRestart) {
+					if ($parityTuningAction == startsWith('check')) {
+						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+						parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
+						$restart = 'mdResync=' . $parityTuningVar['mdResync'] . "\n"
+								   .'mdResyncPos=' . $parityTuningVar['mdResyncPos'] . "\n"
+								   .'mdResyncSize=' . $parityTuningVar['mdResyncSize'] . "\n"
+								   .'mdResyncAction=' . $parityTuningVar['mdResyncAction'] . "\n"
+								   .'mdResyncCorr=' . $parityTuningVar['mdResyncCorr'] . "\n"
+								   .'startMode=' . $parityTuningVar['startMode'] . "\n";
+						file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
+						parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
+					} else {
+						sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+					}
 				} else {
-					sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+					parityTuningLoggerTesting('Restart option not set');
 				}
 			} else {
 				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
@@ -712,12 +722,12 @@ end_array_started:
 
 	case 'stopping_array':
 	    reportStatusFiles();
-    	createMarkerFile (PARITY_TUNING_TIDY_FILE);
-    	parityTuningLoggerTesting("Created PARITY_TUNING_TIDY_FILE to indicate tidy shutdown");
     	suppressMonitorNotification();
     	break;
 
 	case 'stopped':
+	    createMarkerFile (PARITY_TUNING_TIDY_FILE);
+    	parityTuningLoggerTesting("Created PARITY_TUNING_TIDY_FILE to indicate tidy shutdown");
 		if (!file_exists(PARITY_TUNING_RESTART_FILE)) {
 			parityTuningProgressAnalyze();
 			parityTuningInactiveCleanup();
@@ -731,7 +741,7 @@ end_array_started:
     case 'status':
 		parityTuningLogger(_('Status') . ': ' 
 							. (isArrayOperationActive()
-							   ? (strtolower(operationTriggerType()) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting) . ($parityTuningRunning ? '' : ' PAUSED ') .  parityTuningCompleted())
+							   ? (ucfirst(strtolower(operationTriggerType())) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting) . ($parityTuningRunning ? '' : ' PAUSED ') .  parityTuningCompleted())
 							   : _('No array operation currently in progress')));
 		break;
 
@@ -840,23 +850,12 @@ exit(0);
 //       ~~~~~~~~~~~~~~~~~~~~~~
 function saveRestartInformation() {
 //       ~~~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningRestartOK, $parityTuningVar;
-    parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
 
-    if (isArrayOperationActive() && $parityTuningRestartOK) {
-        $restart = 'mdResync=' . $parityTuningVar['mdResync'] . "\n"
-				   .'mdResyncPos=' . $parityTuningVar['mdResyncPos'] . "\n"
-				   .'mdResyncSize=' . $parityTuningVar['mdResyncSize'] . "\n"
-				   .'mdResyncAction=' . $parityTuningVar['mdResyncAction'] . "\n"
-				   .'mdResyncCorr=' . $parityTuningVar['mdResyncCorr'] . "\n"
-			       .'startMode=' . $parityTuningVar['startMode'] . "\n";
-		file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
-		parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
-	}
 }
 
 // Remove a file and if TESTING logging active then log it has happened
-// For marker files sanitize the name to a friendlier form
+// For marker files sanitize the name to a friendlier form.
+// Return true if file was deleted, and false if did not exist.
 
 //       ~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningDeleteFile($name) {
@@ -864,10 +863,14 @@ function parityTuningDeleteFile($name) {
  	if (file_exists($name)) {
 		@unlink($name);
 		parityTuningLoggerTesting('Deleted ' . parityTuningMarkerTidy($name));
+		return true;
 	}
+	return false;
 }
 
+//       ~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningMarkerTidy($name) {
+//       ~~~~~~~~~~~~~~~~~~~~~~
 	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
 		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file ';
 	}
@@ -1035,15 +1038,15 @@ function parityTuningProgressAnalyze() {
         }
         switch ($op) {
         	case 'SCHEDULED':
-        			$triggerType = _('scheduled');
+        			$triggerType = $op;
 					$startAction = $mdResyncAction;
         			break;
         	case 'AUTOMATIC':
-			        $triggerType = _('automatic');
+			        $triggerType = $op;
 					$startAction = $mdResyncAction;
 					break;
         	case 'MANUAL':
-        	        $triggerType = _('manual');
+        	        $triggerType = $op;
 					$startAction = $mdResyncAction;
         	        break;
         	case 'UNKNOWN':
@@ -1155,12 +1158,12 @@ END_PROGRESS_FOR_LOOP:
 		$speed .= "$unit/s";
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
-		$actionType = actionDescription($startAction, $mdResyncCorr);
-		$msg  = sprintf(_('%s %s %s (%d %s)'),
-						$triggerType, $actionType, $exitStatus, $corrected, _('errors'));
+		$actionType = actionDescription($startAction, $mdResyncCorr, $triggerType);
+		$msg  = sprintf(_('%s %s (%d %s)'),
+						$actionType, $exitStatus, $corrected, _('errors'));
 		$desc = sprintf(_('%s %s, %s %s, %s %d, %s %s'),
-						_('Elapsed Time'),his_duration($elapsed),
-						_('Runtime'), his_duration($duration),
+						_('Elapsed Time'),this_duration($elapsed),
+						_('Runtime'), this_duration($duration),
 						_('Increments'), $increments,
 						_('Average Speed'),$speed);
 		parityTuningLogger($msg);
@@ -1203,14 +1206,7 @@ END_PROGRESS_FOR_LOOP:
 		$gendate = date(PARITY_TUNING_DATE_FORMAT,$lastFinish);
 		if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
 		// generate replacement parity history record
-		if ($parityTuningNewHistory) {
-			// New parity history record format introduced with 6.10.0-rc3
-			// TODO: Decide if last field now redundant
-			$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$action|$elapsed|$increments|$triggerType $actionType\n";
-		} else {
-			// Legacy extended parity history record format
-			$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$elapsed|$increments|$triggerType $actionType\n";
-		}
+		$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$action|$elapsed|$increments|$triggerType $actionType\n";
 		parityTuningLoggerTesting("log record generated from progress: $generatedRecord");    
 		$lines[$matchLine] = $generatedRecord;
 		$myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
@@ -1229,7 +1225,7 @@ function this_plus($val, $word, $last) {
 }
 
 //       ~~~~~~~~~~~~
-function his_duration($time) {
+function this_duration($time) {
 //       ~~~~~~~~~~~~
   if (!$time) return 'Unavailable';
   $days = floor($time/86400);
@@ -1390,12 +1386,14 @@ function reportStatusFiles() {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningInactiveCleanup() {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	parityTuningDeleteFile(PARITY_TUNING_PARTIAL_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_AUTOMATIC_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
+	$ret  = parityTuningDeleteFile(PARITY_TUNING_PARTIAL_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_AUTOMATIC_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
+	if ($ret) updateCronEntries();
+	return $ret;
 }
 
 //  give the range for a partial parity check (in sectors or percent as appropriate)
@@ -1468,56 +1466,7 @@ function configuredAction() {
 	parityTuningLoggerTesting("...configured action for $triggerType $actionDescription: $result");
     return $result;
 }
-
-//	get the display form of the trigger type in a manner that is compatible with multi-language support
-
-//		 ~~~~~~~~~~~~~~~~~~
-function displayTriggerType($trigger) {
-//		 ~~~~~~~~~~~~~~~~~~
-	switch ($trigger) {
-		case 'AUTOMATIC':	return _('Automatic');
-		case 'MANUAL':		return _('Manual');
-		case 'SCHEDULED':	return _('Scheduled');
-		default:			return '';
-	}
-}
-
-
-// get the type of a check according to which marker files exist
-// (plus apply some consistency checks against scenarios that should not happen)
-//		 ~~~~~~~~~~~~~~~~~~~~
-function operationTriggerType() {
-//		 ~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningAction, $parityTuningCorrecting;
-	$action    = $parityTuningAction;
-	$actionDescription = actionDescription($parityTuningAction,$parityTuningCorrecting);
-	if (! startsWith($action, 'check')) {
-		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
-		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
-		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $actionDescription");
-		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $actionDescription");
-		return 'AUTOMATIC';
-	} else {
-		// If we have not caught the start then assume an automatic parity check
-		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both scheduled and manual $actionDescription");
-			if ($automatic)		parityTuningLogger("ERROR: marker file found for both scheduled and automatic $actionDescription");
-			return 'SCHEDULED';
-		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both automatic and manual $actionDescription");
-			return 'AUTOMATIC';
-		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
-			return 'MANUAL';
-		} else {
-			parityTuningLoggerTesting ('... ' . _('trigger unknown - assume manual'));
-			createMarkerFile (PARITY_TUNING_MANUAL_FILE);
-			return 'MANUAL';
-		}
-	}
-}
+																																		
 // check if an array operation is in progress
 
 //       ~~~~~~~~~~~~~~~~~~~~~~
@@ -1557,19 +1506,6 @@ function isParityCheckActivePeriod() {
     }
 }
 
-// Set marker file to remember some state information we have detected
-// (put date/time into file so can tie it back to syslog if needed)
-
-//       ~~~~~~~~~~~~~~~~
-function createMarkerFile ($filename) {
-//       ~~~~~~~~~~~~~~~~
-	global $parityTuningAction, $parityTuningCorrecting;
-	if (!file_exists($filename)) {
-		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT));
-		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
-	}
-}
-
 
 //       ~~~~~~~~~~~~~~~~~
 function updateCronEntries() {
@@ -1583,7 +1519,7 @@ function updateCronEntries() {
 	if (parityTuningPartial()) {
 		// Monitor every minutes during partial checks
 		$frequency = "*/1";
-		parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('monitoring partial parity checks')));
+		$msg = '1 minute';
 	} else {
 		if ($parityTuningCfg['parityTuningIncrements'] || $parityTuningCfg['parityTuningUnscheduled']) {
 			switch ($parityTuningCfg['parityTuningFrequency']) {
@@ -1616,16 +1552,16 @@ function updateCronEntries() {
 		// Monitor every 7 minutes for temperature 
 		// or if array operation already active
 		if (parityTuningActive||$parityTuningCfg['parityTuningHeat'] || $parityTuningCfg['parityTuningShutdown']) {
-
 			$frequency = "*/7";
-			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('monitoring disk temperatures')));
+			$msg = _('7 minute');
 		} else {
 			// Once an hour if not monitoring more frequently 
 			// for other reasons such as active or temperature
 			$frequency = "17";
-			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('default monitoring')));
+			$msg = _('hourly');
 		}
 	}
+	parityTuningLoggerDebug (sprintf(_('Created cron entry for %s interval monitoring'), $msg));
 	$lines[] = "$frequency * * * * " . PARITY_TUNING_PHP_FILE . ' "monitor" &>/dev/null' . "\n";
 	file_put_contents(PARITY_TUNING_CRON_FILE, $lines);
 	parityTuningLoggerDebug(sprintf(_('updated cron settings are in %s'),PARITY_TUNING_CRON_FILE));

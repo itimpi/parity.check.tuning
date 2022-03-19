@@ -85,7 +85,6 @@ $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
 $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
-$parityTuningNewHistory= (version_compare($parityTuningUnraidVersion['version'],'6.10.0-rc2','>') > 0);
 
 	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
@@ -119,19 +118,105 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
 
+// Set marker file to remember some state information we have detected
+// (put date/time into file so can tie it back to syslog if needed)
+
+//       ~~~~~~~~~~~~~~~~
+function createMarkerFile ($filename) {
+//       ~~~~~~~~~~~~~~~~
+	global $parityTuningAction, $parityTuningCorrecting;
+	if (!file_exists($filename)) {
+		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT));
+		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
+	}
+}
 
 // Get the long text description of an array operation
 
-function actionDescription($action, $correcting) {
+//       ~~~~~~~~~~~~~~~~
+function actionDescription($action, $correcting, $trigger = null) {
+//       ~~~~~~~~~~~~~~~~
     $act = explode(' ', $action );
-    switch ($act[0]) {
+
+    switch (strtolower($act[0])) {
         case 'recon':	// TODO use extra array entries to decide if disk rebuild in progress or merely parity sync
-        				return _('Parity Sync') . '/' . _('Data Rebuild');
-        case 'clear':   return _('Disk Clear');
-        case 'check':   if (count($act) == 1) return _('Read-Check');
-        				return (($correcting == 0) ? _('Non-Correcting') : _('Correcting')) . ' ' . _('Parity Check');
-        default:        return sprintf('%s: %s',_('Unknown action'), $action);
+        				$ret= _('Parity Sync') . '/' . _('Data Rebuild');
+						break;
+        case 'clear':   $ret = _('Disk Clear');
+						break;
+        case 'check':   $type = (count($act) == 1) 
+								?
+								: _('Parity Check');
+						if (is_null($trigger)) $triggerType = operationTriggerType();
+
+						
+						switch (strtoupper($triggerType)) {
+							case 'AUTOMATIC': 
+								$triggerType =  _('Automatic');
+								break;
+							case 'MANUAL':	
+								$triggerType =  _('Manual');
+								break;
+							case 'SCHEDULED':	
+								$triggerType =  _('Scheduled');
+								break;
+							default:			
+								$triggerType =  '';
+								break;
+	}
+        				$ret = ($triggerType . ' ' .
+								(count($act) == 1 ?  _('Read-Check') 
+								: ($correcting == 0 
+								  ? _('Non-Correcting')
+								  : _('Correcting'))
+							      . ' ' . _('Parity Check')));
+						break;
+        default:        $ret = sprintf('%s: %s',_('Unknown action'), $action);
+						break;
     }
+
+	parityTuningLoggerTesting("actionDescription($action, $correcting, $trigger) = $ret");
+	return $ret;
+}
+
+define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
+define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
+define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
+//	get the display form of the trigger type in a manner that is compatible with multi-language support
+
+
+// get the type of a check according to which marker files exist
+// (plus apply some consistency checks against scenarios that should not happen)
+//		 ~~~~~~~~~~~~~~~~~~~~
+function operationTriggerType() {
+//		 ~~~~~~~~~~~~~~~~~~~~
+	global $parityTuningAction;
+	if (! startsWith($parityTuningAction, 'check')) {
+		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
+		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
+		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $parityTuningAction");
+		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+		return 'AUTOMATIC';
+	} else {
+		// If we have not caught the start then assume an automatic parity check
+		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
+			if ($manual)		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
+			if ($automatic)		parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+			return 'SCHEDULED';
+		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
+			if ($manual)		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+			return 'AUTOMATIC';
+		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
+			return 'MANUAL';
+		} else {
+			parityTuningLoggerTesting ('... ' . _('trigger unknown - assume manual'));
+			createMarkerFile (PARITY_TUNING_MANUAL_FILE);
+			return 'MANUAL';
+		}
+	}
 }
 
 //	test if partial parity check in progress
@@ -145,7 +230,10 @@ function parityTuningPartial() {
 
 // Write message to syslog and also to console if in CLI mode
 // Change source according to whether doing partial check or not
+
+//       ~~~~~~~~~~~~~~~~
 function parityTuningLogger($string) {  
+//       ~~~~~~~~~~~~~~~~
   global $parityTuningCfg, $parityTuningServe;
   $logTarget = $parityTuningCfg['parityTuningLogTarget'];
   parityTuningLoggerCLI ($string);
@@ -162,32 +250,44 @@ function parityTuningLogger($string) {
 }
 
 // Write message to syslog if debug or testing logging active
+
+//       ~~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningLoggerDebug($string) {
+//       ~~~~~~~~~~~~~~~~~~~~~~~
   global $parityTuningCfg;
   if ($parityTuningCfg['parityTuningLogging'] > 0) parityTuningLogger('DEBUG:   ' . $string);
 }
 
 // Write message to syslog if testing logging active
+
+//       ~~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningLoggerTesting($string) {
+//       ~~~~~~~~~~~~~~~~~~~~~~~
   global $parityTuningCfg;
   if ($parityTuningCfg['parityTuningLogging'] > 1) parityTuningLogger('TESTING: ' . $string);
 }
 
+//       ~~~~~~~~~~~~~~~~~~~~~
 function parityTuningLoggerCLI($string) {
+//       ~~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCLI;
   	if ($parityTuningCLI) echo $string . "\n";
 }
 
 // Useful matching functions
 
+//       ~~~~~~~~~~
 function startsWith($haystack, $beginning, $caseInsensitivity = false){
+//       ~~~~~~~~~~
     if ($caseInsensitivity)
         return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
     else
         return strncmp($haystack, $beginning, strlen($beginning)) === 0;
 }
 
+//       ~~~~~~~~
 function endsWith($haystack, $ending, $caseInsensitivity = false){
+//       ~~~~~~~~
     if ($caseInsensitivity)
         return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
     else
@@ -222,7 +322,7 @@ function errorLevelAsText() {
 	$ret = '';
 	foreach ($lvls as $key => $lvl) {
 		if (($level & $lvl) == $lvl) {
-			$ret.=(strlen($ret)==0)?'':'|';
+			if ((strlen($ret)>0)) $ret.='|';
 			$ret .= $key;
 		}
 	}

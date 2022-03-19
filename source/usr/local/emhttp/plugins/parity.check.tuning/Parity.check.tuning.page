@@ -398,7 +398,7 @@ $(function() {
    <input type="text"
           size='1' class='narrow'
           name="parityTuningPauseCustom"
-          value="<?=$parityTuningCfg['parityTuningPauseCustomr']?>"
+          value="<?=$parityTuningCfg['parityTuningPauseCustom']?>"
           onblur="checkCustom(this)">
   &nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?>
 </span>
