@@ -512,15 +512,13 @@ RUN_PAUSE:	// Can jump here after doing a restart
     		parityTuningLoggerTesting(_("Tidy shutdown file not present in $command event"));
 			parityTuningLogger(_('Unclean shutdown detected'));
 			suppressMonitorNotification();
-			if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-			  if (!$parityTuningRestartOK) {
+			if (file_exists(PARITY_TUNING_PROGRESS_FILE)
+			&&  file_exists(PARITY_TUNING_RESTART_FILE)) {
 			    sendNotification (_('Array operation will not be restarted'), _('Unclean shutdown detected'), 'alert');
 				parityTuningProgressWrite('RESTART CANCELLED');
-			  }
+				parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
 			}
 			parityTuningProgressWrite('ABORTED');
-			createMarkerFile(PARITY_TUNING_PROGRESS_FILE);		// set to indicate we detected unclean shutdown
-			// goto end_array_started;
     	}
 		parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
     	break;
