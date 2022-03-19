@@ -694,8 +694,12 @@ end_array_started:
         } else {
 			parityTuningLoggerDebug (sprintf(_('Array stopping while %s was in progress %s'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted()));
 		    parityTuningProgressWrite('STOPPING');
-			if ($parityTuningRestartOK) {
-				if ($parityTuningRestart) {
+			if (! $parityTuningRestartOK) {
+				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
+			} else {
+				if (! $parityTuningRestart) {
+					parityTuningLoggerTesting('Restart option not set');
+				} else {
 					if ($parityTuningAction == startsWith('check')) {
 						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
 						parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
@@ -710,11 +714,8 @@ end_array_started:
 					} else {
 						sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
 					}
-				} else {
-					parityTuningLoggerTesting('Restart option not set');
+
 				}
-			} else {
-				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
 			}
 			suppressMonitorNotification();
         }
@@ -1551,7 +1552,9 @@ function updateCronEntries() {
 		}
 		// Monitor every 7 minutes for temperature 
 		// or if array operation already active
-		if (parityTuningActive||$parityTuningCfg['parityTuningHeat'] || $parityTuningCfg['parityTuningShutdown']) {
+		if (parityTuningActive()
+		||$parityTuningCfg['parityTuningHeat'] 
+		|| $parityTuningCfg['parityTuningShutdown']) {
 			$frequency = "*/7";
 			$msg = _('7 minute');
 		} else {
