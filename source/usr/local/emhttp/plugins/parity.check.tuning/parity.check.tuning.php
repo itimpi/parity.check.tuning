@@ -33,6 +33,7 @@ define('PARITY_TUNING_SYNC_FILE',      '/boot/config/forcesync');		        // Pr
 define('PARITY_TUNING_CRON_FILE',      PARITY_TUNING_FILE_PREFIX . 'cron');	    // File created to hold current cron settings for this plugin
 define('PARITY_TUNING_PROGRESS_FILE',  PARITY_TUNING_FILE_PREFIX . 'progress'); // Created when array operation active to hold increment info
 define('PARITY_TUNING_MOVER_FILE',     PARITY_TUNING_FILE_PREFIX . 'mover');	    // Created when paused because mover is running
+define('PARITY_TUNING_BACKUP_FILE',    PARITY_TUNING_FILE_PREFIX . 'backup');	    // Created when paused because CA Backup is running
 define('PARITY_TUNING_HOT_FILE',       PARITY_TUNING_FILE_PREFIX . 'hot');	    // Created when paused because at least one drive found to have reached 'hot' temperature
 define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); // Created when parused besause at least one drive found to reach critical temperature
 define('PARITY_TUNING_DISKS_FILE',     PARITY_TUNING_FILE_PREFIX . 'disks');    // Copy of disks.ini  info saved to allow check if disk configuration changed
@@ -1369,8 +1370,10 @@ function reportStatusFiles() {
 	$filesToCheck = array(PARITY_TUNING_SYNC_FILE,  					PARITY_TUNING_TIDY_FILE,
 						  PARITY_TUNING_PROGRESS_FILE,	PARITY_TUNING_AUTOMATIC_FILE,
 						  PARITY_TUNING_MANUAL_FILE,  	PARITY_TUNING_SCHEDULED_FILE,
-						  PARITY_TUNING_RESTART_FILE, 	PARITY_TUNING_BACKUP_FILE,
-						  PARITY_TUNING_PARTIAL_FILE, 	PARITY_TUNING_DISKS_FILE,
+						  PARITY_TUNING_RESTART_FILE, 	
+						  PARITY_TUNING_BACKUP_FILE,
+						  PARITY_TUNING_PARTIAL_FILE, 	
+						  PARITY_TUNING_DISKS_FILE,
 						  PARITY_TUNING_HOT_FILE,     	PARITY_TUNING_CRITICAL_FILE,
 						  PARITY_TUNING_MOVER_FILE);
 	foreach ($filesToCheck as $filename) {
@@ -1552,7 +1555,7 @@ function updateCronEntries() {
 		}
 		// Monitor every 7 minutes for temperature 
 		// or if array operation already active
-		if (parityTuningActive()
+		if ($parityTuningActive
 		||$parityTuningCfg['parityTuningHeat'] 
 		|| $parityTuningCfg['parityTuningShutdown']) {
 			$frequency = "*/7";
