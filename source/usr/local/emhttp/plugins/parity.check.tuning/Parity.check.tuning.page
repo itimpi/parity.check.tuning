@@ -45,8 +45,8 @@ function presetParityTuning(form) {
   form.parityTuningRestart.value = "0";
   form.parityTuningRestart.disabled = true;
   <?endif;?>
-  var parityTuningDisabled = ((form.parityTuningIncrements.value == '0')  
-  			               && (form.parityTuningUnscheduled.value == '0')
+  var parityTuningDisabled = ((form.parityTuningScheduled.value == '0')  
+  			               && (form.parityTuningManual.value == '0')
                            && (form.parityTuningClear.value == '0')
                            && (form.parityTuningHeat.value == '0'));
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
@@ -289,13 +289,13 @@ $(function() {
 :end
 
 <?= sprintf(_('Use increments for %s %s'), _('scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
-: <select name="parityTuningIncrements" 
+: <select name="parityTuningScheduled" 
           size='1' class='narrow' 
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onChange="presetParityTuning(this.form)">
-     <?=mk_option($parityTuningCfg['parityTuningIncrementst'], "0", _("No")) . "\n"?>
-     <?=mk_option($parityTuningCfg['parityTuningIncrementst'], "1", _("Yes")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningScheduled'], "0", _("No")) . "\n"?>
+     <?=mk_option($parityTuningCfg['parityTuningScheduled'], "1", _("Yes")) . "\n"?>
   </select><span style="float:right"><?=$parityTuningVersion?></span>
 
 :parity_tune_increments_plug:
@@ -305,11 +305,11 @@ $(function() {
 :end
 
 <?= sprintf(_('Use increments for %s %s'), _('manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
-: <select name="parityTuningUnscheduled" 
+: <select name="parityTuningManual" 
           size='1' class='narrow'
           onChange="presetParityTuning(this.form)">
-      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "0", _("No")) . "\n"?>
-      <?=mk_option($parityTuningCfg['parityTuningUnscheduled'], "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningManual'], "0", _("No")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningManual'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_manual_plug:
@@ -324,7 +324,7 @@ $(function() {
           size='1' class='narrow'
           onChange="checkAutomaticMode(this.form)">
       <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "0", _("No")) . "\n"?>
-      <?=mk_option($$parityTuningCfg['parityTuningAutomatic'], "1", _("Yes")) . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_automatic_plug:

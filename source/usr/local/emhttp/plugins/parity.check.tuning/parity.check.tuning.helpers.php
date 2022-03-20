@@ -48,9 +48,11 @@ define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 // Configuration information
 
 $parityTuningCfg=parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
+ 
 if (file_exists(PARITY_TUNING_CFG_FILE)) {
 	$parityTuningCfg=array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
+parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
@@ -131,6 +133,41 @@ function createMarkerFile ($filename) {
 	}
 }
 
+
+// get the type of a check according to which marker files exist
+// (plus apply some consistency checks against scenarios that should not happen)
+//		 ~~~~~~~~~~~~~~~~~~~~
+function operationTriggerType() {
+//		 ~~~~~~~~~~~~~~~~~~~~
+	global $parityTuningAction;
+	if (! startsWith($parityTuningAction, 'check')) {
+		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
+		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
+		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $parityTuningAction");
+		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+		return 'AUTOMATIC';
+	} else {
+		// If we have not caught the start then assume an automatic parity check
+		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
+			if ($manual)		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
+			if ($automatic)		parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+			return 'SCHEDULED';
+		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
+			if ($manual)		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+			return 'AUTOMATIC';
+		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
+			return 'MANUAL';
+		} else {
+			parityTuningLoggerTesting ('... ' . _('trigger unknown - assume manual'));
+			createMarkerFile (PARITY_TUNING_MANUAL_FILE);
+			return 'MANUAL';
+		}
+	}
+}
+
 // Get the long text description of an array operation
 
 //       ~~~~~~~~~~~~~~~~
@@ -184,40 +221,6 @@ define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   
 define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 //	get the display form of the trigger type in a manner that is compatible with multi-language support
 
-
-// get the type of a check according to which marker files exist
-// (plus apply some consistency checks against scenarios that should not happen)
-//		 ~~~~~~~~~~~~~~~~~~~~
-function operationTriggerType() {
-//		 ~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningAction;
-	if (! startsWith($parityTuningAction, 'check')) {
-		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
-		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
-		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $parityTuningAction");
-		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
-		return 'AUTOMATIC';
-	} else {
-		// If we have not caught the start then assume an automatic parity check
-		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
-			if ($automatic)		parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
-			return 'SCHEDULED';
-		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
-			return 'AUTOMATIC';
-		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
-			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
-			return 'MANUAL';
-		} else {
-			parityTuningLoggerTesting ('... ' . _('trigger unknown - assume manual'));
-			createMarkerFile (PARITY_TUNING_MANUAL_FILE);
-			return 'MANUAL';
-		}
-	}
-}
 
 //	test if partial parity check in progress
 //       ~~~~~~~~~~~~~~~~~~~

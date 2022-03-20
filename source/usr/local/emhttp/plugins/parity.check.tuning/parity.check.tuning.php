@@ -696,7 +696,7 @@ end_array_started:
 			if (! $parityTuningRestartOK) {
 				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
 			} else {
-				if (! $parityTuningRestart) {
+				if (! $parityTuningCfg['parityTuningRestart']) {
 					parityTuningLoggerTesting('Restart option not set');
 				} else {
 					if ($parityTuningAction == startsWith('check')) {
@@ -1450,13 +1450,13 @@ function configuredAction() {
     } else {
 		switch ($triggerType) {
 			case 'SCHEDULED':
-					$result = $parityTuningCfg['parityTuningIncrements'];
+					$result = $parityTuningCfg['parityTuningScheduled'];
 					break;
 			case 'AUTOMATIC':
 					$result = $parityTuningCfg['parityTuningAutomatic'];
 					break;
 			case 'MANUAL':
-					$result = $parityTuningCfg['parityTuningUnscheduled'];
+					$result = $parityTuningCfg['parityTuningManual'];
 					break;
 			default:
 					// Should not be possible to get here?
@@ -1523,7 +1523,7 @@ function updateCronEntries() {
 		$frequency = "*/1";
 		$msg = '1 minute';
 	} else {
-		if ($parityTuningCfg['parityTuningIncrements'] || $parityTuningCfg['parityTuningUnscheduled']) {
+		if ($parityTuningCfg['parityTuningScheduled'] || $parityTuningCfg['parityTuningManual']) {
 			switch ($parityTuningCfg['parityTuningFrequency']) {
 				case 1: // custom
 					$resumetime = $parityTuningCfg['parityTuningResumeCustom'];
