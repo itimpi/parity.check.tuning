@@ -696,9 +696,11 @@ end_array_started:
 			if (! $parityTuningRestartOK) {
 				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
 			} else {
+				parityTuningLoggerTesting('Restart setting: ' . $parityTuningCfg['parityTuningRestart']);
 				if (! $parityTuningCfg['parityTuningRestart']) {
 					parityTuningLoggerTesting('Restart option not set');
 				} else {
+					parityTuningLoggerTesting('Restart option set');
 					if ($parityTuningAction == startsWith('check')) {
 						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
 						parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);

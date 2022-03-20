@@ -23,6 +23,8 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/webGui/include/Helpers.php";
 
+$parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
+
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
@@ -47,19 +49,16 @@ define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 
 // Configuration information
 
-$parityTuningCfg=parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
- 
-if (file_exists(PARITY_TUNING_CFG_FILE)) {
-	$parityTuningCfg=array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
+$parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
+ if (file_exists(PARITY_TUNING_CFG_FILE)) {
+	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
-parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
+parityTuningLoggerCLI('Configuration: ' . print_r($parityTuningCfg, true));
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
-$parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
-
-parityTuningLoggerTesting('PHP error_reporting() set to '.errorLevelAsText());
+parityTuningLogger('PHP error_reporting() set to '.errorLevelAsText());
 
 // Multi-Language support code enabler for non-GUI usage
 
@@ -108,8 +107,8 @@ function loadVars($delay = 0) {
 
    	$vars = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
 	$GLOBALS['parityTuningVar']        = $vars;
-	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
 	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
+	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
     $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
@@ -237,7 +236,7 @@ function parityTuningPartial() {
 //       ~~~~~~~~~~~~~~~~
 function parityTuningLogger($string) {  
 //       ~~~~~~~~~~~~~~~~
-  global $parityTuningCfg, $parityTuningServe;
+  global $parityTuningCfg, $parityTuningServer;
   $logTarget = $parityTuningCfg['parityTuningLogTarget'];
   parityTuningLoggerCLI ($string);
   $logName = parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning";
