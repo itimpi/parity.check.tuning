@@ -42,7 +42,7 @@ function presetParityTuning(form) {
     form.parityTuningClear.disabled = true;
   }
   <? if (!$parityTuningRestartOK):?>
-  form.parityTuningRestart.value = "0";
+  // form.parityTuningRestart.value = "0";
   form.parityTuningRestart.disabled = true;
   <?endif;?>
   var parityTuningDisabled = ((form.parityTuningScheduled.value == '0')  

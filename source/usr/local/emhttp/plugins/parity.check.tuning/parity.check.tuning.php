@@ -696,13 +696,12 @@ end_array_started:
 			if (! $parityTuningRestartOK) {
 				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
 			} else {
-				parityTuningLoggerTesting('Restart setting: ' . $parityTuningCfg['parityTuningRestart']);
 				if (! $parityTuningCfg['parityTuningRestart']) {
 					parityTuningLoggerTesting('Restart option not set');
 				} else {
 					parityTuningLoggerTesting('Restart option set');
-					if ($parityTuningAction == startsWith('check')) {
-						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+					if (startsWith($parityTuningAction,'check')) {
+
 						parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
 						$restart = 'mdResync=' . $parityTuningVar['mdResync'] . "\n"
 								   .'mdResyncPos=' . $parityTuningVar['mdResyncPos'] . "\n"
@@ -712,6 +711,7 @@ end_array_started:
 								   .'startMode=' . $parityTuningVar['startMode'] . "\n";
 						file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
 						parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
+						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);	
 					} else {
 						sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
 					}

@@ -53,7 +53,7 @@ $parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
  if (file_exists(PARITY_TUNING_CFG_FILE)) {
 	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
-parityTuningLoggerCLI('Configuration: ' . print_r($parityTuningCfg, true));
+parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
