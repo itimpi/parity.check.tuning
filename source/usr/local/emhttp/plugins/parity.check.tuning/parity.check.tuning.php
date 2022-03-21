@@ -219,7 +219,7 @@ switch ($command) {
 
 		// Handle pause/resume around mover running
 		
-		if (parityCheckMover) {
+		if ($parityCheckMover) {
 			parityTuningLoggerTesting ("mover " . (isMoverRunning() ? "" : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
 			if (isMoverRunning()) {
@@ -246,7 +246,7 @@ switch ($command) {
 
 		// Handle pause/resume around CA Backup  running
 
-		if (parityTuningCABackup) {
+		if ($parityTuningCABackup) {
 			parityTuningLoggerTesting ("CA Backup "
 									. (isCABackupRunning() ? (file_exists(PARITY_TUNING_RESTORE_FILE)?"":"restore") : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
@@ -368,7 +368,7 @@ switch ($command) {
         if ($parityTuningRunning) {
         	// Check if we need to pause because at least one drive too hot
             if (count($hotDrives) == 0) {
-                parityTuningLoggerDebug (sprintf('%s %s',$parityTuningDescription, _('with all array drives below temperature threshold for a Pause')));
+                parityTuningLoggerDebug (sprintf('%s',_('All array drives below temperature threshold for a Pause')));
             } else {
                 $drives = listDrives($hotDrives);
                 file_put_contents (PARITY_TUNING_HOT_FILE, "$drives\n");
@@ -391,7 +391,7 @@ switch ($command) {
              		if (count($warmDrives) != 0) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
                     } else {
-                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('as drives now cooled down')));
+                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('Drives cooled down')));
                 		parityTuningProgressWrite('RESUME (COOL)');
                 		exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                 		sendTempNotification(_('Resume'), _('Drives cooled down'));
