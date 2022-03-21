@@ -62,7 +62,7 @@ function presetParityTuning(form) {
   form.parityTuningCABackup.disabled     = noBackup;
   
   // Now the heat related options
-  parityTuningDisabled = (form.parityTuningHeat.value == "0");
+  parityTuningDisabled = (form.parityTuningHeat.value == '0');
   form.parityTuningHeatHigh.disabled    = parityTuningDisabled;
   form.parityTuningHeatLow.disabled     = parityTuningDisabled;
   form.parityTuningHeatNotify.disabled  = parityTuningDisabled;

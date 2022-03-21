@@ -62,6 +62,30 @@ $command = (count($argv) > 1) ? trim($argv[1]) : '?';
 // Effectively each command line option is an event type1
 
 spacerDebugLine(true, $command);
+
+// check for presence of any plugin marker files that can
+// (optionally) exist on flash drive indicating status (useful 
+// to know when testing the plugin
+
+$filesToCheck = array(PARITY_TUNING_SYNC_FILE,
+   					  PARITY_TUNING_TIDY_FILE,
+					  PARITY_TUNING_PROGRESS_FILE,
+					  PARITY_TUNING_AUTOMATIC_FILE,
+					  PARITY_TUNING_MANUAL_FILE,
+					  PARITY_TUNING_SCHEDULED_FILE,
+					  PARITY_TUNING_RESTART_FILE,
+		  			  PARITY_TUNING_BACKUP_FILE,
+					  PARITY_TUNING_PARTIAL_FILE, 	
+					  PARITY_TUNING_DISKS_FILE,
+					  PARITY_TUNING_HOT_FILE,     	PARITY_TUNING_CRITICAL_FILE,
+					  PARITY_TUNING_MOVER_FILE);
+foreach ($filesToCheck as $filename) {
+	if (file_exists($filename)) {
+		$tidyname=str_replace(PARITY_TUNING_FILE_PREFIX,'',$filename);
+		parityTuningLoggerTesting("$tidyname marker file present");
+	}
+}
+
 switch ($command) {
 
     case 'updatecron':
@@ -73,8 +97,6 @@ switch ($command) {
 		// 'mdcmd' was made so that we can detect if a parity check
 		// was started on a schedule or whether it was manually
 		// started.
-
-        reportStatusFiles();
         $cmd = 'mdcmd '; for ($i = 3; $i < count($argv) ; $i++)  $cmd .= $argv[$i] . ' ';
         parityTuningLoggerTesting(sprintf(_('detected that mdcmd had been called from %s with command %s'), $argv['2'], $cmd));
         switch ($argv[2]) {
@@ -145,8 +167,6 @@ switch ($command) {
         // The monitor frequency varies according to whether
 		// temperatures are being checked or partial parity checks
 		// are active as then we do it more often.
-
-		reportStatusFiles();
 		if (! file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 			parityTuningLoggerTesting('System appears to still be initializing - disk information not available');
 			break;
@@ -388,7 +408,6 @@ switch ($command) {
 	
     case 'resume':
         parityTuningLoggerDebug (_('Resume request'));
-        reportStatusFiles();
         if (! isArrayOperationActive()) {
         	parityTuningLoggerTesting('Resume ignored as no array operation in progress');
 			parityTuningInactiveCleanup();			// tidy up any marker files
@@ -436,7 +455,6 @@ switch ($command) {
 	// This could be via a scheduled cron task or a CLI command
 	
     case 'pause':
-        reportStatusFiles();
         if (! isArrayOperationActive()) {
             parityTuningLoggerTesting('Pause ignored as no array operation in progress');
             break;
@@ -466,7 +484,6 @@ RUN_PAUSE:	// Can jump here after doing a restart
 	// Set up partial array parity checks for Parity Problems Assistant mode
 	
     case 'partial':
-        reportStatusFiles();
 		createMarkerFile(PARITY_TUNING_PARTIAL_FILE);	// Create file to indicate partial check
 		parityTuningLoggerTesting('sectors '
 				.$parityTuningCfg['parityProblemStartSector']
@@ -491,7 +508,6 @@ RUN_PAUSE:	// Can jump here after doing a restart
 	// Other services dependent on array active are not yet started
 	
     case 'array_started':
-        reportStatusFiles();
     	suppressMonitorNotification();
         if (file_exists(PARITY_TUNING_SYNC_FILE)) parityTuningLoggerTesting('forcesync file present');
         if (file_exists(PARITY_TUNING_TIDY_FILE)) parityTuningLoggerTesting('tidy shutdown file present');
@@ -527,7 +543,6 @@ RUN_PAUSE:	// Can jump here after doing a restart
 	
     case 'started':
         parityTuningLoggerDebug (_('Array has just been started'));
-		reportStatusFiles();
 
 		// Sanity Checks on restart that mean restart will not be possible if they fail
 		// (not sure these are all really necessary - but better safe than sorry!)
@@ -684,7 +699,6 @@ end_array_started:
 
     case 'stopping':
         parityTuningLoggerDebug(_('Array stopping'));
-        reportStatusFiles();
         parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
         if (!isArrayOperationActive()) {
             parityTuningLoggerDebug (_('no array operation in progress so no restart information saved'));
@@ -723,7 +737,6 @@ end_array_started:
         break;
 
 	case 'stopping_array':
-	    reportStatusFiles();
     	suppressMonitorNotification();
     	break;
 
@@ -775,7 +788,6 @@ end_array_started:
 
     case 'cancel':
         parityTuningLoggerDebug(_('Cancel request'));
-        reportStatusFiles();
         if (isArrayOperationActive()) {
             parityTuningLoggerTesting ('mdResyncAction=' . $parityTuningAction);
 			exec('/usr/local/sbin/mdcmd "nocheck"');
@@ -810,7 +822,6 @@ end_array_started:
     case 'stopping_libvirt':
     case 'stopping_docker':
     case 'unmounting_disks':
-        reportStatusFiles();
     	break;
 
     case 'history':
@@ -1358,30 +1369,6 @@ function suppressMonitorNotification() {
       @unlink($rom);
     }
   }
-}
-
-//	log presence of any plugin files indicating status
-//  useful when testing the plugin
-
-//       ~~~~~~~~~~~~~~~~~
-function reportStatusFiles() {
-//       ~~~~~~~~~~~~~~~~~
-	// Files that can (optionally) exist on flash drive to hold/indicate status
-	$filesToCheck = array(PARITY_TUNING_SYNC_FILE,  					PARITY_TUNING_TIDY_FILE,
-						  PARITY_TUNING_PROGRESS_FILE,	PARITY_TUNING_AUTOMATIC_FILE,
-						  PARITY_TUNING_MANUAL_FILE,  	PARITY_TUNING_SCHEDULED_FILE,
-						  PARITY_TUNING_RESTART_FILE, 	
-						  PARITY_TUNING_BACKUP_FILE,
-						  PARITY_TUNING_PARTIAL_FILE, 	
-						  PARITY_TUNING_DISKS_FILE,
-						  PARITY_TUNING_HOT_FILE,     	PARITY_TUNING_CRITICAL_FILE,
-						  PARITY_TUNING_MOVER_FILE);
-	foreach ($filesToCheck as $filename) {
-		if (file_exists($filename)) {
-			$tidyname = str_replace(PARITY_TUNING_FILE_PREFIX,'',$filename);
-			parityTuningLoggerTesting("$tidyname marker file present");
-		}
-	}
 }
 
 

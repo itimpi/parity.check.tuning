@@ -58,7 +58,7 @@ $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
-parityTuningLogger('PHP error_reporting() set to '.errorLevelAsText());
+parityTuningLoggerTesting('PHP error_reporting() set to '.errorLevelAsText());
 
 // Multi-Language support code enabler for non-GUI usage
 
