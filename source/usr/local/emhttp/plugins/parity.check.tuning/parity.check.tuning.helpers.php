@@ -44,6 +44,9 @@ define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
 define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
 define('PARITY_TUNING_CABACKUP_FILE',PLUGINS_DIR . '/ca.backup2.plg'); 
 define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  // Created if array stopped with array operation active to hold restart info
+define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
+define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
+define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 ;
 
@@ -136,10 +139,6 @@ function createMarkerFile ($filename) {
 		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
 	}
 }
-
-define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
-define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
-define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)

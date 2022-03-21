@@ -651,7 +651,6 @@ end_array_started:
   		if (file_exists(PARITY_TUNING_RESTART_FILE)) {
   			parityTuningLogger(_('Restart will not be attempted'));
  			parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
- 			parityTuningLoggerTesting(_("Deleted PARITY_TUNING_RESTART_FILE"));
  			if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
  			    parityTuningProgressWrite('RESTART CANCELLED');
  			}
