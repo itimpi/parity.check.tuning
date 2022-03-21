@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.20">
-<!ENTITY md5 "8edc09ae976dd99aad4de8a380fcf8c5">
+<!ENTITY version "2022.03.21">
+<!ENTITY md5 "abe380290356d579593dd1bbc496b735">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,6 +23,9 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2022.03.21
+ - Fix: Message about reporting level to only appear when testing logging level active
+ 
 ###2022.03.20
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
  - Fix: regression that stopped Tools->Parity Problems Assistant page showing
