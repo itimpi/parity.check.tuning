@@ -14,8 +14,8 @@
  * all copies or substantial portions of the Software.
  */
 
-// Setting a reasonably strict PHP retorting level helps pick up hon-obvious errors
-error_reporting(error_reporting() | E_STRICT | E_PARSE);  // Level at which we want normally want our code to be clean 
+// Setting a reasonably strict PHP retorting level helps pick up non-obvious errors
+// error_reporting(error_reporting() | E_STRICT | E_PARSE);  // Level at which we want normally want our code to be clean 
 // error_reporting(E_ALL);		 // This level should only be enabled for testing purposes
 
 // useful for testing outside Gui
@@ -53,12 +53,10 @@ $parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
  if (file_exists(PARITY_TUNING_CFG_FILE)) {
 	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
-parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
+
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
-
-parityTuningLoggerTesting('PHP error_reporting() set to '.errorLevelAsText());
 
 // Multi-Language support code enabler for non-GUI usage
 
@@ -87,7 +85,6 @@ $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
 $parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
 $parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
 
-	
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
@@ -118,6 +115,14 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
+loadVars();
+if ($parityTuningActive)  parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
+
+// Load up default description to avoid redundant calls elsewhere
+$parityTuningDescription = 	$parityTuningActive
+							? actionDescription($parityTuningAction, $parityTuningCorrecting)
+							:_('No array operation in progress');
+parityTuningLoggerDebug($parityTuningDescription);
 
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
@@ -132,6 +137,9 @@ function createMarkerFile ($filename) {
 	}
 }
 
+define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
+define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
+define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)
@@ -185,7 +193,6 @@ function actionDescription($action, $correcting, $trigger = null) {
 								: _('Parity Check');
 						if (is_null($trigger)) $triggerType = operationTriggerType();
 
-						
 						switch (strtoupper($triggerType)) {
 							case 'AUTOMATIC': 
 								$triggerType =  _('Automatic');
@@ -215,9 +222,6 @@ function actionDescription($action, $correcting, $trigger = null) {
 	return $ret;
 }
 
-define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
-define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
-define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 //	get the display form of the trigger type in a manner that is compatible with multi-language support
 
 
@@ -296,6 +300,7 @@ function endsWith($haystack, $ending, $caseInsensitivity = false){
         return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
 }
 
+// parityTuningLoggerTesting('PHP error_reporting() level set to '.errorLevelAsText());
 
 //	Convert the bit level error reporting to text values for display
 //       ~~~~~~~~~~~~~~~~

@@ -106,7 +106,7 @@ switch ($command) {
             case 'check':
                     loadVars(5);         // give time for start/resume
                     if ($argv[4] == 'resume') {
-                        parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting)));
+                        parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . $parityTuningDescription));
                         parityTuningProgressWrite('RESUME');		// We want state after resume has started
                     } else {
 						if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
@@ -127,7 +127,7 @@ switch ($command) {
                     break;
             case 'nocheck':
                     if ($argv[4] == 'pause') {
-                        parityTuningLoggerDebug ('...' . _('Pause' . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting)));
+                        parityTuningLoggerDebug ('...' . _('Pause' . ' ' . $parityTuningDescription));
                         loadVars(5);         // give time for pause
                         parityTuningProgressWrite ("PAUSE");
                     } else {
@@ -201,7 +201,6 @@ switch ($command) {
 		// See if array operation in progress so that we need to consider pause/resume
 
 		if (! isArrayOperationActive()) {
-			parityTuningLoggerTesting ('No array operation currently in progress');
 			parityTuningProgressAnalyze();
 			parityTuningInactiveCleanup();
 			break;
@@ -213,7 +212,7 @@ switch ($command) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
 			$trigger = operationTriggerType();
 			parityTuningLoggerDebug (strtolower($trigger) . ' ' 
-						. actionDescription($parityTuningAction, $parityTuningCorrecting));
+						. $parityTuningDescription);
 			parityTuningProgressWrite ($trigger);
 			updateCronEntries();    // ensure reas/nably frequent monitor chechs
 		}
@@ -347,7 +346,7 @@ switch ($command) {
 				$msg = (sprintf('%s: ',_('Following drives overheated')) . $drives);
 				if (isArrayOperationActive()) {
 					parityTuningLoggerTesting('array operation is active');
-					$msg .= '<br>' . _('Abandoned ') . actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted();
+					$msg .= '<br>' . _('Abandoned ') . $parityTuningDescription . parityTuningCompleted();
 				}
 				sendNotification (_('Array shutdown'), $msg, 'alert');
 				if ($parityTuningTesting) {
@@ -369,12 +368,12 @@ switch ($command) {
         if ($parityTuningRunning) {
         	// Check if we need to pause because at least one drive too hot
             if (count($hotDrives) == 0) {
-                parityTuningLoggerDebug (sprintf('%s %s',actionDescription($parityTuningAction, $parityTuningCorrecting), _('with all array drives below temperature threshold for a Pause')));
+                parityTuningLoggerDebug (sprintf('%s %s',$parityTuningDescription, _('with all array drives below temperature threshold for a Pause')));
             } else {
                 $drives = listDrives($hotDrives);
                 file_put_contents (PARITY_TUNING_HOT_FILE, "$drives\n");
                 $msg = (sprintf('%s: ',_('Following drives overheated')) . $drives);
-                parityTuningLogger (sprintf('%s %s %s: %s',_('Paused'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted(), $msg ));
+                parityTuningLogger (sprintf('%s %s %s: %s',_('Paused'), $parityTuningDescription, parityTuningCompleted(), $msg ));
                 parityTuningProgressWrite('PAUSE (HOT)');
                 exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
                 sendTempNotification(_('Pause'),$msg);
@@ -392,7 +391,7 @@ switch ($command) {
              		if (count($warmDrives) != 0) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
                     } else {
-                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted(), _('as drives now cooled down')));
+                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('as drives now cooled down')));
                 		parityTuningProgressWrite('RESUME (COOL)');
                 		exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                 		sendTempNotification(_('Resume'), _('Drives cooled down'));
@@ -421,7 +420,7 @@ switch ($command) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
 		if ($parityTuningRunning) {
-			parityTuningLoggerDebug(sprintf('... %s %s', actionDescription($parityTuningAction, $parityTuningCorrecting), _('already running')));
+			parityTuningLoggerDebug(sprintf('... %s %s', $parityTuningDescription, _('already running')));
 			break;
 		}
 		if (file_exists(PARITY_TUNING_HOT_FILE)) {
@@ -467,7 +466,7 @@ switch ($command) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
 		if ($parityTuningPaused) {
-			parityTuningLoggerDebug(sprintf('... %s %s!', actionDescription($parityTuningAction, $parityTuningCorrecting), _('already paused')));
+			parityTuningLoggerDebug(sprintf('... %s %s!', $parityTuningDescription, _('already paused')));
 			break;
 		}
 
@@ -632,7 +631,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
         loadVars(5);     // give time for any array operation to start running
         suppressMonitorNotification();
         parityTuningProgressWrite('RESTART');
-        sendNotification(_('Array operation restarted'),  actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted());
+        sendNotification(_('Array operation restarted'),  $parityTuningDescription . parityTuningCompleted());
         parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
         if ($restart['mdResync'] == 0) {
            parityTuningLoggerTesting(_('Array operation was paused'));
@@ -668,7 +667,7 @@ end_array_started:
 				createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
 				sendNotification (sprintf('%s %s %s',
 										_('Automatic unRaid'), 
-										actionDescription($parityTuningAction,$parityTuningCorrecting), 
+										$parityTuningDescription, 
 										('will be started')), 
 										_('Unclean shutdown detected'), 
 										'warning');
@@ -705,7 +704,7 @@ end_array_started:
             parityTuningProgressAnalyze();
 
         } else {
-			parityTuningLoggerDebug (sprintf(_('Array stopping while %s was in progress %s'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted()));
+			parityTuningLoggerDebug (sprintf(_('Array stopping while %s was in progress %s'), $parityTuningDescription, parityTuningCompleted()));
 		    parityTuningProgressWrite('STOPPING');
 			if (! $parityTuningRestartOK) {
 				parityTuningLoggerDebug(sprintf(_('Unraid version %s is too old to support restart'), $parityTuningUnraidVersion['version']));
@@ -725,9 +724,12 @@ end_array_started:
 								   .'startMode=' . $parityTuningVar['startMode'] . "\n";
 						file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
 						parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
-						sendNotification(_('Array stopping: Restart will be attempted on next array start'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);	
+						sendNotification(_('Array stopping: Restart will be attempted on next array start'), $parityTuningDescription
+						.parityTuningCompleted());	
 					} else {
-						sendNotification(_('Array stopping and restart is not supported for this array operation type'), actionDescription($parityTuningAction, $parityTuningCorrecting) . parityTuningCompleted(),);
+						sendNotification(_('Array stopping and restart is not supported for this array operation type'),
+						$parityTuningDescription
+						.parityTuningCompleted(),);
 					}
 
 				}
@@ -756,7 +758,11 @@ end_array_started:
     case 'status':
 		parityTuningLogger(_('Status') . ': ' 
 							. (isArrayOperationActive()
-							   ? (ucfirst(strtolower(operationTriggerType())) . ' ' . actionDescription($parityTuningAction, $parityTuningCorrecting) . ($parityTuningRunning ? '' : ' PAUSED ') .  parityTuningCompleted())
+							   ? (ucfirst(strtolower(  operationTriggerType())) . ' ' . $parityTuningDescription . 
+							    ($parityTuningRunning 
+									? '' 
+									: ' PAUSED ')
+								. parityTuningCompleted())
 							   : _('No array operation currently in progress')));
 		break;
 
@@ -770,13 +776,13 @@ end_array_started:
     case 'correct':
     case 'nocorrect':
         if (isArrayOperationActive()) {
-            parityTuningLogger(sprintf(_('Not allowed as %s already running'), actionDescription($parityTuningAction, $parityTuningCorrecting)));
+            parityTuningLogger(sprintf(_('Not allowed as %s already running'), $parityTuningDescription));
             break;
         }
         $parityTuningCorrecting =($command == 'correct') ? true : false;
 		exec("/usr/local/sbin/mdcmd check $command");
         loadVars(2);
-	    parityTuningLogger(actionDescription($parityTuningAction, $parityTuningCorrecting) . ' Started');
+	    parityTuningLogger($parityTuningDescription . ' Started');
         if ($parityTuningAction == 'check' && ( $command == 'correct')) {
             if ($parityTuningNoParity) {
             	parityTuningLogger(_('Only able to start a Read-Check as no parity drive present'));
@@ -791,10 +797,10 @@ end_array_started:
         if (isArrayOperationActive()) {
             parityTuningLoggerTesting ('mdResyncAction=' . $parityTuningAction);
 			exec('/usr/local/sbin/mdcmd "nocheck"');
-            parityTuningLoggerDebug (sprintf(_('%s cancel request sent %s'), actionDescription($parityTuningAction, $parityTuningCorrecting), parityTuningCompleted()));
+            parityTuningLoggerDebug (sprintf(_('%s cancel request sent %s'), $parityTuningDescription, parityTuningCompleted()));
             loadVars(5);
             parityTuningProgressWrite('CANCELLED');
-            parityTuningLogger(sprintf(_('%s Cancelled'),actionDescription($parityTuningAction, $parityTuningCorrecting)));
+            parityTuningLogger(sprintf(_('%s Cancelled'),$parityTuningDescription));
             parityTuningProgressAnalyze();
         }
 
@@ -972,7 +978,7 @@ function parityTuningProgressWrite($msg) {
     }
     $line = $msg . '|' . date(PARITY_TUNING_DATE_FORMAT) . '|' . time() . '|';
     foreach ($progressFields as $name) $line .= $parityTuningVar[$name] . '|';
-    $line .= actionDescription($parityTuningAction, $parityTuningCorrecting) . "|\n";
+    $line .= "$parityTuningDescription|\n";
 	file_put_contents(PARITY_TUNING_PROGRESS_FILE, $line, FILE_APPEND | LOCK_EX);
     parityTuningLoggerTesting ('written ' . $msg . ' record to  ' . parityTuningMarkerTidy(PARITY_TUNING_PROGRESS_FILE));
 }
@@ -994,7 +1000,7 @@ function parityTuningProgressAnalyze() {
     }
 
     if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-        parityTuningLoggerTesting(' no progress file to analyze');
+        parityTuningLoggerTesting('No progress file to analyze');
         return;
     }
 
@@ -1281,8 +1287,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningCorrecting;
-    sendNotification ($op, $desc . (strlen($desc) > 0 ? '<br>' : '') . actionDescription($parityTuningAction, $parityTuningCorrecting)
-    							 			. parityTuningCompleted(), $type);
+    sendNotification ($op, $desc . (strlen($desc) > 0 ? '<br>' : '') . $parityTuningDescription . parityTuningCompleted(), $type);
 }
 
 // Send a notification if increment notifications enabled
@@ -1295,7 +1300,7 @@ function sendArrayNotification ($op) {
     parityTuningLoggerTesting("Pause/Resume notification message: $op");
     if ($parityTuningCfg['parityTuningNotify'] == 0) {
         parityTuningLoggerTesting (_('... but suppressed as notifications do not appear to be enabled for pause/resume'));
-        parityTuningLogger($op . ": " . actionDescription($parityTuningAction, $parityTuningCorrecting)
+        parityTuningLogger($op . ": " . $parityTuningDescription
     							 	  . parityTuningCompleted());		// Simply log message if not notifying
         return;
     }
@@ -1421,10 +1426,8 @@ function parityTuningCompleted() {
 function configuredAction() {
 //       ~~~~~~~~~~~~~~~~
 	global $parityTuningCfg;
-	global $parityTuningAction;
+	global $parityTuningAction, $parityTuningDescription;
 	global $parityTuningCorrecting;
-	
-	$actionDescription = actionDescription($parityTuningAction, $parityTuningCorrecting);
 
 	// check configured options against array operation type in progress
 
@@ -1454,7 +1457,7 @@ function configuredAction() {
 					break;
 		}
 	}
-	parityTuningLoggerTesting("...configured action for $triggerType $actionDescription: $result");
+	parityTuningLoggerTesting("...configured action for $triggerType $parityTuningDescription: $result");
     return $result;
 }
 																																		
@@ -1469,10 +1472,11 @@ function isArrayOperationActive() {
 		return true;
 	}
 	if (!$parityTuningActive) {
+		$msg = 'No action outstanding';
 		if ($parityTuningCLI) {
-			parityTuningLogger("no array operation active so doing nothing\n");
+			parityTuningLogger("$msg");
 		} else {
-			parityTuningLoggerTesting('no array operation active so doing nothing');
+			parityTuningLoggerTesting($msg);
 			parityTuningProgressAnalyze();
 		}
 		return false;

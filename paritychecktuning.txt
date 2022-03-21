@@ -24,6 +24,7 @@ Increment pause time=
 Increment resume time=
 Mover no longer running=
 Mover running=
+No array operation in progress=
 No parity check entries found in syslog=
 ParityRead-Check History=Parity/Read-Check History=
 Parity Check=
