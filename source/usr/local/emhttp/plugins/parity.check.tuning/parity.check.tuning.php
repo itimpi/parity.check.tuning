@@ -223,21 +223,22 @@ switch ($command) {
 			parityTuningLoggerTesting ("mover " . (isMoverRunning() ? "" : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
 			if (isMoverRunning()) {
-				$msg = _('Mover running');
 				if ($parityTuningRunning) {
+					$msg = _('Paused') . ": " . _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
-					sendArrayNotification (_('Paused') . ": " . $msg . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+					sendArrayNotification ();
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
 				createMarkerFile(PARITY_TUNING_MOVER_FILE);  // may already exist at this point
 			} else {
-				$msg = _('Mover no longer running');
 				if (file_exists(PARITY_TUNING_MOVER_FILE)) {
-					parityTuningLoggerTesting ($msg);
+					$msg = _('Resumed') . ": " . _('Mover no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					parityTuningLogger ($msg);
 					parityTuningDeleteFile (PARITY_TUNING_MOVER_FILE);
 					exec('/usr/local/sbin/mdcmd "check" "resume"');
-					sendArrayNotification (_('Resumed') . ": " . $msg . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
@@ -251,21 +252,22 @@ switch ($command) {
 									. (isCABackupRunning() ? (file_exists(PARITY_TUNING_RESTORE_FILE)?"":"restore") : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
 			if (isCABackupRunning()) {
-				$msg = _('CA Backup or Restore running');
 				if ($parityTuningRunning) {
+					$msg = _('Paused') . ": " . _('CA Backup or Restore running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
-					sendArrayNotification (_('Paused') . ": " . $msg . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
 				createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
 			} else {
-				$msg = _('CA Backup or Restore no longer running');
 				if (file_exists(PARITY_TUNING_BACKUP_FILE)) {
-					parityTuningLoggerTesting ($msg);
+					$msg = _('Resumed') . ": " . _('CA Backup or Restore no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					parityTuningLogger($msg);
 					parityTuningDeleteFile (PARITY_TUNING_BACKUP_FILE);
 					exec('/usr/local/sbin/mdcmd "check" "resume"');
-					sendArrayNotification (_('Resumed') . ": " . $msg . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
@@ -408,12 +410,12 @@ switch ($command) {
     case 'resume':
         parityTuningLoggerDebug (_('Resume request'));
         if (! isArrayOperationActive()) {
-        	parityTuningLoggerTesting('Resume ignored as no array operation in progress');
+        	parityTuningLoggerDebug('Resume ignored as no array operation in progress');
 			parityTuningInactiveCleanup();			// tidy up any marker files
         	break;
         }
 		if (parityTuningPartial()) {
-			parityTuningLoggerTesting('Resume ignored as partial check in progress');
+			parityTuningLoggerResume('Resume ignored as partial check in progress');
 			break;
 		}
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
@@ -455,11 +457,11 @@ switch ($command) {
 	
     case 'pause':
         if (! isArrayOperationActive()) {
-            parityTuningLoggerTesting('Pause ignored as no array operation in progress');
+            parityTuningLoggerDebug('Pause ignored as no array operation in progress');
             break;
         }
 		if (parityTuningPartial()) {
-			parityTuningLoggerTesting('Pause ignored as partial check in progress');
+			parityTuningLoggerDebug('Pause ignored as partial check in progress');
 			break;
 		}
 		if (isArrayOperationActive() && (! file_exists(PARITY_TUNING_PROGRESS_FILE))) {
@@ -701,7 +703,7 @@ end_array_started:
         parityTuningLoggerDebug(_('Array stopping'));
         parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
         if (!isArrayOperationActive()) {
-            parityTuningLoggerDebug (_('no array operation in progress so no restart information saved'));
+            parityTuningLoggerDebug (_('No array operation in progress so no restart information saved'));
             parityTuningProgressAnalyze();
 
         } else {
@@ -1001,7 +1003,7 @@ function parityTuningProgressAnalyze() {
     }
 
     if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-        parityTuningLoggerTesting('No progress file to analyze');
+        // parityTuningLoggerTesting('No progress file to analyze');
         return;
     }
 

@@ -15,7 +15,7 @@
  */
 
 // Setting a reasonably strict PHP retorting level helps pick up non-obvious errors
-// error_reporting(error_reporting() | E_STRICT | E_PARSE);  // Level at which we want normally want our code to be clean 
+error_reporting(error_reporting() | E_STRICT | E_PARSE);  // Level at which we want normally want our code to be clean 
 // error_reporting(E_ALL);		 // This level should only be enabled for testing purposes
 
 // useful for testing outside Gui

@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2022.03.21">
-<!ENTITY md5 "9ba3419c0de51079d24f384d95c395ef">
+<!ENTITY md5 "dc1d2b1d7c16b0455ab18c520d28c907">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -26,7 +26,8 @@
 
 ###2022.03.21
  - Fix: regression that caused PHP error reporting level to be logged when log level not set to Testing
- - Fix: internal changes to improve logging (especially with Testing log level set)
+ - Fix: internal changes to improve logging (especially with Testing or 
+ Debug log level set)
  
 ###2022.03.20
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
