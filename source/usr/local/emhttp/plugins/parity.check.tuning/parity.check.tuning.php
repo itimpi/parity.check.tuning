@@ -629,6 +629,8 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		parityTuningLoggerTesting('restart command: ' . $cmd);
 		exec ($cmd);
         loadVars(5);     // give time for any array operation to start running
+		// reset description now array running
+		$parityTuningDescription = actionDescription($parityTuningAction, $parityTuningCorrecting);
         suppressMonitorNotification();
         parityTuningProgressWrite('RESTART');
         sendNotification(_('Array operation restarted'),  $parityTuningDescription . parityTuningCompleted());
