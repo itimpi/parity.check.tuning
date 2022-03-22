@@ -1537,7 +1537,7 @@ function updateCronEntries() {
 								. $parityTuningCfg['parityTuningResumeDay'];
 					$pausetime  = $parityTuningCfg['parityTuningPauseMinute'].' '
 								. $parityTuningCfg['parityTuningPauseHour'].' * * '
-								. $parityTuningCfg['parityTuningPauseHour'];
+								. $parityTuningCfg['parityTuningPauseDay'];
 					break;
 				default:  // Error?
 					parityTuningLoggerDebug("Invalid frequency value: ".$parityTuningCfg['parityTuningFrequency']);

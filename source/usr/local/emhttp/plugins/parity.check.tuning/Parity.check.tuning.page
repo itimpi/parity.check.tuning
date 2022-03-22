@@ -418,10 +418,10 @@ $(function() {
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=23; $d++){?>
-        <?=mk_option($parityTuningCfg['parityTuningDPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
+        <?=mk_option($parityTuningCfg['parityTuningPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?}?>
     </select>
-    <select name="parityTuningPauseMinute" 
+    <select name="parityTuningPauseMinute"
             size='1' class='narrow'>
       <?for ($d=0; $d<=55; $d+=5):?>
           <?=mk_option($parityTuningCfg['parityTuningPauseMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
