@@ -361,13 +361,13 @@ $(function() {
   <select name="parityTuningResumeDay" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
-	  <?=mk_option($parityTuningResumeDay , 0, 'Sunday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 1, 'Monday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 2, 'Tuesday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 3, 'Wednesday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 4, 'Thursday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 5, 'Friday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 6, 'Saturday') . "\n"?>
+	  <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 0, 'Sunday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 1, 'Monday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 2, 'Tuesday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 3, 'Wednesday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 4, 'Thursday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 5, 'Friday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 6, 'Saturday') . "\n"?>
   </select>
   <select name="parityTuningResumeHour" 
           size='1' class='narrow'
@@ -406,19 +406,19 @@ $(function() {
   <select name="parityTuningPauseDay" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
-	  <?=mk_option($parityTuningResumeDay , 0, 'Sunday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 1, 'Monday') . "\n"?>
-	  <?=mk_option($parityTuningResumeDay , 2, 'Tuesday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 3, 'Wednesday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 4, 'Thursday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 5, 'Friday') . "\n"?>
-      <?=mk_option($parityTuningResumeDay , 6, 'Saturday') . "\n"?>
+	  <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 0, 'Sunday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 1, 'Monday') . "\n"?>
+	  <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 2, 'Tuesday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 3, 'Wednesday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 4, 'Thursday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 5, 'Friday') . "\n"?>
+      <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 6, 'Saturday') . "\n"?>
   </select>
   <select name="parityTuningPauseHour" 
           size='1' class='narrow'
           onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=23; $d++){?>
-        <?=mk_option($parityTuningDPauseHour, strval($d), sprintf("%02d", $d)) . "\n"?>
+        <?=mk_option($parityTuningCfg['parityTuningDPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?}?>
     </select>
     <select name="parityTuningPauseMinute" 
@@ -479,7 +479,7 @@ $(function() {
 : <select name="parityTuningClear" 
           size='1' class='narrow'
           onchange="confirmClearYes(this.form)">
-    <?=mk_option(parityTuningClear, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningClear'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningClear'], "1", _("Yes")) . "\n"?>
   </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' . _('You require a parity disk present for this option to be relevant') . '_</font>'; ?>
 
@@ -549,8 +549,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)"> 
-    <?=mk_option($parityTuningHeat, "1", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningHeat, "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeat'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeat'], "0", _("No")) . "\n"?>
   </select>
 
 
@@ -602,8 +602,8 @@ $(function() {
 : <select name="parityTuningHeatNotify" 
           size='1' class='narrow'
           onchange="checkNotifications(this)"> 
-    <?=mk_option($parityTuningHeatNotify, "0", _("No")) . "\n"?>
-    <?=mk_option($parityTuningHeatNotify, "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_temp_notify_plug:

@@ -263,7 +263,7 @@ switch ($command) {
 				createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
 			} else {
 				if (file_exists(PARITY_TUNING_BACKUP_FILE)) {
-					$msg = _('Resumed') . ": " . _('CA Backup or Restore no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('Resumed') . ': ' . _('CA Backup or Restore no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					parityTuningDeleteFile (PARITY_TUNING_BACKUP_FILE);
 					exec('/usr/local/sbin/mdcmd "check" "resume"');
