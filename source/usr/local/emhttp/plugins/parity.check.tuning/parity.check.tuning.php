@@ -205,8 +205,6 @@ switch ($command) {
 			parityTuningInactiveCleanup();
 			break;
 		}
-		
-		parityTuningLoggerDebug (_('Parity check appears to be ') . ($parityTuningRunning ? _('running') : _('paused')));
 
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
@@ -276,7 +274,7 @@ switch ($command) {
 		
         // Check for disk temperature changes we are monitoring
 
-        if ((!$parityTuningHeat) && (! $parityTuningCfg['parityTuningHeatShutdown'])) {
+        if ((!$parityTuningCfg['parityTuningHeat']) && (! $parityTuningCfg['parityTuningHeatShutdown'])) {
             parityTuningLoggerTesting (_('Temperature monitoring switched off'));
             parityTuningDeleteFile (PARITY_TUNING_CRITICAL_FILE);
             break;
@@ -447,6 +445,7 @@ switch ($command) {
 			}				
 		}
 		if (configuredAction()) {
+			parityTuningLogger(_('Resumed').': '.$parityTuningDescription);
 			sendArrayNotification(_('Resumed'));
 			exec('/usr/local/sbin/mdcmd "check" "resume"');
 		}
@@ -475,6 +474,7 @@ switch ($command) {
 		if (configuredAction()) {
 				// TODO May want to create a 'paused' file to indicate reason for pause?
 RUN_PAUSE:	// Can jump here after doing a restart
+			parityTuningLogger(_('Paused').': '.$parityTuningDescription);
 			exec('/usr/local/sbin/mdcmd "nocheck" "pause"');
 			loadVars(5);
 			parityTuningLoggerTesting("Errors so far:  $parityTuningErrors");

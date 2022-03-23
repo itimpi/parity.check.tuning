@@ -125,7 +125,7 @@ if ($parityTuningActive)  parityTuningLoggerTesting('Configuration: ' . print_r(
 $parityTuningDescription = 	$parityTuningActive
 							? actionDescription($parityTuningAction, $parityTuningCorrecting)
 							:_('No array operation in progress');
-parityTuningLoggerDebug($parityTuningDescription);
+if ($parityTuningActive) parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningRunning ? _('running') : _('paused')));
 
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
