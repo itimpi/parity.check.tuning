@@ -618,8 +618,8 @@ $(function() {
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("Disabled")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Enabled")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Yes")) . "\n"?>
 
   </select>
 

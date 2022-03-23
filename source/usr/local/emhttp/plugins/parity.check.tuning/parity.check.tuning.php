@@ -1553,12 +1553,12 @@ function updateCronEntries() {
 		||$parityTuningCfg['parityTuningHeat'] 
 		|| $parityTuningCfg['parityTuningShutdown']) {
 			$frequency = "*/7";
-			$msg = _('7 minute');
+			$msg = '7 ' . _('minute');
 		} else {
-			// Once an hour if not monitoring more frequently 
-			// for other reasons such as active or temperature
-			$frequency = "17";
-			$msg = _('hourly');
+			// Default if not monitoring more frequently for
+			// other reasons such as active or temperature
+			$frequency = "*/17";
+			$msg = '17 ' . _('minute');
 		}
 	}
 	parityTuningLoggerDebug (sprintf(_('Created cron entry for %s interval monitoring'), $msg));

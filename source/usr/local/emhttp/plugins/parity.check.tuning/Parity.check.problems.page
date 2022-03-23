@@ -61,7 +61,6 @@ $(document).ready(function(){
   oForm.parityProblemEndSector.disabled    = isDisabled;  
   oForm.parityProblemEndPercent.disabled   = isDisabled;  
   oForm.parityProblemCorrect.disabled      = isDisabled;
-  oForm.parityProblemCheck.disabled        = isDisabled;
   setProblemType(oForm);
   // TODO: Investigate whether there is a more elegant/efficient solution than forcing page refreshes?
   if (active) setTimeout(refreshPage, 1000 * 30);
@@ -107,7 +106,8 @@ function checkStartEnd(form) {
         returnValue = false;
     }
 	// Check button only available if Apply not enabled (i.e. values saved)
-	form.parityProblemCheck.disabled = !(document.getElementById('Apply').disabled);
+	// TODO:  Does not seem to work as expected - need to work out why
+	// form.parityProblemCheck.disabled = (!(document.getElementById('Apply').disabled));
     return returnValue;
 
 }
@@ -146,16 +146,8 @@ function changeProblemEndPercent(form) {
     checkStartEnd(form);
 }
 
-function startCheck(form) {
-    if (checkStartEnd(form)) {
-       (document.getElementById('parityProblemFile')).disabled = false;
-       (document.getElementById('parityProblemCmd')).disabled  = false;
-       (document.getElementById('parityProblemFile')).value = "<?=PARITY_TUNING_PHP_FILE?>";
-       (document.getElementById('parityProblemCmd')).value  = "partial";
-    }
-}
 
-// centre popup relative to Unraid browser window
+// try to center popup relative to Unraid browser window
 
 function positionPopup() {
 	var left = window.screenX + 300;
@@ -177,15 +169,13 @@ function positionPopup() {
         target   = "progressFrame">
 <input type="hidden" 
        name="#file"    
-       value="<?=$fileManagerCfgFile?>">      
+       value="<?=PARITY_TUNING_CFG_FILE?>">  
 <input type="hidden" 
-       name="#command"
-       disabled
-       id = "parityProblemFile">
+       name="#command" 
+       value="<?=PARITY_TUNING_PHP_FILE?>">
 <input type="hidden"
        name="#arg[1]"
-       disabled
-       id = "parityProblemCmd"> <span style="float:right"><?=$parityTuningVersion?></span>
+       value="partial"><span style="float:right"><?=$parityTuningVersion?></span>
 :parityProblems_intro_plug:
 The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
 The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
@@ -282,21 +272,12 @@ This can be much faster than having to run a full parity check or read check to 
 
 
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
-
-: <input type="submit" 
-     value="<?=_('Start Check')?>" 
-     id="parityProblemCheck"
-     onclick="startCheck(this.form)">
- <input type="button" 
+ 
+: <input type="button" 
      value="<?=_('Show Sector Numbers')?>" 
      id="showErrorSector"
-	 onclick = "myWin=window.open('/plugins/parity.check.tuning/Parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
-     
-:parityProblems_check_plug:
-> When you click on the option to **Start Check** then a partial check is initiated that
-> will cover the start and end points that you have specified.  It will be a correcting check 
-> if the option to **Write Corrections** is set to **Yes**, and a read-check otherwise.
-:end
+	 onclick = "myWin=window.open('/plugins/parity.check.tuning/parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
+
 
 :parityProblems_sectors_plug:
 > When you click on the option to **Show Sector Numbers** then the a dialog will be shown
@@ -308,12 +289,21 @@ This can be much faster than having to run a full parity check or read check to 
 
 : <input type="submit" 
      name="#apply" 
-     value="_(Apply)_" 
-     id='Apply'>
+     value="_(Check)_" 
+     id='Apply'
+	 onclick="checkStartEnd(this.form)">
 <input type="button" 
      id="DONE" 
      value="_(Done)_"
      onclick="done()"><a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
+	 
+:parityProblems_check_plug:
+> When you click on  **Check** then a partial check is initiated that
+> will cover at least the start and end points that you have specified.  It will be a correcting check 
+> if the option to **Write Corrections** is set to **Yes**, and a read-check otherwise.
+> Note that this check will run for a minimum of 1 minute even if you specify a very small number of sectors to be checked.
+:end
+
 </form>
 
 <?endif;?>
