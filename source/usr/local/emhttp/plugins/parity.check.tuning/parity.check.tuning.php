@@ -1533,7 +1533,7 @@ function updateCronEntries() {
 					break;
 				case 2: // weekly
 					$resumetime = $parityTuningCfg['parityTuningResumeMinute'].' '
-								. $parityTuningCfg['parityTuningResumeHour'].' * *'
+								. $parityTuningCfg['parityTuningResumeHour'].' * * '
 								. $parityTuningCfg['parityTuningResumeDay'];
 					$pausetime  = $parityTuningCfg['parityTuningPauseMinute'].' '
 								. $parityTuningCfg['parityTuningPauseHour'].' * * '
