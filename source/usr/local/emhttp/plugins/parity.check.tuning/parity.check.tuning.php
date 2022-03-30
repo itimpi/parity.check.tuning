@@ -89,6 +89,7 @@ foreach ($filesToCheck as $filename) {
 switch ($command) {
 
     case 'updatecron':
+		parityTuningLogger('Configuration: '.print_r($parityTuningCfg,true));
 		updateCronEntries();
         break;
 
@@ -332,13 +333,13 @@ switch ($command) {
                 							tempInDisplayUnit($temp), $parityTuningTempUnit, $status,
                 							tempInDisplayUnit($hot), $parityTuningTempUnit,
                 							tempInDisplayUnit($cool), $parityTuningTempUnit)
-                						   . ($parityTuningShutdown ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
+                						   . ($parityTuningCfg['parityTuningShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
             }
         }
 
         // Handle at least 1 drive reaching shutdown threshold
 
-        if ($parityTuningShutdown) {
+        if ($parityTuningCfg['parityTuningShutdown']) {
 			if (count($criticalDrives) > 0) {
 				$drives=listDrives($criticalDrives);
 				parityTuningLogger(_("Array being shutdown due to drive overheating"));
@@ -927,7 +928,7 @@ function listDrives($drives) {
 function tempInDisplayUnit($temp) {
 //		 ~~~~~~~~~~~~~~~~~
 	global $parityTuningTempUnit;
-	if ($arityTuningTempUnit == 'C') {
+	if ($parityTuningTempUnit == 'C') {
 		return $temp;
 	}
 	return round(($temp * 1.8) + 32);

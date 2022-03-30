@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.23">
-<!ENTITY md5 "60dceb8b1e8191131e4f28880e104793">
+<!ENTITY version "2022.03.29">
+<!ENTITY md5 "a80a036b8021529f88754528d027e120">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -24,6 +24,10 @@
 
 <CHANGES>
 
+###2022.03.30
+ - Fix: centigrade temperature units being displayed as Fahrenheit value.
+ - Fix: resume temperature value saving incorrectly
+ 
 ###2022.03.29
  - Fix: invalid cron entry being generated for weekly increments
  

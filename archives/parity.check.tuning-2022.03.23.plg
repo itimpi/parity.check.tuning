@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.03.23">
-<!ENTITY md5 "60dceb8b1e8191131e4f28880e104793">
+<!ENTITY version "2022.03.22">
+<!ENTITY md5 "cd64cb5b83d62ff87ac245db2ba92721">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -28,8 +28,8 @@
  - Fix: regression that caused some settings fields to display incorrectly (although they were saving correctly)
  - Fix: regression that caused PHP error reporting level to be logged when log level not set to Testing
  - Fix: remove 'Start Check' button on Parity Problems Assistant page and relabel 'Apply' button to 'Check' as it now initiates the check
- - Fix: internal changes to improve logging (especially with Testing or Debug log level set)
- - New: Paused, Resumed and Completed messages in syslog even at Basic log level
+ - Fix: internal changes to improve logging (especially with Testing or 
+ Debug log level set)
  
 ###2022.03.20
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
