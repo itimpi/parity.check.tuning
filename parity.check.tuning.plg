@@ -23,7 +23,10 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
-
+###2022.03.31
+ - Fix: improve defaults for settings not found in configuration file
+        (will also apply to new installs)
+ 
 ###2022.03.30
  - Fix: centigrade temperatures being displayed as Fahrenheit value.
  - Fix: resume temperature setting value saving incorrectly
