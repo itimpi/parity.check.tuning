@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2022.04.02">
-<!ENTITY md5 "d3cdfb29080c3c85cb692f807e0ac7df">
+<!ENTITY md5 "4f54e80300a603c0fc99a587c6070b98">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,6 +23,9 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2022.04.02
+ - Fix: previous release not containing updated defaults file as intended.
+ 
 ###2022.03.31
  - Fix: improve defaults for settings not found in configuration file
         (will also apply to new installs)
