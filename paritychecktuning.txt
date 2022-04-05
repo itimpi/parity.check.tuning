@@ -26,6 +26,7 @@ Mover no longer running=
 Mover running=
 No array operation in progress=
 No parity check entries found in syslog=
+Outside times for increments so not resuming=
 ParityRead-Check History=Parity/Read-Check History=
 Parity Check=
 Parity Check Tuning logging=
@@ -48,7 +49,7 @@ Syslog only=
 Syslog and Flash=
 Flash only=
 This option is only available if Appdata BackupRestore v2 plugin installed=This option is only available if Appdata Backup/Restore v2 plugin installed
-This option is only available with Unraid 6.9.0 or later=
+This option is only available with Unraid 690 or later=This option is only available with Unraid 6.9.0 or later
 unknown=
 Unscheduled=
 Version=
@@ -227,7 +228,7 @@ Removed existing state file %s=
 Resume request=
 so no further action to take=
 Temperature monitoring switched off=
-Unraid version %s is too old to support restart
+Unraid version %s is too old to support restart=
 Unscheduled array operation in progress=
 using scheduled mode of %s=
 warm=
@@ -385,7 +386,7 @@ Method used to specify start and stop points=
 :end
 
 :parity_tune_low_plug:
-> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
+> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered.  If using increments has been set for the type of operation being performed then the time mest be within the increments window or the resume wil be deferred until that window is rezched.
 >
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
@@ -432,8 +433,16 @@ Method used to specify start and stop points=
 >
 >Feedback is welcome as to whether it is worth introducing any intermediate option that outputs information type messages on the plugin's activity, while omitting some of the lower level detail that is aimed at diagnosing any problems that might be encountered while the plugin is running. 
 >
->If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the inly option allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
+>If you have Testing mode set for the logging then you can choose where you want log messages to be recorded.  The default is the standard system syslog and this is the only option allowed in Basic mode.  The syslog is held in RAM so does not cause excessive writes to the flash drive. 
 >To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flash drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
+:end
+
+:parity_tune_defaults_plug:
+> The **Apply** button will save the currently displayed settings values.
+>
+> The **Done** button exits the settings page.
+>
+> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed.
 :end
 
 :parityProblems_type_plug:

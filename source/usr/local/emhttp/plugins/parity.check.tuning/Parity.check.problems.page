@@ -286,7 +286,7 @@ This can be much faster than having to run a full parity check or read check to 
 :end
 
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
-
+	 
 : <input type="submit" 
      name="#apply" 
      value="_(Check)_" 

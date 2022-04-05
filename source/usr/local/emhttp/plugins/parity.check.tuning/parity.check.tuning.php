@@ -86,9 +86,15 @@ foreach ($filesToCheck as $filename) {
 	}
 }
 
-switch ($command) {
+switch (strtolower($command)) {
 
-    case 'updatecron':
+	case 'defaults':
+		// reset user configuration to the defaults issued with plugin
+		@unlink (PARITY_TUNING_CFG_FILE);
+		parityTuningLogger(_('Settings reset to default values'));
+		// FALLTHRU
+	case 'updatecron':
+		// set up cron entries based on current configuration values
 		parityTuningLogger('Configuration: '.print_r($parityTuningCfg,true));
 		updateCronEntries();
         break;
@@ -100,13 +106,13 @@ switch ($command) {
 		// started.
         $cmd = 'mdcmd '; for ($i = 3; $i < count($argv) ; $i++)  $cmd .= $argv[$i] . ' ';
         parityTuningLoggerTesting(sprintf(_('detected that mdcmd had been called from %s with command %s'), $argv['2'], $cmd));
-        switch ($argv[2]) {
+        switch (strtolower($argv[2])) {
         case 'crond':
         case 'sh':
-            switch ($argv[3]) {
+            switch (strtolower($argv[3])) {
             case 'check':
                     loadVars(5);         // give time for start/resume
-                    if ($argv[4] == 'resume') {
+                    if (strtolower($argv[4]) == 'resume') {
                         parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . $parityTuningDescription));
                         parityTuningProgressWrite('RESUME');		// We want state after resume has started
                     } else {
@@ -115,7 +121,7 @@ switch ($command) {
 							parityTuningProgressAnalyze();
                         }
                         // Work out what type of trigger
-                        if ($argv[2] == 'crond') {
+                        if (strtolowes($argv[2]) == 'crond') {
 							parityTuningLoggerTesting ('... ' . _('appears to be a regular scheduled check'));
 							createMarkerFile(PARITY_TUNING_SCHEDULED_FILE);
 							parityTuningProgressWrite ('SCHEDULED');
@@ -127,7 +133,7 @@ switch ($command) {
                     }
                     break;
             case 'nocheck':
-                    if ($argv[4] == 'pause') {
+                    if (strtolower($argv[4]) == 'pause') {
                         parityTuningLoggerDebug ('...' . _('Pause' . ' ' . $parityTuningDescription));
                         loadVars(5);         // give time for pause
                         parityTuningProgressWrite ("PAUSE");
@@ -298,7 +304,7 @@ switch ($command) {
         parityTuningLoggerTesting (_('plugin temperature settings') 
 									. ': ' . _('Pause') . ' ' .  $parityTuningCfg['parityTuningHeatHigh'] 
 									. ', ' . _('Resume') . ' ' . $parityTuningCfg['parityTuningHeatLow']
-                				   . ($parityTuningShutdown ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
+                				   . ($parityTuningCfg['parityTuningShutdown'] ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
         foreach ($disks as $drive) {
             $name=$drive['name'];
             $temp = $drive['temp'];
@@ -324,8 +330,8 @@ switch ($command) {
 				//  Check all array and cache drives for critical temperatures
 				//  TODO: find way to include unassigned devices?
 				if ((($temp != "*" )) && ($temp >= $critical)) {
-					parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $drive, tempInDisplayUnit($temp), $parityTuningTempUnit,
-					$criticale, $parityTuningTempUnit));
+					parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $name, tempInDisplayUnit($temp), $parityTuningTempUnit,
+					$critical, $parityTuningTempUnit));
 					$criticalDrives[$name] = $temp;
 					$status = 'critical';
 				}
@@ -384,22 +390,39 @@ switch ($command) {
         	// Check if we need to resume because drives cooled sufficiently
 
             if (! file_exists(PARITY_TUNING_HOT_FILE)) {
+				// No resume if temperature marker file not found
                 parityTuningLoggerDebug (_('Array operation paused but not for temperature related reason'));
+				break;
             } else {
              	if (count($hotDrives) != 0) {
+					// No resume if hot drives still present
              		parityTuningLoggerDebug (_('Array operation paused with some drives still too hot to resume'));
+					break;
                 } else {
              		if (count($warmDrives) != 0) {
+						// No resume if drives not sufficiently cooled
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
+						break;
                     } else {
-                		parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('Drives cooled down')));
-                		parityTuningProgressWrite('RESUME (COOL)');
-                		exec('/usr/local/sbin/mdcmd "check" "RESUME"');
-                		sendTempNotification(_('Resume'), _('Drives cooled down'));
-                		parityTuningDeleteFile (PARITY_TUNING_HOT_FILE);
+						parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('Drives cooled down')));
+						sendTempNotification(_('Resume'), _('Drives cooled down'));
+						parityTuningDeleteFile (PARITY_TUNING_HOT_FILE);
+						// Decide if we are outside an increment window
+						// so must not resume even though drives cooled
+						if (! isParityCheckActivePeriod()) {
+							parityTuningLoggerDebug(_('Outside increment scheguled time'));
+							if ((($parityTuningCfg['parityTuningScheduled'] && file_exists(PARITY_TUNING_SCHEDULED_FILE)))
+							|| (($parityTuningCfg['parityTuningManual'] && file_exists(PARITY_TUNING_MANUAL_FILE)))
+							|| (($parityTuningCfg['parityTuningAutomatic'] && file_exists(PARITY_TUNING_AUTOMATIC_FILE)))){
+								parityTuningLogger(_('Outside times for increments so not resuming'));
+								break;
+							}
+						}
+						parityTuningProgressWrite('RESUME (COOL)');
+						exec('/usr/local/sbin/mdcmd "check" "RESUME"');
                 	}
 				}
-            }
+			}
         }
         break;
 
@@ -909,16 +932,22 @@ function spacerDebugLine($strt = true, $cmd) {
     parityTuningLoggerTesting ('----------- ' . strtoupper($cmd) . (($strt == true) ? ' begin' : ' end') . ' ------');
 }
 
-// Convert an array of drive names/temperatures into a simple list for display
-
+// Convert an array of drive names/temperatures into a simple list
+// for display.  If the drives to list are not supplied as a
+// parameter attempt to get them from a saved file on the flash.
 //       ~~~~~~~~~~
-function listDrives($drives) {
+function listDrives($drives = null) {
 //       ~~~~~~~~~~
 	global $parityTuningTempUnit;
 	$msg = '';
-    foreach ($drives as $key => $value) {
-        $msg .= $key . '(' . tempInDisplayUnit($value) . $parityTuningTempUnit . ') ';
-    }
+	if (is_null($drives)) {
+		$msg = file_get_contents(PARITY_TUNING_HOT_FILE);
+		if ($msg == false) $msg = '';
+	} else {
+		foreach ($drives as $key => $value) {
+			$msg .= $key . '(' . tempInDisplayUnit($value) . $parityTuningTempUnit . ') ';
+		}
+	}
     return $msg;
 }
 

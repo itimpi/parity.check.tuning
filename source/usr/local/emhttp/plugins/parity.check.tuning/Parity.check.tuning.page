@@ -241,6 +241,9 @@ function checkLoggingTarget (form) {
     } // end switch
 }
 
+function resetDefaults(form) {
+	form.elements['#arg[1]'].value = 'defaults';
+}
 
 $(function() {
   if ( typeof caPluginUpdateCheck === "function" ) {
@@ -589,7 +592,7 @@ $(function() {
          value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
 
 :parity_tune_low_plug:
-> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is issued.
+> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered.  If using increments has been set for the type of operation being performed then the time mest be within the increments window or the resume wil be deferred until that window is rezched.
 >
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
@@ -696,7 +699,19 @@ $(function() {
         id="DONE" 
         value="_(Done)_"
         onclick="done()">
-   
+<input type="submit" 
+     id="Defaults" 
+     value="_(Defaults)_"
+     onclick="resetDefaults(this.form)">
+
+:parity_tune_defaults_plug:
+> The **Apply** button will save the currently displayed settings values.
+
+> The **Done** button exits the settings page.
+
+> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed.
+:end
+ 
 <?if (file_exists("/boot/config/parity-checks.log")):?>
 &nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
 : <input type="button" 
@@ -704,6 +719,7 @@ $(function() {
        value="<?=_('History')?>" 
        onclick="openBox('/webGui/include/ParityHistory.php','Parity/Read-Check History',600,900,false,'dd')"><?=_('Click to show parity-check history')?>
        <a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
+
 <?endif;?>
 
 </form>
