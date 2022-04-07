@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.04.05">
-<!ENTITY md5 "bb325922c5accbd141f95ad2087afaba">
+<!ENTITY version "2022.04.07">
+<!ENTITY md5 "527ff3b65fe37b849776fe9225b679da">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,6 +23,10 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
+###2022.04.07
+ - New: options in plugin's cfg file to adjust monitor task frequency
+        (need to edit file directly to change as not exposed in GUI)
+ 
 ###2022.04.05
  - New: button to reset plugin settings to issued defaults
  - Fix: plugin was losing track of fact a pause had been temperature related
@@ -368,6 +372,11 @@ The 'post-install' script
     chgrp -R root /usr/local/emhttp/plugins/&plugin;
     # Set up option for CLI usage
     ln -s /usr/local/emhttp/plugins/&plugin;/&plugin;.php /usr/local/bin/parity.check
+	# If necesserary set plugin cfg file to defaults
+	if [ ! -f /boot/config/plugins/&plugin;/&plugin;.cfg ]; then
+		cp /usr/local/emhttp/plugins/&plugin;/&plugin;.defaults /boot/config/plugins/&plugin;/&plugin;.cfg
+		echo "default settings installed"
+	fi
     # set up intial cron schedules
     /usr/local/emhttp/plugins/&plugin;/&plugin;.php "updatecron"
     # Replace the standard mdcmd one with our custom version

@@ -1265,6 +1265,7 @@ END_PROGRESS_FOR_LOOP:
 		file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
 		file_put_contents($parityLogFile,$lines);
 	}
+	updateCronEntries();
 	spacerDebugLine(false, 'ANALYSE PROGRESS');
 }
 
