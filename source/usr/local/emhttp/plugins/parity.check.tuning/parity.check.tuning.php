@@ -90,7 +90,7 @@ switch (strtolower($command)) {
 
 	case 'defaults':
 		// reset user configuration to the defaults issued with plugin
-		@unlink (PARITY_TUNING_CFG_FILE);
+		@copy (PARITY_TUNING_DEFAULTS_FILE,PARITY_TUNING_CFG_FILE);
 		parityTuningLogger(_('Settings reset to default values'));
 		// FALLTHRU
 	case 'updatecron':
@@ -1538,17 +1538,13 @@ function isParityCheckActivePeriod() {
 //       ~~~~~~~~~~~~~~~~~
 function updateCronEntries() {
 //       ~~~~~~~~~~~~~~~~~
-	global $parityTuningCfg;
+	global $parityTuningCfg, $parityTuningActive;
+	
 	parityTuningLoggerTesting("Creating required cron entries");
-	parityTuningDeleteFile (PARITY_TUNING_CRON_FILE);
 	$lines = [];
 	$lines[] = "\n# Generated schedules for " . PARITY_TUNING_PLUGIN . "\n";
 
-	if (parityTuningPartial()) {
-		// Monitor every minutes during partial checks
-		$frequency = "*/1";
-		$msg = '1 minute';
-	} else {
+
 		if ($parityTuningCfg['parityTuningScheduled'] || $parityTuningCfg['parityTuningManual']) {
 			switch ($parityTuningCfg['parityTuningFrequency']) {
 				case 1: // custom
@@ -1577,22 +1573,27 @@ function updateCronEntries() {
 			$lines[] = "$pausetime " . PARITY_TUNING_PHP_FILE . ' "pause" &> /dev/null' . "\n";
 			parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('scheduled pause and resume')));
 		}
-		// Monitor every 7 minutes for temperature 
-		// or if array operation already active
-		if ($parityTuningActive
-		||$parityTuningCfg['parityTuningHeat'] 
-		|| $parityTuningCfg['parityTuningShutdown']) {
-			$frequency = "*/7";
-			$msg = '7 ' . _('minute');
+		// Decide on motitor frequency 
+
+		if (parityTuningPartial()) {
+			// Partial checks (default = 1 minute)
+			$frequency=$parityTuningCfg['parityTuningMonitorPartial'];
 		} else {
-			// Default if not monitoring more frequently for
-			// other reasons such as active or temperature
-			$frequency = "*/17";
-			$msg = '17 ' . _('minute');
+		if ($parityTuningActive) {
+			// Array operation already active (default = 6 minutes)
+			$frequency=$parityTuningCfg['parityTuningMonitorBusy'];
+		} else if ($parityTuningCfg['parityTuningHeat'] 
+			// check temperatures (default = 7 minutes)
+			   || $parityTuningCfg['parityTuningShutdown']) {
+			$frequency=$parityTuningCfg['parityTuningMonitorHeat'];
+		} else {
+			// Default if not monitoring more frequently for other 
+			// reasons (default = 17 minutes)
+			$frequency=$parityTuningCfg['parityTuningMonitorDefault'];
 		}
 	}
-	parityTuningLoggerDebug (sprintf(_('Created cron entry for %s interval monitoring'), $msg));
-	$lines[] = "$frequency * * * * " . PARITY_TUNING_PHP_FILE . ' "monitor" &>/dev/null' . "\n";
+	parityTuningLoggerDebug (sprintf(_('Created cron entry for %s interval monitoring'), $frequency.' '._('minute')));
+	$lines[] = "*/$frequency * * * * " . PARITY_TUNING_PHP_FILE . ' "monitor" &>/dev/null' . "\n";
 	file_put_contents(PARITY_TUNING_CRON_FILE, $lines);
 	parityTuningLoggerDebug(sprintf(_('updated cron settings are in %s'),PARITY_TUNING_CRON_FILE));
 	// Activate any changes
