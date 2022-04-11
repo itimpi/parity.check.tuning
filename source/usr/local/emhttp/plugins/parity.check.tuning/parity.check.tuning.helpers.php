@@ -132,7 +132,6 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
 loadVars();
-if ($parityTuningActive)  parityTuningLoggerTesting('Configuration: ' . print_r($parityTuningCfg, true));
 
 // Load up default description to avoid redundant calls elsewhere
 $parityTuningDescription = 	$parityTuningActive
@@ -281,8 +280,8 @@ function parityTuningLoggerDebug($string) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningLoggerTesting($string) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~
-  global $parityTuningCfg;
-  if ($parityTuningCfg['parityTuningLogging'] > 1) parityTuningLogger('TESTING: ' . $string);
+  global $parityTuningCfg, $command;
+  if ($parityTuningCfg['parityTuningLogging'] > 1) parityTuningLogger('TESTING:'.strtoupper($command)." $string");
 }
 
 //       ~~~~~~~~~~~~~~~~~~~~~

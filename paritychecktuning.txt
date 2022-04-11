@@ -24,6 +24,7 @@ Increment pause time=
 Increment resume time=
 Mover no longer running=
 Mover running=
+Need to check temperatures of spundown drives=
 No array operation in progress=
 No parity check entries found in syslog=
 Outside times for increments so not resuming=

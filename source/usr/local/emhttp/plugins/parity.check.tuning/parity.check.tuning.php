@@ -39,6 +39,7 @@ define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); 
 define('PARITY_TUNING_DISKS_FILE',     PARITY_TUNING_FILE_PREFIX . 'disks');    // Copy of disks.ini  info saved to allow check if disk configuration changed
 define('PARITY_TUNING_TIDY_FILE',      PARITY_TUNING_FILE_PREFIX . 'tidy');	    // Create when we think there was a tidy shutdown
 define('PARITY_TUNING_UNCLEAN_FILE',   PARITY_TUNING_FILE_PREFIX . 'unclean');  // Create when we think unclean shutdown forces a parity check being abandoned
+define('PARITY_TUNING_SPINUP_FILE',"$plugin.spinup");	// Create when we think drive needs spinning up
 
 
 loadVars();
@@ -121,7 +122,7 @@ switch (strtolower($command)) {
 							parityTuningProgressAnalyze();
                         }
                         // Work out what type of trigger
-                        if (strtolowes($argv[2]) == 'crond') {
+                        if (strtolower($argv[2]) == 'crond') {
 							parityTuningLoggerTesting ('... ' . _('appears to be a regular scheduled check'));
 							createMarkerFile(PARITY_TUNING_SCHEDULED_FILE);
 							parityTuningProgressWrite ('SCHEDULED');
@@ -287,7 +288,12 @@ switch (strtolower($command)) {
             break;
         }
 
-        // Get temperature information
+        // Get disk temperature information
+		//
+		// It is slightly complicated by the fact that the
+		// temperature of spundown disks cannot be read.
+		// We also need to allow for fact that indivdual disks
+		// can override the global settings
 
         // Merge SMART settings
         require_once "$docroot/webGui/include/CustomMerge.php";
@@ -298,42 +304,76 @@ switch (strtolower($command)) {
         $hotDrives = array();       // drives that exceed pause threshold
         $warmDrives = array();      // drives that are between pause and resume thresholds
         $coolDrives = array();      // drives that are cooler than resume threshold
+		$spinDrives = array();  	// drives that ase spundown so need spinning up to read temperatures
         $driveCount = 0;
         $arrayCount = 0;
         $status = '';
+		$globalWarning = ($dynamixCfg['display']['hot']??45);
+		$globalCritical = ($dynamixCfg['display']['max']??55);
+		parityTuningLoggerTesting (_('global temperature limits')
+									. ': ' . _('Warning') . ': ' . 
+									($globalWarning == 0?_('disabled'):$globalWarning)
+									. ', ' . _('Critical') . ': ' . 
+									($globalCritical == 0?_('disabled'):$globalCritical));
         parityTuningLoggerTesting (_('plugin temperature settings') 
 									. ': ' . _('Pause') . ' ' .  $parityTuningCfg['parityTuningHeatHigh'] 
 									. ', ' . _('Resume') . ' ' . $parityTuningCfg['parityTuningHeatLow']
                 				   . ($parityTuningCfg['parityTuningShutdown'] ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
+								   
+		// gather temperature information from all array drives
         foreach ($disks as $drive) {
             $name=$drive['name'];
             $temp = $drive['temp'];
+			// remove any lingering spinup marker file
+			parityTuningDeleteFile ("/mnt/$name/".PARITY_TUNING_SPINUP_FILE);
             if ((!startsWith($drive['status'],'DISK_NP')) & ($name != 'flash')) {
                 $driveCount++;
-                $critical  = ($drive['maxTemp'] ?? ($dynamixCfg['display']['max']??55)) - $parityTuningCfg['parityTuningHeatCritical'];
-                $hot  = ($drive['hotTemp'] ?? ($dynamixCfg['display']['hot']??45)) - $parityTuningCfg['parityTuningHeatHigh'];
-                $cool = ($drive['hotTemp'] ?? ($dynamixCfg['display']['hot']??45)) - $parityTuningCfg['parityTuningHeatLow'];
+				$driveWarning = ($drive['hotTemp'] ?? $globalWarning);
+				$driveCritical= ($drive['maxTemp'] ?? $globalCritical);
+				if (($driveWarning != $globalWarning)
+				||  ($driveCritical != $globalCritical)) {
+					parityTuningLoggerTesting (_('drive temperature limits')
+									. ': ' . _('Warning') . ': ' . 
+									($driveWarning== 0?_('disabled'):$driveWarning)
+									. ', ' . _('Critical') . ': ' . 
+									($driveCritical== 0?_('disabled'):$driveCritical));
+				}
+                $critical  = $driveCritical - $parityTuningCfg['parityTuningHeatCritical'];
+                $hot  = $driveWarning - $parityTuningCfg['parityTuningHeatHigh'];
+                $cool = $driveWarning - $parityTuningCfg['parityTuningHeatLow'];
 				// Check array drives for other over-heating
 				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
 					$arrayCount++;
-					if (($temp == "*" ) || ($temp <= $cool)) {
-					  $coolDrives[$name] = $temp;
-					  $status = 'cool';
-					} elseif ($temp >= $hot) {
-					  $hotDrives[$name] = $temp;
-					  $status = 'hot';
+					if (($temp == "*" ) && ($drive['size'] > $parityTuningPos)) {
+						$spinDrives['name'] = $name;
+					}
+					if ($driveWarning == 0) {
+						$status = _('disabled');
 					} else {
-						$warmDrives[$name] = temp;
-						$status = 'warm';
+						if (($temp != "*" ) 
+						&& ($temp <= $cool)) {
+						  $coolDrives[$name] = $temp;
+						  $status = _('cool');
+						} elseif ($temp >= $hot) {
+						  $hotDrives[$name] = $temp;
+						  $status = _('hot');
+						} else {
+							$warmDrives[$name] = temp;
+							$status = _('warm');
+						}
 					}
                 }
 				//  Check all array and cache drives for critical temperatures
 				//  TODO: find way to include unassigned devices?
-				if ((($temp != "*" )) && ($temp >= $critical)) {
-					parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $name, tempInDisplayUnit($temp), $parityTuningTempUnit,
-					$critical, $parityTuningTempUnit));
-					$criticalDrives[$name] = $temp;
-					$status = 'critical';
+				if ($driveCritical == 0) {
+					if ($driveWarning == 0) $status = _('disabled');
+				} else {
+					if ((($temp != "*" )) && ($temp >= $critical)) {
+						parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $name, tempInDisplayUnit($temp), $parityTuningTempUnit,
+						$critical, $parityTuningTempUnit));
+						$criticalDrives[$name] = $temp;
+						$status = _('critical');
+					}
 				}
                 parityTuningLoggerTesting (sprintf('%s temp=%s%s, status=%s (drive settings: hot=%s%s, cool=%s%s',$name,
                 							tempInDisplayUnit($temp), $parityTuningTempUnit, $status,
@@ -341,12 +381,16 @@ switch (strtolower($command)) {
                 							tempInDisplayUnit($cool), $parityTuningTempUnit)
                 						   . ($parityTuningCfg['parityTuningShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
             }
-        }
+        }  // end of for loop gathering temperature information
 
         // Handle at least 1 drive reaching shutdown threshold
-
+		// (deemed more important than simple overheating)
         if ($parityTuningCfg['parityTuningShutdown']) {
-			if (count($criticalDrives) > 0) {
+			if (count($criticalDrives) == 0) {
+				if (count($spinDrives) == 0) {
+					parityTuningLoggerDebug(_('No drives appear to have reached shutdown threshold'));
+				}
+			} else {
 				$drives=listDrives($criticalDrives);
 				parityTuningLogger(_("Array being shutdown due to drive overheating"));
 				file_put_contents (PARITY_TUNING_CRITICAL_FILE, "$drives\n");
@@ -364,8 +408,6 @@ switch (strtolower($command)) {
 					exec('/sbin/shutdown -h -P now');
 				}
 				break;
-			} else {
-				parityTuningLoggerDebug(_('No drives appear to have reached shutdown threshold'));
 			}
 	    }
 
@@ -373,6 +415,7 @@ switch (strtolower($command)) {
 
         parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives)));
         if ($parityTuningRunning) {
+			// PAUSE?
         	// Check if we need to pause because at least one drive too hot
             if (count($hotDrives) == 0) {
                 parityTuningLoggerDebug (sprintf('%s',_('All array drives below temperature threshold for a Pause')));
@@ -386,9 +429,8 @@ switch (strtolower($command)) {
                 sendTempNotification(_('Pause'),$msg);
             }
         } else {
-
-        	// Check if we need to resume because drives cooled sufficiently
-
+			// RESUME?
+        	// Check if we need to resume because drives cooled sufficiently. 
             if (! file_exists(PARITY_TUNING_HOT_FILE)) {
 				// No resume if temperature marker file not found
                 parityTuningLoggerDebug (_('Array operation paused but not for temperature related reason'));
@@ -404,6 +446,13 @@ switch (strtolower($command)) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
 						break;
                     } else {
+						if (count($spinDrives) != 0) {
+							parityTuningLoggerDebug (_('Need to check temperatures of spundown drives'));
+							foreach ($spinDrives as $spin) {
+								parityTuningLoggerDebug(_('Spinning up').' '.$spin);
+								createMarkerFile("/mnt/$spin/".PARITY_TUNING_SPINUP_FILE);
+							}
+						}
 						parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('Drives cooled down')));
 						sendTempNotification(_('Resume'), _('Drives cooled down'));
 						parityTuningDeleteFile (PARITY_TUNING_HOT_FILE);
@@ -1329,7 +1378,7 @@ function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~
 function sendArrayNotification ($op) {
 //       ~~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningCfg;
+	global $parityTuningCfg, $parityTuningDescription;
 	global $parityTuningAction,$parityTuningCorrecting;
     parityTuningLoggerTesting("Pause/Resume notification message: $op");
     if ($parityTuningCfg['parityTuningNotify'] == 0) {
@@ -1491,7 +1540,7 @@ function configuredAction() {
 					break;
 		}
 	}
-	parityTuningLoggerTesting("...configured action for $triggerType $parityTuningDescription: $result");
+	parityTuningLoggerTesting("...configured action for $parityTuningDescription: $result");
     return $result;
 }
 																																		
