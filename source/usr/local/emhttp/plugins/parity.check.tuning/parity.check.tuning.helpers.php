@@ -152,6 +152,16 @@ function createMarkerFile ($filename) {
 	}
 }
 
+// Tidy up the name of a marker file for logging purposes
+//       ~~~~~~~~~~~~~~~~~~~~~~
+function parityTuningMarkerTidy($name) {
+//       ~~~~~~~~~~~~~~~~~~~~~~
+	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
+		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file ';
+	}
+	return $name;
+}
+
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)
 //		 ~~~~~~~~~~~~~~~~~~~~

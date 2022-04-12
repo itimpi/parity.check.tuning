@@ -344,14 +344,18 @@ switch (strtolower($command)) {
 				// Check array drives for other over-heating
 				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
 					$arrayCount++;
-					if (($temp == "*" ) && ($drive['size'] > $parityTuningPos)) {
+				if ($temp == "*" ) 	// spun down
+					if ($drive['size'] > $parityTuningPos) {
 						$spinDrives['name'] = $name;
+					} else {
+						$coolDrives[$name] = $temp;
+						$status = _('cool');
 					}
+				} else {
 					if ($driveWarning == 0) {
 						$status = _('disabled');
 					} else {
-						if (($temp != "*" ) 
-						&& ($temp <= $cool)) {
+						if ($temp <= $cool) {
 						  $coolDrives[$name] = $temp;
 						  $status = _('cool');
 						} elseif ($temp >= $hot) {
@@ -961,15 +965,6 @@ function parityTuningDeleteFile($name) {
 		return true;
 	}
 	return false;
-}
-
-//       ~~~~~~~~~~~~~~~~~~~~~~
-function parityTuningMarkerTidy($name) {
-//       ~~~~~~~~~~~~~~~~~~~~~~
-	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
-		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file ';
-	}
-	return $name;
 }
 
 // Helps break debug information into blocks to identify entries for a given entry point

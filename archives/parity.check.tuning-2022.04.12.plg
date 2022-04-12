@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.04.11">
-<!ENTITY md5 "bffb4b0a48651b55bb90930af542785e">
+<!ENTITY version "2022.04.12">
+<!ENTITY md5 "24f092b04b21f14cac3f7a2f7f4ec7d6">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -23,7 +23,7 @@
 <multiLanguage>true</multiLanguage>
 
 <CHANGES>
-###2022.04.11
+###2022.04.12
  - Fix:  scheduled checks incorrectly being treated as manual checks
  - Fix:  pause/resume notifications omitting operation type
  - New:  handle active drives being spundown if paused during array
