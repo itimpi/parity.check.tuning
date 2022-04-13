@@ -344,47 +344,49 @@ switch (strtolower($command)) {
 				// Check array drives for other over-heating
 				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
 					$arrayCount++;
-				if ($temp == "*" ) 	// spun down
-					if ($drive['size'] > $parityTuningPos) {
-						$spinDrives['name'] = $name;
-					} else {
-						$coolDrives[$name] = $temp;
-						$status = _('cool');
-					}
-				} else {
-					if ($driveWarning == 0) {
-						$status = _('disabled');
-					} else {
-						if ($temp <= $cool) {
-						  $coolDrives[$name] = $temp;
-						  $status = _('cool');
-						} elseif ($temp >= $hot) {
-						  $hotDrives[$name] = $temp;
-						  $status = _('hot');
+					if ($temp == "*" ) { 	// spun down
+						if ($drive['size'] > $parityTuningPos) {
+							$spinDrives[] = $name;
 						} else {
-							$warmDrives[$name] = temp;
-							$status = _('warm');
+							$coolDrives[$name] = $temp;
+							$status = _('unknown');
+						}
+					} else {
+						if ($driveWarning == 0) {
+							$status = _('disabled');
+						} else {
+							if ($temp <= $cool) {
+							  $coolDrives[$name] = $temp;
+							  $status = _('cool');
+							} elseif ($temp >= $hot) {
+							  $hotDrives[$name] = $temp;
+							  $status = _('hot');
+							} else {
+								$warmDrives[$name] = temp;
+								$status = _('warm');
+							}
 						}
 					}
-                }
-				//  Check all array and cache drives for critical temperatures
-				//  TODO: find way to include unassigned devices?
-				if ($driveCritical == 0) {
-					if ($driveWarning == 0) $status = _('disabled');
-				} else {
-					if ((($temp != "*" )) && ($temp >= $critical)) {
-						parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $name, tempInDisplayUnit($temp), $parityTuningTempUnit,
-						$critical, $parityTuningTempUnit));
-						$criticalDrives[$name] = $temp;
-						$status = _('critical');
+					//  Check all array and cache drives for critical temperatures
+					//  TODO: find way to include unassigned devices?
+					if ($driveCritical == 0) {
+						if ($driveWarning == 0) $status = _('disabled');
+					} else {
+						if ((($temp != "*" )) && ($temp >= $critical)) {
+							parityTuningLoggerTesting(sprintf('Drive %s: %s%s appears to be critical (%s%s)', $name, tempInDisplayUnit($temp), $parityTuningTempUnit,
+							$critical, $parityTuningTempUnit));
+							$criticalDrives[$name] = $temp;
+							$status = _('critical');
+						}
 					}
+					parityTuningLoggerTesting (sprintf('%s temp=%s%s, status=%s (drive settings: hot=%s%s, cool=%s%s',$name,
+												($temp=='*')?'*':tempInDisplayUnit($temp),
+												($temp=='*')?'':$parityTuningTempUnit, $status,
+												tempInDisplayUnit($hot), $parityTuningTempUnit,
+												tempInDisplayUnit($cool), $parityTuningTempUnit)
+											   . ($parityTuningCfg['parityTuningShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
 				}
-                parityTuningLoggerTesting (sprintf('%s temp=%s%s, status=%s (drive settings: hot=%s%s, cool=%s%s',$name,
-                							tempInDisplayUnit($temp), $parityTuningTempUnit, $status,
-                							tempInDisplayUnit($hot), $parityTuningTempUnit,
-                							tempInDisplayUnit($cool), $parityTuningTempUnit)
-                						   . ($parityTuningCfg['parityTuningShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
-            }
+			}
         }  // end of for loop gathering temperature information
 
         // Handle at least 1 drive reaching shutdown threshold
@@ -417,7 +419,7 @@ switch (strtolower($command)) {
 
 		// Handle drives being paused/resumed due to temperature
 
-        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives)));
+        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives),_('spundown'),count($spinDrives)));
         if ($parityTuningRunning) {
 			// PAUSE?
         	// Check if we need to pause because at least one drive too hot
@@ -430,7 +432,7 @@ switch (strtolower($command)) {
                 parityTuningLogger (sprintf('%s %s %s: %s',_('Paused'), $parityTuningDescription, parityTuningCompleted(), $msg ));
                 parityTuningProgressWrite('PAUSE (HOT)');
                 exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
-                sendTempNotification(_('Pause'),$msg);
+                sendTempNotification(opWithErrorCount(_('Pause')),$msg);
             }
         } else {
 			// RESUME?
@@ -456,9 +458,10 @@ switch (strtolower($command)) {
 								parityTuningLoggerDebug(_('Spinning up').' '.$spin);
 								createMarkerFile("/mnt/$spin/".PARITY_TUNING_SPINUP_FILE);
 							}
+							break;
 						}
 						parityTuningLogger (sprintf ('%s %s %s %s',_('Resumed'),$parityTuningDescription, parityTuningCompleted(), _('Drives cooled down')));
-						sendTempNotification(_('Resume'), _('Drives cooled down'));
+						sendTempNotification(opWithErrorCount(_('Resume')), _('Drives cooled down'));
 						parityTuningDeleteFile (PARITY_TUNING_HOT_FILE);
 						// Decide if we are outside an increment window
 						// so must not resume even though drives cooled
@@ -501,10 +504,11 @@ switch (strtolower($command)) {
 			break;
 		}
 		if (file_exists(PARITY_TUNING_HOT_FILE)) {
-			parityTuningLoggerTesting('Resume ignored as paused because disks too hot');
+			parityTuningLoggerDebug('Resume ignored as paused because disks too hot');
+			break;
 		}
 		if (file_exists(PARITY_TUNING_MOVER_FILE)) {
-			parityTuningLoggerTesting('Resume ignored as paused because mover running');
+			parityTuningLoggerDebug('Resume ignored as paused because mover running');
 			break;
 		}
 
@@ -523,7 +527,7 @@ switch (strtolower($command)) {
 		}
 		if (configuredAction()) {
 			parityTuningLogger(_('Resumed').': '.$parityTuningDescription);
-			sendArrayNotification(_('Resumed'));
+			sendArrayNotification(opWithErrorCount(_('Resumed')));
 			exec('/usr/local/sbin/mdcmd "check" "resume"');
 		}
         break;
@@ -532,6 +536,7 @@ switch (strtolower($command)) {
 	// This could be via a scheduled cron task or a CLI command
 	
     case 'pause':
+	    parityTuningLoggerDebug (_('Pause request'));
         if (! isArrayOperationActive()) {
             parityTuningLoggerDebug('Pause ignored as no array operation in progress');
             break;
@@ -544,7 +549,7 @@ switch (strtolower($command)) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
 		if ($parityTuningPaused) {
-			parityTuningLoggerDebug(sprintf('... %s %s!', $parityTuningDescription, _('already paused')));
+			parityTuningLoggerDebug(sprintf('%s %s!', $parityTuningDescription, _('already paused')));
 			break;
 		}
 
@@ -555,7 +560,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			exec('/usr/local/sbin/mdcmd "nocheck" "pause"');
 			loadVars(5);
 			parityTuningLoggerTesting("Errors so far:  $parityTuningErrors");
-			sendArrayNotification (_('Paused') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : ''));
+			sendArrayNotification (opWithErrorCount(_('Paused')));
 		}
         break;	
 		
@@ -989,7 +994,7 @@ function listDrives($drives = null) {
 		if ($msg == false) $msg = '';
 	} else {
 		foreach ($drives as $key => $value) {
-			$msg .= $key . '(' . tempInDisplayUnit($value) . $parityTuningTempUnit . ') ';
+			$msg .= $key . '(' . ($value=='*'?'*':tempInDisplayUnit($value) . $parityTuningTempUnit) . ') ';
 		}
 	}
     return $msg;
@@ -1333,6 +1338,10 @@ function this_duration($time) {
   return this_plus($days,_('day'),($hour|$mins|$secs)==0).this_plus($hour,_('hr'),($mins|$secs)==0).this_plus($mins,_('min'),$secs==0).this_plus($secs,_('sec'),true);
 }
 
+function opWithErrorCount ($op) {
+	global $parityTuningErrors;
+	return ($op . ($parityTuningErrors > 0 ? " ($parityTuningErrors " . _('errors') . ')' : ''));
+}
 
 // send a notification without checking if enabled in plugin settings
 // (assuming even enabled at the system level)
@@ -1364,7 +1373,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningAction, $parityTuningCorrecting;
+	global $parityTuningDescription;
     sendNotification ($op, $desc . (strlen($desc) > 0 ? '<br>' : '') . $parityTuningDescription . parityTuningCompleted(), $type);
 }
 
@@ -1374,7 +1383,6 @@ function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 function sendArrayNotification ($op) {
 //       ~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCfg, $parityTuningDescription;
-	global $parityTuningAction,$parityTuningCorrecting;
     parityTuningLoggerTesting("Pause/Resume notification message: $op");
     if ($parityTuningCfg['parityTuningNotify'] == 0) {
         parityTuningLoggerTesting (_('... but suppressed as notifications do not appear to be enabled for pause/resume'));
