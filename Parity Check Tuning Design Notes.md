@@ -210,11 +210,11 @@ To provide compatibility across different Unraid versions and different plugin v
 
 | Number of fields | Comment      |
 |----------------|----------------|
-| 5 | The ofiginal Unriad f/rmzt trior to 6.10.0 
+| 5 | The original Unraid format prior to 6.10.0 
 | 6 | format introduced with 6.10.0 that added $type field
 | 7 | original plugin format (without $action field)
 | 8 | plugin format when $action field added
-| 9 | plugin format for Unraid 6.10.0 onwards
+| 9 | plugin format for Unraid 6.10.0 onward
 
 
 
@@ -226,14 +226,48 @@ To provide compatibility across different Unraid versions and different plugin v
 
 $date,$duration,$speed,$status,$error
 
+### Progress File
+
+To keep an accurate record of the various stages of an array operation the plugin creates a file called *parity.check.tuning.progress* in its folder on the flash drive.  When this file has been analyzed at the end of the array operation it is renamed to be *parity.check.tuning.progress.save*.
+
+The file has one record for each significant event detected by the plugin.  These records contain the following fields:
+
+| Name            | Comment        
+|-----------------|----------------
+| type            |  The event type.  For the current list supported see the Analyze function in the *parity.check.tuning.php* file included as part of the plugin
+| date           | Date and time in human readable format
+| time           | Unix style time field
+| sbSynced       |
+| sbSynced2      |
+| sbSyncExit     |
+| mdState        |
+| mdResync       |
+| mdResyncPos    |
+| meResyncSize   |
+| meResyncCorr   |
+| meResyncAction |
+| Description    | Not currently being used
+
+
+
 ### Syslog entries
 
-You get entries in the syslog of the form:
+The plugin will write events to the the syslog to indicate items deemed to be of significance.  There are currently 3 levels available:
+
+| Level   | Comment      
+|---------|----------------
+| Basic   | Major events such as Pause or Resume.
+| Debug   | A little more detail from the monitoring task within the plugin. Intended to be meaningful to the average user.
+| Testing | Very verbose entries covering all stages of the plugin's operation.  Used during development and to help identify faults in the way the plugin is operating.  
+
+The Unraid parity check code will write entries to the syslog during a parity check along the lines of:
 
 ```plaintext
 kernel: md: recovery thread: P corrected, sector=677922720
 ```
-Where P indicates parity1 and Q indicates parity2
+Where P indicates parity1 and Q indicates parity2.
+
+The plugin's Parity Check Troubleshooting function can filter these out to display to the user
 
 
 
