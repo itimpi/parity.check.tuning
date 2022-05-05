@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2022.05.05">
-<!ENTITY md5 "61690881abab4cdef66ddc72580ac1da">
+<!ENTITY version "2022.04.30">
+<!ENTITY md5 "42b14b6e67234fc91bf477b75a9a1160">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -24,54 +24,54 @@
 
 <CHANGES>
 ###2022.05.05
- - Fix: Minor internal tweaks to improve logging
- - New: Syslog entries when notifications are (potentially) generated
- - Fix: Updates to translations file
- - New: Generate notification if temperature pause exceeds 30 minutes
-	    (tunable via hidden setting in parity.check.tuning.cfg file)
+ - Fix: minor internal tweaks to improve logging
+ - New: syslog entries when notifications are (potentially) generated
+ - Fix: updates to translations file
+ - New: generate notification if temperature pause exceeds 30 minutes
+	    (time tunable via hidden setting in plugin's .cfg file)
  
 ###2022.04.12
- - Fix: Scheduled checks incorrectly being treated as manual checks
- - Fix: Pause/resume notifications omitting operation type
- - New: Handle active drives being spundown if paused during array
+ - Fix: scheduled checks incorrectly being treated as manual checks
+ - Fix: pause/resume notifications omitting operation type
+ - New: handle active drives being spundown if paused during array
          operation (due to drive(s) overheating)
  
 ###2022.04.07
- - New: Adjust monitor task frequency
-	    (tunable via hidden settings in parity.check.tuning.cfg file)
+ - New: options in plugin's .cfg file to adjust monitor task frequency
+        (need to edit file directly to change as not exposed in GUI)
  
 ###2022.04.05
- - New: Button to reset plugin settings to issued defaults
- - Fix: Plugin was losing track of fact a pause had been temperature related
- - Fix: Some anomolies in Testing log mode messages for temperatures 
+ - New: button to reset plugin settings to issued defaults
+ - Fix: plugin was losing track of fact a pause had been temperature related
+ - Fix: some anomolies in Testing log mode messages for temperatures 
  
 ###2022.04.02
- - Fix: Previous release not containing updated defaults file as intended.
+ - Fix: previous release not containing updated defaults file as intended.
  
 ###2022.03.31
- - Fix: Improve defaults for settings not found in configuration file
+ - Fix: improve defaults for settings not found in configuration file
         (will also apply to new installs)
  
 ###2022.03.30
- - Fix: Centigrade temperatures being displayed as Fahrenheit value.
- - Fix: Resume temperature setting value saving incorrectly
+ - Fix: centigrade temperatures being displayed as Fahrenheit value.
+ - Fix: resume temperature setting value saving incorrectly
  
 ###2022.03.29
- - Fix: Invalid cron entry being generated for weekly increments
+ - Fix: invalid cron entry being generated for weekly increments
  
 ###2022.03.23
- - Fix: Regression that caused some settings fields to display incorrectly (although they were saving correctly)
- - Fix: Regression that caused PHP error reporting level to be logged when log level not set to Testing
- - Fix: Remove 'Start Check' button on Parity Problems Assistant page and relabel 'Apply' button to 'Check' as it now initiates the check
- - Fix: Internal changes to improve logging (especially with Testing or Debug log level set)
+ - Fix: regression that caused some settings fields to display incorrectly (although they were saving correctly)
+ - Fix: regression that caused PHP error reporting level to be logged when log level not set to Testing
+ - Fix: remove 'Start Check' button on Parity Problems Assistant page and relabel 'Apply' button to 'Check' as it now initiates the check
+ - Fix: internal changes to improve logging (especially with Testing or Debug log level set)
  - New: Paused, Resumed and Completed messages in syslog even at Basic log level
  
 ###2022.03.20
  - New: Option to pause parity checks while CA Backup (if installed) is running a backup or restore.
- - Fix: Regression that stopped Tools->Parity Problems Assistant page showing
- - New: An option to run increments weekly for better alignment with 6.10.0-rc3
- - Fix: More 6.10.0-rc3 related changes and internal code tidying
- - Fix: Improvements in notification messages
+ - Fix: regression that stopped Tools->Parity Problems Assistant page showing
+ - New: added an option to run increments weekly for better alignment with 6.10.0-rc3
+ - Fix: more 6.10.0-rc3 related changes and internal code tidying
+ - Fix: improvements in notification messages
  
 ###2022.02.18
  - Fix: Compatibility with new parity history record format introduced with Unraid 6.10.0rc3.

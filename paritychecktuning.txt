@@ -3,6 +3,8 @@
 ; PART 1 - text strings
 
 ; Parity Check Settings Page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~
+; (should be translated)
 
 Parity Check Tuning=
 automatic=
@@ -17,6 +19,7 @@ Data Rebuild=
 Debug=
 Disk Clear=
 Donate to plugin author=DONATE
+Drives been above resume temperature threshold for %s minutes=
 entry in %s format=
 High disk temperatures can shutdown server=
 Increment frequency=
@@ -46,6 +49,7 @@ scheduled=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
 Shutdown server at=
+spundown=
 Syslog only=
 Syslog and Flash=
 Flash only=
@@ -53,13 +57,17 @@ This option is only available if Appdata BackupRestore v2 plugin installed=This 
 This option is only available with Unraid 690 or later=This option is only available with Unraid 6.9.0 or later
 unknown=
 Unscheduled=
-Version=
 Use increments for %s %s=
 Use increments for disk Clear operations=
 Use increments for Parity-SyncData Rebuild operations=Use increments for Parity-Sync/Data Rebuild operations
+Version=
+Waiting=
 You require a parity disk present for this option to be relevant=
 
 ; Parity Problems Assistant page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; (should be translated)
+
 Parity Problems Assistant=
 ; page intro text
 :parityProblems_intro_plug:
@@ -89,7 +97,35 @@ Start Check=
 Start point for check=
 Write Corrections to Parity=
 
+; Notifications
+; ~~~~~~~~~~~~~
+; (should be translated)
+
+aborted due to Unclean shutdown=
+array stopping so progress will be lost=
+; The type of array operation (parity check, clear, rebuild) will be appended to the following text
+Automatic unRaid=
+Average Speed=
+completed=
+Correcting Parity Check=
+Drives cooled down=
+errors=
+finished=
+Increments=
+NonCorrecting Parity Check=Non-Correcting Parity Check
+normal=
+Pause=
+Paused=
+Resume=
+Resumed=
+Runtime=
+Scheduled pause=
+Unclean shutdown detected=
+warning=
+will be started=
+
 ; PHP file messages
+; ~~~~~~~~~~~~~~~~~
 
 Analyze results from an array operation=
 Array being shutdown due to drive overheating=
@@ -122,32 +158,10 @@ Unrecognized option=
 Usage=
 where action is one of=
 
-; Notifications
-
-aborted due to Unclean shutdown=
-array stopping so progress will be lost=
-; The type of array operation (parity check, clear, rebuild) will be appended to the following text
-Automatic unRaid=
-Average Speed=
-completed=
-Correcting Parity Check=
-Drives cooled down=
-errors=
-finished=
-Increments=
-NonCorrecting Parity Check=Non-Correcting Parity Check
-normal=
-Pause=
-Paused=
-Resume=
-Resumed=
-Runtime=
-Scheduled pause=
-Unclean shutdown detected=
-warning=
-will be started=
-
 ; Swal warnings
+; ~~~~~~~~~~~~~
+; (these are popups from web page as a result of field validation)
+; (translation optional)
 
 A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week=
 At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually=
@@ -181,6 +195,8 @@ This might affect array integrity=
 Unusually large value=
 
 ; Syslog messages (with debug logging disabled)
+; ~~~~~~~~~~~~~~~
+; (translation optional)
 
 %s Cancelled=
 Array not started so no action taken=
@@ -189,6 +205,7 @@ Following drives overheated=
 Only able to start a Read-Check due to number of disabled drives=
 
 ; Syslog messages (with debug logging enabled)
+; ~~~~~~~~~~~~~~~
 ; (May not be worth translating these as they are mainly of use to the plugin developer)
 
 appears to be a regular scheduled check=
@@ -214,6 +231,7 @@ Detected that array has just been started=
 detected that mdcmd had been called from %s with command %s=
 ERROR=
 hot=
+idle=
 Loading progress file %s=
 No action specified=
 No array operation currently in progress=
@@ -236,6 +254,7 @@ warm=
 with all array drives below temperature threshold for a Pause=
 
 ; Syslog messages (with testing logging enabled)
+; ~~~~~~~~~~~~~~~
 ; (almost certainly not worth translating these as they are mainly of use to the plugin developer)
 
 analyze previous progress before starting new one=
@@ -246,12 +265,13 @@ shutdown %s=
 Shutdown not actioned as running in TESTING mode=
 updated cron settings are in %s=
 
-; PART 2 - TEXT Blocks ant HELP text
+; PART 2 - TEXT Blocks and HELP text
 
 End point for check=
 Method used to specify start and stop points=
 
 ; Help text on settings page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; These could perhaps be left in English to keep translation task easier)
 
 :parity_tune_explain_plug:

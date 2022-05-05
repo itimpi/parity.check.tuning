@@ -167,7 +167,13 @@ function parityTuningMarkerTidy($name) {
 //		 ~~~~~~~~~~~~~~~~~~~~
 function operationTriggerType() {
 //		 ~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningAction;
+	global $parityTuningAction, $parityTuningActive;
+	
+	if (! $parityTuningActive ) {
+		parityTuningLoggerTesting ('... ' . _('no array operation activee so trigger type not relevant'));
+		return '';
+	}
+	
 	if (! startsWith($parityTuningAction, 'check')) {
 		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
 		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
@@ -196,12 +202,18 @@ function operationTriggerType() {
 	}
 }
 
-// Get the long text description of an array operation
+// Get the long text description of an active array operation
 
 //       ~~~~~~~~~~~~~~~~
-function actionDescription($action, $correcting, $trigger = null) {
+function actionDescription($action, $correcting, $trigger = null, $active = null) {
 //       ~~~~~~~~~~~~~~~~
-    $act = explode(' ', $action );
+	global $parityTuningActive;
+	
+	if (is_null($active) && (! $parityTuningActive)) {
+		return '';
+	}
+    
+	$act = explode(' ', $action );
 
     switch (strtolower($act[0])) {
         case 'recon':	// TODO use extra array entries to decide if disk rebuild in progress or merely parity sync

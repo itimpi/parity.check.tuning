@@ -305,6 +305,7 @@ switch (strtolower($command)) {
         $warmDrives = array();      // drives that are between pause and resume thresholds
         $coolDrives = array();      // drives that are cooler than resume threshold
 		$spinDrives = array();  	// drives that ase spundown so need spinning up to read temperatures
+		$idleDrives = array();		// drives no longes being used
         $driveCount = 0;
         $arrayCount = 0;
         $status = '';
@@ -348,8 +349,8 @@ switch (strtolower($command)) {
 						if ($drive['size'] > $parityTuningPos) {
 							$spinDrives[] = $name;
 						} else {
-							$coolDrives[$name] = $temp;
-							$status = _('unknown');
+							$idleDrives[$name] = $temp;
+							$status = _('past size');
 						}
 					} else {
 						if ($driveWarning == 0) {
@@ -419,7 +420,7 @@ switch (strtolower($command)) {
 
 		// Handle drives being paused/resumed due to temperature
 
-        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives),_('spundown'),count($spinDrives)));
+        parityTuningLoggerDebug (sprintf('%s=%d, %s=%d, %s=%d, %s=%d, %s=%d, %s=%d', _('array drives'), $arrayCount, _('hot'), count($hotDrives), _('warm'), count($warmDrives), _('cool'), count($coolDrives),_('spundown'),count($spinDrives),_('idle'),count($idleDrives)));
         if ($parityTuningRunning) {
 			// PAUSE?
         	// Check if we need to pause because at least one drive too hot
@@ -450,6 +451,15 @@ switch (strtolower($command)) {
              		if (count($warmDrives) != 0) {
 						// No resume if drives not sufficiently cooled
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
+						// Generate notification if Pause seemes to be excessive
+						// (this may be due to resume threshold being too high)
+						$waitMinutes = int((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
+						$toLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
+						if (($waitMinutes > $toLongMinutes)
+						&&  ($waitMinutes <= ($toLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
+						{
+							sendTempNotification(opWithErrorCount(_('Waiting')), sprintf(_('Drives been above resume temperature threshold for %s minutes'),$waitMinutes));
+						}
 						break;
                     } else {
 						if (count($spinDrives) != 0) {
@@ -592,8 +602,6 @@ RUN_PAUSE:	// Can jump here after doing a restart
 	
     case 'array_started':
     	suppressMonitorNotification();
-        if (file_exists(PARITY_TUNING_SYNC_FILE)) parityTuningLoggerTesting('forcesync file present');
-        if (file_exists(PARITY_TUNING_TIDY_FILE)) parityTuningLoggerTesting('tidy shutdown file present');
     	parityTuningLoggerDebug (_('Array has not yet been started'));
     	if (file_exists(PARITY_TUNING_CRITICAL_FILE) && ($drives=file_get_contents(PARITY_TUNING_CRITICAL_FILE))) {
 			$reason = _('Detected shutdown that was due to following drives reaching critical temperature');
@@ -1166,8 +1174,9 @@ function parityTuningProgressAnalyze() {
                     break;
 
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
+			case 'RESUME (COOL)':	// should always be followed by standard RESUME so can ignore
+					break;
             case 'RESUME':
-            case 'RESUME (COOL)':
             case 'RESTART':
                     $increments++;		// Must be starting new increment
             		if (! $thisStart) $thisStart = $timestamp + $thisOffset;
@@ -1182,10 +1191,11 @@ function parityTuningProgressAnalyze() {
                     break;
 				
              // TODO:  Decide if we really need all these types if we treat them the same (although useful for debugging)!
+			case 'PAUSE (HOT)':	// should always be followed by standard PAUSE so can ignore.
+					break;
 			case 'COMPLETED':
 			case 'CANCELLED':
             case 'PAUSE':
-            case 'PAUSE (HOT)':
             case 'PAUSE (RESTART)':
 
             case 'STOPPING':
@@ -1351,10 +1361,9 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~
 	global $dynamixCfg, $docroot;
 	global $parityTuningRestartOK, $parityTuningServer;
-    parityTuningLoggerTesting (_('Send notification') . ': ' . $msg . ': ' . $desc);
+    parityTuningLogger (_('Send notification') . ': ' . "$msg: $desc " . parityTuningCompleted());
     if ($dynamixCfg['notify']['system'] == "" ) {
-    	parityTuningLoggerTesting (_('... but suppressed as system notifications do not appear to be enabled'));
-    	parityTuningLogger("$msg: $desc " . parityTuningCompleted());
+    	parityTuningLogger (_('... but suppressed as system notifications do not appear to be enabled'));
     } else {
         $cmd = $docroot. '/webGui/scripts/notify'
         	 . ' -e ' . escapeshellarg(parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning")
