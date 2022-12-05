@@ -21,6 +21,7 @@ Disk Clear=
 Donate to plugin author=DONATE
 Drives been above resume temperature threshold for %s minutes=
 entry in %s format=
+; %s is always substituted with link to how 'crontab' entries are formatted
 High disk temperatures can shutdown server=
 Increment frequency=
 Increment pause time=
@@ -45,6 +46,8 @@ Resume an array operation at=
 Resume parity checks on next array start=
 Resume running Array operations on next array start=
 Run %s %s in increments=
+; First %s is type (e.g. manual, automatic)
+; Second %s is operation type (e.g Parity-Check, Parity-Sync)
 scheduled=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
@@ -251,6 +254,7 @@ Unraid version %s is too old to support restart=
 Unscheduled array operation in progress=
 using scheduled mode of %s=
 warm=
+will not be restarted=
 with all array drives below temperature threshold for a Pause=
 
 ; Syslog messages (with testing logging enabled)
@@ -364,7 +368,9 @@ Method used to specify start and stop points=
 
 :parity_tune_restart_plug:
 > Unraid will normally abandon a parity check if the system is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
-> Setting this option allows parity checks to be restarted by this plugin from the point they had reached as long as the following criteria are met:  
+> Other array operations will be restarted from the beginning.
+> Setting this option allows parity checks to be restarted by this plugin from the point they had reached
+> as long as the following criteria are met:  
 >* The array was shutdown tidily  
 >* The user must not have made any changes to the array configuration.
 >
@@ -373,7 +379,6 @@ Method used to specify start and stop points=
 >**NOTES:**  
 >* If the array operation was within the time set for a scheduled increment to be running then on restarting the array operation it will be set to be paused if now outside the time set for running increments.  
 >* If the array operation was manually paused then the restarted array operation will also be paused  
->* If you want to use this feature by simply stopping the array without immediately using the **Reboot** or **Shutdown** buttons then you first need to manually **Pause** the array operation before using the **Stop** button.  If you to this and successfully stop the array then the array operation will now be resumed if you simply **Start** the array again, and also on the next array start after **Reboot** or **Shutdown**.
 :end
 
 :parity_tune_mover_plug:

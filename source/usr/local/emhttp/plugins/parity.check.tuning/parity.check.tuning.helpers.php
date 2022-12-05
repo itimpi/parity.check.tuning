@@ -146,10 +146,14 @@ if ($parityTuningActive) parityTuningLoggerDebug($parityTuningDescription.' '.($
 function createMarkerFile ($filename) {
 //       ~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningCorrecting;
+	static $fnLock = false;
+	while ($fnLock) usleep(100000);
+	$fnLock=true;
 	if (!file_exists($filename)) {
-		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT));
+		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT, LOCK_EX));
 		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
 	}
+	$fnLock=false;
 }
 
 // Tidy up the name of a marker file for logging purposes
@@ -209,7 +213,7 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
 //       ~~~~~~~~~~~~~~~~
 	global $parityTuningActive;
 	
-	if (is_null($active) && (! $parityTuningActive)) {
+	if (is_null($action) && (! $parityTuningActive)) {
 		return '';
 	}
     
@@ -254,8 +258,6 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
 	parityTuningLoggerTesting("actionDescription($action, $correcting, $trigger) = $ret");
 	return $ret;
 }
-
-//	get the display form of the trigger type in a manner that is compatible with multi-language support
 
 
 //	test if partial parity check in progress
