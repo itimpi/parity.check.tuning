@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.01.30">
-<!ENTITY md5 "1a8fd47d3908b8a7a904b4b25a918c14">
+<!ENTITY version "2023.02.01">
+<!ENTITY md5 "88c2efa0634aff370c539fd35401e1b7">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -28,7 +28,7 @@ TODO
  - Improve suppression of misleading Unraid messages about parity operations
  - See if can autostart array on restarts if needed.
  
-### 2023.02.01
+### 2023.02.02
  - New: Remove support for Unraid versions prior to 6.9.2
  - New: Add warning about incompatibility with Unraid Cumulative Parity Check option.
  - Fix: History button on Settings page not working for Unraid 6.11 and 6.12
