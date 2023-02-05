@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tuning plugin
  *
- * Copyright 2019-2022, Dave Walker (itimpi).
+ * Copyright 2019-2023, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -98,8 +98,7 @@ $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE
 
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
-$parityTuningVersionOK = (version_compare($parityTuningUnraidVersion['version'],'6.7','>') >= 0);
-$parityTuningRestartOK = (version_compare($parityTuningUnraidVersion['version'],'6.8.3','>') > 0);
+$parityTuningSizeInHistory = (version_compare($parityTuningUnraidVersion['version'],'6.11.3','>') > 0);
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
@@ -134,11 +133,13 @@ function loadVars($delay = 0) {
 loadVars();
 
 // Load up default description to avoid redundant calls elsewhere
-$parityTuningDescription = 	$parityTuningActive
-							? actionDescription($parityTuningAction, $parityTuningCorrecting)
-							:_('No array operation in progress');
-if ($parityTuningActive) parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningRunning ? _('running') : _('paused')));
-
+// TODO - decide if this really is worth doing?
+if ($parityTuningActive) {
+	$parityTuningDescription = actionDescription($parityTuningAction, $parityTuningCorrecting);
+	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningRunning ? _('running') : _('paused')));
+} else {
+	$parityTuningDescription = _('No array operation in progress');
+}
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
 
@@ -173,9 +174,12 @@ function operationTriggerType() {
 //		 ~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningActive;
 	
-	if (! $parityTuningActive ) {
-		parityTuningLoggerTesting ('... ' . _('no array operation activee so trigger type not relevant'));
-		return '';
+	if (! file_exists(PARITY_TUNING_RESTART_FILE) ) {
+		parityTuningLoggerTesting ('... ' . _('no restart operation active'));
+		if (!($parityTuningActive )) {
+			parityTuningLoggerTesting ('... ' . _('no array operation active so trigger type not relevant'));
+			return '';
+		}
 	}
 	
 	if (! startsWith($parityTuningAction, 'check')) {

@@ -30,8 +30,8 @@ Options it is known to take are:
 | ------                | ------- 
 | status                | Provides a dump to stdout of the /proc/mdstat information
 | check                 | Initiates a correcting parity check
-| check CORRECT         | Initiates a correcting parity check
-| check NOCORRECT       | Initiate a non-correcting parity check
+| check CORRECT [offset] | Initiates a correcting parity check.  An optional offset can be provided for the starting position
+| check NOCORRECT [offset] | Initiate a non-correcting parity check.  An optional offset can be provided for the starting position.
 | nocheck               | Cancels a running parity sync/check
 | set md_write_method 1 | Enable Turbo write
 | set md_num_stripes x  |
@@ -46,9 +46,9 @@ Options it is known to take are:
 
 The plugin replace the standard **mdcmd** command with a custom version that invokes the plugin support code so we know mdcmd was used but otherwise functions as normal
 
-#### 6.9.0 beta
+#### Starting at a specified offset
 
-First, review: Here are the sync related commands:
+All array operations can be started from a specified offset:
 
 ```plaintext
 "mdcmd check" - same as "mdcmd check CORRECT"

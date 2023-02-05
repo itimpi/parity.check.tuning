@@ -95,3 +95,6 @@ data/case1/parity.check.tuning.progress.save
 data/case2/parity-checks.log.new
 data/case2/parity-checks.log.old
 data/case2/parity.check.tuning.progress.save
+paritychecktuning.fr_FR.zip
+paritychecktuning.txt.save
+translations.php

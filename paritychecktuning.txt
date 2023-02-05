@@ -14,7 +14,7 @@ below warning disk temperature threshold=
 CA Backup or Restore running=
 CA Backup or Restore no longer running=
 CAUTION=
-Click to show parity-check history=
+Click to show Parity Operations history=
 Data Rebuild=
 Debug=
 Disk Clear=
@@ -23,6 +23,7 @@ Drives been above resume temperature threshold for %s minutes=
 entry in %s format=
 ; %s is always substituted with link to how 'crontab' entries are formatted
 High disk temperatures can shutdown server=
+Incompatible options=
 Increment frequency=
 Increment pause time=
 Increment resume time=
@@ -32,7 +33,6 @@ Need to check temperatures of spundown drives=
 No array operation in progress=
 No parity check entries found in syslog=
 Outside times for increments so not resuming=
-ParityRead-Check History=Parity/Read-Check History=
 Parity Check=
 Parity Check Tuning logging=
 Parity Sync=
@@ -41,9 +41,8 @@ Pause and Resume array operations if disks overheat=
 Pause array operations while appdata backup or restore running=
 Pause array operations while mover running=
 Read Check=
-Requires unRaid 67 or later=Requires unRaid 6.7 or later=
 Resume an array operation at=
-Resume parity checks on next array start=
+Resume array operations on next array start=
 Resume running Array operations on next array start=
 Run %s %s in increments=
 ; First %s is type (e.g. manual, automatic)
@@ -57,7 +56,6 @@ Syslog only=
 Syslog and Flash=
 Flash only=
 This option is only available if Appdata BackupRestore v2 plugin installed=This option is only available if Appdata Backup/Restore v2 plugin installed
-This option is only available with Unraid 690 or later=This option is only available with Unraid 6.9.0 or later
 unknown=
 Unscheduled=
 Use increments for %s %s=
@@ -87,7 +85,7 @@ This can be much faster than having to run a full parity check or read check to 
 **IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
 :end
 ; fields
-Click to show Error Sectors from syslog=
+Click to show Parity check entries from syslog=
 End point for check=
 Method used to specify start and stop points=
 Only read checks can be performed=
@@ -193,6 +191,7 @@ Testing mode is very verbose and generates a lot of additional log entries so yo
 The Pause and Resume times cannot be identical=
 The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
 The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
+The Unraid Cumulative Parity Check option must not be used if you want to use this plugin to handle pause and resume of scheduled Parity Checks=
 The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the unRaid level=
 This might affect array integrity=
 Unusually large value=

@@ -3,12 +3,12 @@ Title="Parity Problems Assistant"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2022, Dave Walker (itimpi).
+/* Copyright 2022-2023, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
- *'
+ *
  * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
@@ -33,7 +33,6 @@ else:
 <? 
 loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
-if (!$parityTuningRestartOK)  echo "<p class='notice'>" . _('Unraid 6.9.0 or later required to use this assistant') . "</p>"; 
 if ($parityTuningActive)   echo "<p class='notice'>" . $parityTuningDescription . ' ' .  _('running') . "</p>"; 
 loadVars(0);
 if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
@@ -276,7 +275,8 @@ This can be much faster than having to run a full parity check or read check to 
 : <input type="button" 
      value="<?=_('Show Sector Numbers')?>" 
      id="showErrorSector"
-	 onclick = "myWin=window.open('/plugins/parity.check.tuning/parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">_(Click to show Parity check entries from syslog)_
+	 onclick = "myWin=window.open('/plugins/parity.check.tuning/parity.check.entries.php','errorSectors','scrollbars=yes,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=600,height=900,left=0,top=0');positionPopup()">
+	 <?=_('Click to show Parity check entries from syslog')?>
 
 
 :parityProblems_sectors_plug:

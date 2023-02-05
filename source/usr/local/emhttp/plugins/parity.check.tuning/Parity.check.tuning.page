@@ -3,7 +3,7 @@ Title="Parity Check Tuning"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2019-2022, Dave Walker (itimpi).
+/* Copyright 2019-2023, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -32,6 +32,7 @@ else:
 <script>
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
 var noBackup = <?=(file_exists(PARITY_TUNING_CABACKUP_FILE) ? 'false' : 'true')?>;
+var cumulative = <?= $dynamixCfg['parity']['cumulative']==1 ? 'true' : 'false';?>;
 
 // Preset fields to be enabled/disabled as appropriate
 function presetParityTuning(form) {
@@ -41,10 +42,6 @@ function presetParityTuning(form) {
     form.parityTuningRecon.disabled = true;
     form.parityTuningClear.disabled = true;
   }
-  <? if (!$parityTuningRestartOK):?>
-  // form.parityTuningRestart.value = "0";
-  form.parityTuningRestart.disabled = true;
-  <?endif;?>
   var parityTuningDisabled = ((form.parityTuningScheduled.value == '0')  
   			               && (form.parityTuningManual.value == '0')
                            && (form.parityTuningClear.value == '0')
@@ -102,6 +99,18 @@ function presetParityTuning(form) {
   	case "2": // Testing
 		form.parityTuningLogTarget.style.display = "inline";
 		break;
+	}
+	checkCumulative(form);
+}
+
+function checkCumulative(form){
+	if (cumulative) {
+		if	(form.parityTuningScheduled.value == "1") {
+			swal({title: "_(Incompatible options)_",
+				  text: "_(The Unraid Cumulative Parity Check option must not be used if you want to use this plugin to handle pause and resume of scheduled Parity Checks)_",
+				  icon: "Error"});
+		}
+		form.parityTuningScheduled.value = "0"
 	}
 }
 
@@ -168,17 +177,18 @@ function checkNotifications (me) {
 }
 
 function checkTimeRange(form) {
-    var difference = form.parityTuningPauseHour.value - form.parityTuningResumeHour.value;
-	if ((difference == 0)
-	&& (form.parityTuningPauseMinute.value == form.parityTuningResumeMinute.value)) {
+	var resumeTime = Number((form.parityTuningResumeHour.value) * 60) + Number(form.parityTuningResumeMinute.value);
+	var pauseTime  = Number((form.parityTuningPauseHour.value) * 60)  + Number(form.parityTuningPauseMinute.value);
+    var difference = pauseTime - resumeTime;
+	if (difference == 0) {
 		swal({title: "_(Pause and Resume times)_?",
 			text:"_(The Pause and Resume times cannot be identical)_.",
 			icon:"Error"});
 		document.getElementById('Apply').disabled = true;
 		return;
 	}
-    if ( difference < 0) difference += 24;
-	if (difference > 12 ) {
+    if ( difference < 0) difference += (24 * 60);
+	if (difference > (12 * 60) ) {
 		swal({title: "_(Pause and Resume times)_?",
 			  text:"_(The Pause and Resume times would give an increment length of more than 12 hours which is unusual)_.  _(Are you sure you have not got these the wrong way around)_?",
 			  icon:"Warning"});
@@ -241,6 +251,16 @@ function checkLoggingTarget (form) {
     } // end switch
 }
 
+function parityTuningHistory() {
+	if(typeof openChanges === "function"){
+	  // Unraid 6.11+ support
+	  openChanges("parity_history", "_(Parity Operation History)_", "phistory");
+	} else {
+	  // legacy support (perhaps could be removed?)
+	  openBox('/webGui/include/ParityHistory.php','Parity Operation History',600,900,false,'dd');
+	}
+}
+
 function resetDefaults(form) {
 	form.elements['#arg[1]'].value = 'defaults';
 }
@@ -252,8 +272,6 @@ $(function() {
 });
 
 </script>
-
-<?if (!$parityTuningVersionOK) echo "<p class='notice'>" . _('Requires unRaid 6.7 or later') . "</p>";?>
 
 <div class='pluginUpdate'></div>
 
@@ -380,7 +398,8 @@ $(function() {
      <?endfor;?>
   </select>
   <select name="parityTuningResumeMinute" 
-          size='1' class='narrow'>
+          size='1' class='narrow'
+		  onChange="checkTimeRange(this.form)">
     <?for ($d=0; $d<=55; $d+=5):?>
       <?=mk_option($parityTuningCfg['parityTuningResumeMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
     <?endfor;?>
@@ -425,7 +444,8 @@ $(function() {
       <?}?>
     </select>
     <select name="parityTuningPauseMinute"
-            size='1' class='narrow'>
+            size='1' class='narrow'
+			onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=55; $d+=5):?>
           <?=mk_option($parityTuningCfg['parityTuningPauseMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?endfor;?>
@@ -500,7 +520,7 @@ $(function() {
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningRestart'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningRestart'], "1", _("Yes")) . "\n"?>
-  </select><? if (!$parityTuningRestartOK) echo '<font color=#FF8C2F>' . _('This option is only available with Unraid 6.9.0 or later') . '</font>'; ?>
+  </select>
   
 :parity_tune_restart_plug:
 > Unraid will normally abandon a parity check if the system is shutdown, rebooted  or the array is stopped (with the only option being to restart the parity check from the beginning).  
@@ -721,7 +741,7 @@ $(function() {
 : <input type="button" 
        name="showHistory" 
        value="<?=_('History')?>" 
-       onclick="openBox('/webGui/include/ParityHistory.php','Parity/Read-Check History',600,900,false,'dd')"><?=_('Click to show parity-check history')?>
+       onclick="parityTuningHistory()"><?=_('Click to show Parity Operations history')?>
        <a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
 
 <?endif;?>
