@@ -171,19 +171,20 @@ function parityTuningMarkerTidy($name) {
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)
 //		 ~~~~~~~~~~~~~~~~~~~~
-function operationTriggerType() {
+function operationTriggerType($action = null, $active=null) {
 //		 ~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningActive;
 	
+	if (is_null($action)) $action = $parityTuningAction;
+	if (is_null($active)) $active = $parityTuningActive;
 	if (! file_exists(PARITY_TUNING_RESTART_FILE) ) {
 		// parityTuningLoggerTesting ('... ' . _('no restart operation active'));
-		if (!($parityTuningActive )) {
+		if (!($active)) {
 			// parityTuningLoggerTesting ('... ' . _('no array operation active so trigger type not relevant'));
 			return '';
 		}
 	}
-	
-	if (! startsWith($parityTuningAction, 'check')) {
+	if (! startsWith($action, 'check')) {
 		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
 		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $parityTuningAction");
@@ -212,15 +213,19 @@ function operationTriggerType() {
 }
 
 // Get the long text description of an active array operation
+// if $correcting is omitted, then the mdstat values will be assumed
+// if $trigger is omitted, then the presenced of marked files will be used
+// if $active is omitted or false, then the mdstat active state will be used
 
 //       ~~~~~~~~~~~~~~~~
 function actionDescription($action, $correcting, $trigger = null, $active = null) {
 //       ~~~~~~~~~~~~~~~~
 	global $parityTuningActive;
 	
-	if (is_null($action) && (! $parityTuningActive)) {
-		return '';
-	}
+	if (is_null($active)) $active = $parityTuningActive;
+	
+	if (is_null($action)) return '';		// This should never happen!
+
     
 	$act = explode(' ', $action );
 
@@ -233,8 +238,8 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
         case 'check':   $type = (count($act) == 1) 
 								?
 								: _('Parity Check');
-						if (is_null($trigger)) $triggerType = operationTriggerType();
-
+						$triggerType = ((is_null($trigger)) ? operationTriggerType($action,$active):$trigger);
+						parityTuningLoggerTesting("triggerType: $triggerType");
 						switch (strtoupper($triggerType)) {
 							case 'AUTOMATIC': 
 								$triggerType =  _('Automatic');
@@ -248,7 +253,7 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
 							default:			
 								$triggerType =  '';
 								break;
-	}
+						}
         				$ret = ($triggerType . ' ' .
 								(count($act) == 1 ?  _('Read-Check') 
 								: ($correcting == 0 
@@ -260,7 +265,7 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
 						break;
     }
 
-	parityTuningLoggerTesting("actionDescription($action, $correcting, $trigger) = $ret");
+	parityTuningLoggerTesting("actionDescription($action, $correcting, $trigger, $active) = $ret");
 	return $ret;
 }
 

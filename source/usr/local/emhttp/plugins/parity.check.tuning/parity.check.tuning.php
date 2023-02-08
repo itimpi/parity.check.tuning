@@ -1099,7 +1099,7 @@ function tempFromDisplayUnit($temp) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~
 function parityTuningProgressWrite($msg, $filename=PARITY_TUNING_PROGRESS_FILE) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningVar;
+	global $parityTuningVar, $parityTuningDescription;
 	global $parityTuningAction, $parityTuningCorrecting;
 	
 	static $fnLock = false;
@@ -1203,10 +1203,10 @@ function parityTuningProgressAnalyze() {
         parityTuningProgressWrite($endType,PARITY_TUNING_PROGRESS_SAVE );
 		$lines = file(PARITY_TUNING_PROGRESS_SAVE);	// Reload file
     }
-    $duration = $elapsed = $increments = $corrected = 0;
+    $duration = $elapsed = $increments = $corrected = $size = 0;
     $thisStart = $thisFinish = $thisElapsed = $thisDuration = $thisOffset = 0;
     $lastFinish = $exitCode = $firstSector = $reachedSector = 0;
-	$size = '';
+
 	$triggerType = '';
     $mdResyncAction = '';
 	$mdStartAction = '';		// This is to handle case where COMPLETE record has wrong type
@@ -1214,6 +1214,10 @@ function parityTuningProgressAnalyze() {
     	parityTuningLoggerTesting("$line");
         list($op,$stamp,$timestamp,$sbSynced,$sbSynced2,$sbSyncErrs, $sbSyncExit, $mdState,
              $mdResync, $mdResyncPos, $mdResyncSize, $mdResyncCorr, $mdResyncAction, $desc) = explode ('|',$line);
+		if ($op === 'type') {
+			parityTuningLoggerTesting("ignore header record");
+			continue;
+		}
 		// A progress file can have a time offset which we can determine by comparing text and binary timestamps
 		// (This will only be relevant when testing Progress files submitted as part of a problem report)
         if (! $increments) {
@@ -1224,6 +1228,15 @@ function parityTuningProgressAnalyze() {
 				if ($thisOffset != 0) parityTuningLoggerTesting ("Progress time offset = $thisOffset seconds");
 			}
         }
+		if ($mdResyncSize > $size) {
+			parityTuningLoggerTesting("Size reset from $size to $mdResyncSize");
+			$size = $mdResyncSize;
+		}
+		if (! isset($correcting)) {
+			parityTuningLoggerTesting("correcting set to $mdResyncCorr");
+			$correcting = $mdResyncCorr;
+		}
+	
         switch ($op) {
         	case 'SCHEDULED':
         			$triggerType = $op;
@@ -1340,7 +1353,7 @@ END_PROGRESS_FOR_LOOP:
 		$speed .= "$unit/s";
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
-		$actionType = actionDescription($startAction, $mdResyncCorr, $triggerType);
+		$actionType = actionDescription($startAction, $mdResyncCorr, $triggerType, true);
 		$msg  = sprintf(_('%s %s (%d %s)'),
 						$actionType, $exitStatus, $corrected, _('errors'));
 		$desc = sprintf(_('%s %s, %s %s, %s %d, %s %s'),
@@ -1393,7 +1406,7 @@ END_PROGRESS_FOR_LOOP:
 			parityTuningLoggerTesting('add size to history record: '. $size); 
 			$generatedRecord .= '|'.$size;
 		}
-		$pluginExtra='|'.$elapsed.'|'.$increments.'|'.$triggerType.' '.$actionType;
+		$pluginExtra='|'.$elapsed.'|'.$increments.'|'.$actionType;
 		parityTuningLoggerTesting('add plugin specific fields history record: '.$pluginExtra); 
 		$generatedRecord .= $pluginExtra."\n";
 		parityTuningLoggerTesting('log record generated from progress: '. $generatedRecord);    

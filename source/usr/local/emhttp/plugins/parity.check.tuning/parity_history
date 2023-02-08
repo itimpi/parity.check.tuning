@@ -46,6 +46,7 @@ if ($lines != false) {
     }
   }
 }
+parityTuningLoggerTesting("Parity History: records with extended format present:$extended");
 $head = "<table style='margin-top:10px;background-color:inherit'><tr style='font-weight:bold'><td>"._('Action')."</td><td>"._('Date')."</td><td>"._('Size')."</td><td>"._('Duration')."</td><td>"._('Speed')."</td><td>"._('Status')."</td><td>"._('Errors')
         .($extended?"<td>"._('Elapsed Time')."</td><td>"._('Increments')."</td>":'')
 		."</td></tr>";
@@ -109,7 +110,7 @@ if (file_exists($log)) {
       case 'check': $action = count($action)>1 ? _('Parity-Check') : _('Read-Check'); 
 	  				$parityTuningAction = preg_split('/\s+/',$parityTuningType);
 					// Determine trigger type
-					switch ($parityTuningAction[0]) {
+					switch (strtoupper($parityTuningAction[0])) {
 						case 'MANUAL':     $parityTuningType = _('Manual'); 
 									break;
 						case 'AUTOMATIC':  $parityTuningType = _('Automatic');
@@ -128,7 +129,6 @@ if (file_exists($log)) {
       case 'clear': $action = _('Disk-Clear'); break;
       default     : $action = '-'; break;
     }
-
 
 	
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
