@@ -57,7 +57,7 @@ if (file_exists($log)) {
   while (($row = fgets($handle))!==false) {
 	$lineNumber ++;
 	// workout what format the record it in and handle accordingly
-	parityTuningLoggerTesting("Parity History Record: $row");
+	// parityTuningLoggerTesting("Parity History Record: $row");
 	$fieldCount = count(explode('|',$row));
 	// Preset fields only present in extended formats for backwards compatibility
 	$increments = $elapsed = $parityTuningType = "";
@@ -117,7 +117,7 @@ if (file_exists($log)) {
 						case 'SCHEDULED':   $parityTuningType = _('Scheduled'); 
 									break;
 						default: $parityTuningType = ''; 
-									ParityTuningLoggerTesting("Trigger type unknown");
+									// ParityTuningLoggerTesting("Trigger type unknown");
 									break;
 					}
 					// Add in Correcting/Non-Correcting if known

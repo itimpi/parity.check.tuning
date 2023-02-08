@@ -97,8 +97,9 @@ if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
 
 // Handle Unraid version dependencies
-$parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version");
-$parityTuningSizeInHistory = (version_compare($parityTuningUnraidVersion['version'],'6.11.3','>') > 0);
+$parityTuningUnraidVersion = (parse_ini_file("/etc/unraid-version"))['version'];
+$parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.3','>');
+parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Size in History:$parityTuningSizeInHistory");
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
@@ -175,9 +176,9 @@ function operationTriggerType() {
 	global $parityTuningAction, $parityTuningActive;
 	
 	if (! file_exists(PARITY_TUNING_RESTART_FILE) ) {
-		parityTuningLoggerTesting ('... ' . _('no restart operation active'));
+		// parityTuningLoggerTesting ('... ' . _('no restart operation active'));
 		if (!($parityTuningActive )) {
-			parityTuningLoggerTesting ('... ' . _('no array operation active so trigger type not relevant'));
+			// parityTuningLoggerTesting ('... ' . _('no array operation active so trigger type not relevant'));
 			return '';
 		}
 	}

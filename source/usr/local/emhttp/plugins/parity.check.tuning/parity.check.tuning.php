@@ -154,23 +154,21 @@ switch (strtolower($command)) {
                     }
                     updateCronEntries();
                     break;
-            case 'array_started':
-			        if ($argv[4] === 'pause') {
-						parityTuningProgressWrite ('PAUSE');
-					}
-            		break;
-			case 'started':
-					parityTuningLoggerTesting('Must be part of restart operation so nothing further to do!');
-					break;
-            default:
-                    parityTuningLoggerDebug(_('Option not currently recognized'));
-                    break;
-            }  // end of 'crond' switch
-            break;
-        default:
-            break;
-        } // End of 'action' switch
-        break;
+			} // end of operation type switch
+		case 'array_started':
+				if ($argv[4] === 'pause') {
+					parityTuningProgressWrite ('PAUSE');
+				}
+				break;
+		case 'started':
+				updateCronEntries();
+				parityTuningLoggerTesting('Must be part of restart operation so nothing further to do!');
+				break;
+		default:
+				parityTuningLoggerDebug(_('Option not currently recognized'));
+				break;
+		}  // end of 'crond' switch
+		break;
 
     case 'monitor':
         // This is invoked at regular intervals to try and detect
@@ -234,10 +232,9 @@ switch (strtolower($command)) {
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
 			$trigger = operationTriggerType();
-			parityTuningLoggerDebug (strtolower($trigger) . ' ' 
-						. $parityTuningDescription);
+			parityTuningLoggerDebug ($parityTuningDescription);
 			parityTuningProgressWrite ($trigger);
-			updateCronEntries();    // ensure reas/nably frequent monitor chechs
+			updateCronEntries();    // ensure reasonably frequent monitor chechs
 		}
 
 		// Handle pause/resume around mover running
@@ -1100,7 +1097,7 @@ function tempFromDisplayUnit($temp) {
 // It is removed any time we detect there is no active operation so it contents track the operation progress.
 
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~
-function parityTuningProgressWrite($msg) {
+function parityTuningProgressWrite($msg, $filename=PARITY_TUNING_PROGRESS_FILE) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningVar;
 	global $parityTuningAction, $parityTuningCorrecting;
@@ -1116,28 +1113,28 @@ function parityTuningProgressWrite($msg) {
 	                       'mdState','mdResync','mdResyncPos','mdResyncSize','mdResyncCorr','mdResyncAction' );
 
     // Not strictly needed to have header but a useful reminder of the fields saved
-    if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
+    if (! file_exists($filename)) {
 		copy (PARITY_TUNING_EMHTTP_DISKS_FILE, PARITY_TUNING_DISKS_FILE);
 		parityTuningLoggerTesting('Current disks information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_DISKS_FILE));
         $line = 'type|date|time|';
         foreach ($progressFields as $name) $line .= $name . '|';
         $line .= "Description\n";
-		file_put_contents(PARITY_TUNING_PROGRESS_FILE, $line);
-		parityTuningLoggerTesting ('written header record to  ' . PARITY_TUNING_PROGRESS_FILE);
+		file_put_contents($filename, $line);
+		parityTuningLoggerTesting ('written header record to  ' . parityTuningMarkerTidy($$filename));
 		$trigger = operationTriggerType();
 		if ($trigger != $msg) {
 			parityTuningLoggerTesting ("add $trigger record type to Progress file");
 			$line = $trigger . '|' . date(PARITY_TUNING_DATE_FORMAT) . '|' . time() . '|';
 			foreach ($progressFields as $name) $line .= $parityTuningVar[$name] . '|';
 			$line .= "$parityTuningDescription|\n";
-			file_put_contents(PARITY_TUNING_PROGRESS_FILE, $line, FILE_APPEND | LOCK_EX);
+			file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
 		}
     }
     $line = $msg . '|' . date(PARITY_TUNING_DATE_FORMAT) . '|' . time() . '|';
     foreach ($progressFields as $name) $line .= $parityTuningVar[$name] . '|';
     $line .= "$parityTuningDescription|\n";
-	file_put_contents(PARITY_TUNING_PROGRESS_FILE, $line, FILE_APPEND | LOCK_EX);
-    parityTuningLoggerTesting ('written ' . $msg . ' record to  ' . parityTuningMarkerTidy(PARITY_TUNING_PROGRESS_FILE));
+	file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
+    parityTuningLoggerTesting ('written ' . $msg . ' record to  ' . parityTuningMarkerTidy($filename));
 	$fnLock=false;
 }
 
@@ -1150,6 +1147,7 @@ function parityTuningProgressWrite($msg) {
 function parityTuningProgressAnalyze() {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCfg, $parityTuningVar;
+	global $parityTuningSizeInHistory;
 
     // TODO: This may need revisiting if decided that partial checks should be recorded in History
     if (parityTuningPartial()) {
@@ -1157,19 +1155,16 @@ function parityTuningProgressAnalyze() {
     	parityTuningDeleteFile(PARITY_TUNING_PROGRESS_FILE);
 		return;
     }
-
-    if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-        parityTuningLoggerTesting('No progress file to analyze');
-		parityTuningDeleteFile(PARITY_TUNING_UNCLEAN_FILE);
-        return;
-    }
-
 	// This is safety check - in ideal world we would not get here
     if (file_exists(PARITY_TUNING_RESTART_FILE)) {
 	    parityTuningLoggerTesting(' restart pending - so not time to analyze progress');
         return;
     }
-
+    if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
+        parityTuningLoggerTesting('No progress file to analyze');
+		parityTuningDeleteFile(PARITY_TUNING_UNCLEAN_FILE);
+        return;
+    }
 	// This is safety check - in ideal world we would not get here
     if ($parityTuningVar['mdResyncPos'] != 0) {
         parityTuningLoggerTesting(' array operation still running - so not time to analyze progress');
@@ -1178,11 +1173,18 @@ function parityTuningProgressAnalyze() {
 	static $fnLock = false;
 	if ($fnLock) return;
 	$fnLock=true;
-	
     spacerDebugLine(true, 'PROGRESS_ANALYZE');
     parityTuningLoggerTesting('Previous array operation finished - analyzing progress information to create history record');
+
+	if (rename (PARITY_TUNING_PROGRESS_FILE, PARITY_TUNING_PROGRESS_SAVE)) {
+		parityTuningLoggerDebug('Old progress file available as ' . PARITY_TUNING_PROGRESS_SAVE);
+	} else {
+		// I think This should only happen if there is a race condition occuring?
+		parityTuningLoggerDebug('rename of progress file failed, so abandon analyze' . PARITY_TUNING_PROGRESS_SAVE);
+		goto exit_analyze;
+	}
     // Work out history record values
-    $lines = file(PARITY_TUNING_PROGRESS_FILE);
+    $lines = file(PARITY_TUNING_PROGRESS_SAVE);
 
     if ($lines == false){
         parityTuningLoggerDebug('failure reading Progress file - analysis abandoned');
@@ -1198,8 +1200,8 @@ function parityTuningProgressAnalyze() {
     if ((! startsWith($line,'COMPLETED')) && (!startsWith($line,'CANCELLED')) && (!startsWith($line,'ABORTED'))) {
         $endType = file_exists(PARITY_TUNING_UNCLEAN_FILE) ? 'ABORTED' : 'COMPLETED';
         parityTuningLoggerDebug("missing completion line in Progress file - add $end$YPE and restart analyze");
-        parityTuningProgressWrite($endType);
-		$lines = file(PARITY_TUNING_PROGRESS_FILE);	// Reload file
+        parityTuningProgressWrite($endType,PARITY_TUNING_PROGRESS_SAVE );
+		$lines = file(PARITY_TUNING_PROGRESS_SAVE);	// Reload file
     }
     $duration = $elapsed = $increments = $corrected = 0;
     $thisStart = $thisFinish = $thisElapsed = $thisDuration = $thisOffset = 0;
@@ -1308,14 +1310,6 @@ function parityTuningProgressAnalyze() {
         } // end switch
     }  // end foreach
 END_PROGRESS_FOR_LOOP:
-
-	//  Keep a copy of the most recent progress file.
-	//  This will help with debugging any problem reports
-
-	@parityTuningDeleteFile(PARITY_TUNING_PROGRESS_SAVE);
-	@rename (PARITY_TUNING_PROGRESS_FILE, PARITY_TUNING_PROGRESS_SAVE);
-	parityTuningLoggerDebug('Old progress file available as ' . PARITY_TUNING_PROGRESS_SAVE);
-    // parityTuningDeleteFile(PARITY_TUNING_PROGRESS_FILE);		// finished with Progress file so remove it
 	
     if (file_exists(PARITY_TUNING_UNCLEAN_FILE) && ($exitCode != -5)) {
         parityTuningLoggerTesting ("exitCode forced to -5 for unclean shutdown");
@@ -1387,17 +1381,22 @@ END_PROGRESS_FOR_LOOP:
 				}
 			}
 			$matchLine++;
-		}
+		} // end while loop
 		if ($matchLine == count($lines))  parityTuningLoggerTesting('no match found in existing log so added a new record ' . ($matchLine + 1));
 		$type = explode(' ',$desc);
 		$gendate = date(PARITY_TUNING_DATE_FORMAT,$lastFinish);
 		if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
 		// generate replacement parity history record
-		$generatedRecord = "$gendate|$duration|$speed|$exitCode|$corrected|$action";
+		$generatedRecord = $gendate.'|'.$duration.'|'.$speed.'|'.$exitCode.'|'.$corrected.'|'.$action;
 		// Extra field included as standard on Unraid 6.11 or later
-		if ($parityTuningSizeInHistory) $generatedRecord += "|$size";
-		$generatedRecord += "|$elapsed|$increments|$triggerType $actionType\n";
-		parityTuningLoggerTesting("log record generated from progress: $generatedRecord");    
+		if ($parityTuningSizeInHistory) {
+			parityTuningLoggerTesting('add size to history record: '. $size); 
+			$generatedRecord .= '|'.$size;
+		}
+		$pluginExtra='|'.$elapsed.'|'.$increments.'|'.$triggerType.' '.$actionType;
+		parityTuningLoggerTesting('add plugin specific fields history record: '.$pluginExtra); 
+		$generatedRecord .= $pluginExtra."\n";
+		parityTuningLoggerTesting('log record generated from progress: '. $generatedRecord);    
 		$lines[$matchLine] = $generatedRecord;
 		$myParityLogFile = '/boot/config/plugins/parity.check.tuning/parity-checks.log';
 		file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
@@ -1406,8 +1405,8 @@ END_PROGRESS_FOR_LOOP:
 	parityTuningDeleteFile(PARITY_TUNING_UNCLEAN_FILE);
 	parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
 	updateCronEntries();
-	spacerDebugLine(false, 'PROGRESS_ANALYZE');
 exit_analyze:
+	spacerDebugLine(false, 'PROGRESS_ANALYZE');
 	$fnLock = false;
 }
 
@@ -1651,7 +1650,7 @@ function configuredAction() {
 					break;
 		}
 	}
-	parityTuningLoggerTesting("...configured action for $parityTuningDescription: $result");
+	parityTuningLoggerTesting("configuredAction()=$result ($parityTuningDescription)");
     return $result;
 }
 																																		
@@ -1662,12 +1661,13 @@ function configuredAction() {
 function isArrayOperationActive() {
 //       ~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCLI;
-	global $parityTuningActive, $parityTuningPos;
+	global $parityTuningActive;
+	global $parityTuningPos;
 	// if (file_exists(PARITY_TUNING_RESTART_FILE)) {
 	// 	parityTuningLoggerTesting ('Restart file found - so treat as isArrayOperationActive=true');
 	// 	return true;
 	// }
-	parityTuningLoggerTesting("parityTuningAction=$parityTuningAction, parityTuningPos=$parityTuningPos");
+	parityTuningLoggerTesting("parityTuningActive=$parityTuningActive, parityTuningPos=$parityTuningPos");
 	if (file_exists(PARITY_TUNING_RESTART_FILE)) {
 		parityTuningLoggerTesting('  restart pending so treat as array operation active');	
 	} else if (!$parityTuningActive) {
@@ -1696,19 +1696,19 @@ function isActivePeriod() {
 	parityTuningLoggerTesting('Check if within increment active period');
 	parityTuningLoggerTesting("... Active=$parityTuningActive, Action=$parityTuningAction, Restart=".file_exists(PARITY_TUNING_RESTART_FILE));
 	if (! $parityTuningActive) {
-		return false;
+		$inPeriod=false;
+	} else {
+		$resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
+		$pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
+		$currentTime = (date("H") * 60) + date("i");
+		parityTuningLoggerTesting(".. PauseTIme=$pauseTime, Resumetime=$resumeTime, currentTime=$currentTime");
+		if ($pauseTime > $resumeTime) {         // We need to allow for times spanning midnight!
+			$inPeriod =($currentTime < $resumeTime) && ($currentTime > $pauseTime);
+		} else {
+			$inPeriod =($currentTime > $resumeTime) && ($currentTime < $pauseTime);
+		}
 	}
-	
-    $resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
-    $pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
-    $currentTime = (date("H") * 60) + date("i");
-	parityTuningLoggerTesting(".. PauseTIme=$pauseTime, Resumetime=$resumeTime, currentTime=$currentTime");
-    if ($pauseTime > $resumeTime) {         // We need to allow for times spanning midnight!
-        $inPeriod =($currentTime < $resumeTime) && ($currentTime > $pauseTime);
-    } else {
-        $inPeriod =($currentTime > $resumeTime) && ($currentTime < $pauseTime);
-    }
-	parityTuningLoggerTesting("isAcivePeriod()=$inPeriod");
+	parityTuningLoggerTesting('isAcivePeriod()='.$inPeriod);
 	return $inPeriod;
 }
 
@@ -1718,18 +1718,20 @@ function isActivePeriod() {
 function isRunInIncrements($action) {
 //       ~~~~~~~~~~~~~~~~~
 	global $parityTuningCfg;
-	
+
+	$trigger = operationTriggerType();
 	switch (strtolower($action[0])) {
-		case 'recon':	$ret = ($parityTuningCfg['parityTuningRecon'] == 1);
+		case 'recon':	$ret = ($parityTuningCfg['parityTuningRecon'] === '1');
 						break;
-		case 'clear':   $ret = ($parityTuningCfg['parityTuningClear'] == 1);
+		case 'clear':   $ret = ($parityTuningCfg['parityTuningClear'] === '1');
 						break;
-		case 'check':   switch (operationTriggerType()) {
-							case 'SCHEDULED': $ret=($parityTuningCfg['parityTuningScheduled'] == 1);
+		case 'check':   
+						switch ($trigger) {
+							case 'SCHEDULED': $ret=($parityTuningCfg['parityTuningScheduled'] === '1');
 											  break;
-							case 'MANUAL':	  $ret=($parityTuningCfg['parityTuningManual'] == 1);
+							case 'MANUAL':	  $ret=($parityTuningCfg['parityTuningManual'] === '1');
 											  break;
-							case 'AUTOMATIC': $ret ($parityTuningCfg['parityTuningAutomatic'] == 1);
+							case 'AUTOMATIC': $ret=($parityTuningCfg['parityTuningAutomatic'] === '1');
 											  break;
 						}
 						break;
@@ -1737,7 +1739,7 @@ function isRunInIncrements($action) {
 						$ret = false; 
 						break;
 	}
-	parityTuningLoggerTesting("action:$action, trigger:$trigger, isRunInIncrements:$ret" . $ret);
+	parityTuningLoggerTesting("isRunInIncrements($action)=".$ret." (trigger type=$trigger)" );
 	return $ret;
 }
 
