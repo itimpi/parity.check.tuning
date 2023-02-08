@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2023.02.08">
-<!ENTITY md5 "b66e746b97212264ee855bc2f944ebf9">
+<!ENTITY md5 "9a5d4ca4a141725aa5e1b2bea02a573c">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -34,7 +34,6 @@ TODO
  - Fix: History button on Settings page not working for Unraid 6.11 and 6.12
  - Fix: Extended Parity History on not being displayed from Main screen
  - Fix: After restart was not pausing if outside increment time slot.
- - Fix: If increment type not being monitored and paused before reboot was not re-instating pause on restart
  - Fix: Updates to make master translation file agree with current plugin.
  - Fix: Improve some of the code to better handle array not yet started.
  - Fix: Remove code that failed to spin up drives and leave it to Unraid to do this.
