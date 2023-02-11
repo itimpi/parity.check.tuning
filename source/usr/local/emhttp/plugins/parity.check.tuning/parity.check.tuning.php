@@ -849,25 +849,19 @@ end_started:
 			} else {
 				parityTuningLoggerTesting('Restart option set');
 				parityTuningLoggerTesting("parityTuningAction=$parityTuningAction");
-				// if (startsWith($parityTuningAction,'check')) {
-					parityTuningProgressWrite('PAUSE (RESTART)');
-					sleep(1);
-					parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
-					$restart = 'mdResync=' . $parityTuningVar['mdResync'] . "\n"
-							   .'mdResyncPos=' . $parityTuningVar['mdResyncPos'] . "\n"
-							   .'mdResyncSize=' . $parityTuningVar['mdResyncSize'] . "\n"
-							   .'mdResyncAction=' . $parityTuningVar['mdResyncAction'] . "\n"
-							   .'mdResyncCorr=' . $parityTuningVar['mdResyncCorr'] . "\n"
-							   .'startMode=' . $parityTuningVar['startMode'] . "\n";
-					file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
-					parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
-					sendNotification(_('Array stopping: Restart will be attempted on next array start'), $parityTuningDescription
-					.parityTuningCompleted());	
-				// } else {
-				// 	sendNotification(_('Array stopping and restart is not supported for this array operation type'),
-				// 	$parityTuningDescription
-				// 	.parityTuningCompleted(),);
-				// }
+				parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
+				$restart = 'mdResync=' . $parityTuningVar['mdResync'] . "\n"
+						   .'mdResyncPos=' . $parityTuningVar['mdResyncPos'] . "\n"
+						   .'mdResyncSize=' . $parityTuningVar['mdResyncSize'] . "\n"
+						   .'mdResyncAction=' . $parityTuningVar['mdResyncAction'] . "\n"
+						   .'mdResyncCorr=' . $parityTuningVar['mdResyncCorr'] . "\n"
+						   .'startMode=' . $parityTuningVar['startMode'] . "\n"
+						   .'triggerType=' . operationTriggerType() . "\n";
+				file_put_contents (PARITY_TUNING_RESTART_FILE, $restart);
+				parityTuningLoggerTesting('Restart information saved to ' . parityTuningMarkerTidy(PARITY_TUNING_RESTART_FILE));
+				parityTuningProgressWrite('PAUSE (RESTART)');
+				sendNotification(_('Array stopping: Restart will be attempted on next array start'), $parityTuningDescription
+				.parityTuningCompleted());	
 			}
 			suppressMonitorNotification();
         }
@@ -957,7 +951,7 @@ end_started:
 		// consistency check
 		if (file_exists(UNRAID_PARITY_SYNC_FILE)) {
 			if (file_exists(PARITY_TUNING_TIDY_FILE) ) {
-				parityTuningLoggerDebug('plugin and Unraid disagree on whether inclean shutdown');
+				parityTuningLoggerDebug('plugin and Unraid disagree on whether unclean shutdown');
 				parityTuningDeleteFile (PARITY_TUNING_TIDY_FILE);
 			} else {
 				createMarkerFile(PARITY_TUNING_UNCLEAN_FILE);
@@ -1014,13 +1008,7 @@ end_started:
 spacerDebugLine(false, $command);
 exit(0);
 
-//	If configuration option set then save the information to enable restarting an array operation
-
-//       ~~~~~~~~~~~~~~~~~~~~~~
-function saveRestartInformation() {
-//       ~~~~~~~~~~~~~~~~~~~~~~
-
-}
+// -------------------------------- Support Functions  -------------------------------------
 
 // Remove a file and if TESTING logging active then log it has happened
 // For marker files sanitize the name to a friendlier form.
