@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.02.10">
+<!ENTITY version "2023.02.11">
 <!ENTITY md5 "5da2b5112cb154d192e1e9746a80b2da">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
@@ -24,14 +24,13 @@
 
 <CHANGES>
 TODO
-The following are under consideration if a sensible method of implementing them can be found
  - Add more flexible scheduling options (e.g. different by day of week)
  - Improve suppression of misleading Unraid messages about parity operations
  - See if can autostart array on restarts if needed.
 
-### 2023.02.11
- - Fix: Permissions changes on standard Unraid system files/folders when installing package
+### 2023.02.10
  - Fix: Parity History could display operation type twice
+ - Fix: Permissions issues introduced when installing package
  
 ### 2023.02.08
  - New: Remove support for Unraid versions prior to 6.9.2
