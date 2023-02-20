@@ -25,6 +25,10 @@ require_once "$docroot/webGui/include/Helpers.php";
 
 $parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
 
+if (!isset ($randomSleep)) $randomSleep = 0;	// If not set previously assume a value of 0
+if ($parityTuningCLI) $randomSleep = 0;			// also want 0 for CLI calls
+if ($randomSleep > 0) sleep ($randomSleep);
+
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
@@ -49,6 +53,7 @@ define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   
 define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 ;
+
 
 // Configuration information
 
@@ -94,12 +99,13 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
-$parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
+$parityTuningVersion = 'Version: '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
 
 // Handle Unraid version dependencies
-$parityTuningUnraidVersion = (parse_ini_file("/etc/unraid-version"))['version'];
+$parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
+
 $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.3','>');
-parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Size in History:$parityTuningSizeInHistory");
+parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Plugin ".substr($parityTuningVersion,0,-1).", Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
@@ -194,12 +200,12 @@ function operationTriggerType($action = null, $active=null) {
 		// If we have not caught the start then assume an automatic parity check
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
-			if ($automatic)		parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+			if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
+			if (file_exists(PARITY_TUNING_AUTOMATIC_FILE))	parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
 			return 'SCHEDULED';
 		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
-			if ($manual)		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+			if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
 			return 'AUTOMATIC';
 		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
@@ -330,6 +336,10 @@ function parityTuningLoggerCLI($string) {
 //       ~~~~~~~~~~
 function startsWith($haystack, $beginning, $caseInsensitivity = false){
 //       ~~~~~~~~~~
+	if (is_null($haystack)) {
+		parityTuningLoggerTesting("haystack=null on call to startsWith()");
+		return false;
+	}
     if ($caseInsensitivity)
         return strncasecmp($haystack, $beginning, strlen($beginning)) === 0;
     else

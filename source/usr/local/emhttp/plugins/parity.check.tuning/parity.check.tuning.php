@@ -23,6 +23,12 @@
  * all copies or substantial portions of the Software.
  */
 
+// Normnally cron triggers actions on minute boundaries and this can lead to two different invoations
+// of this script running in parallel.  Adding a random delay is an attempt to stop simultaneous 
+// calls interleaving although if they do things should still operate OK, but the logs look a lot 
+// tidier and are easier to interpret when investigating possible problems.
+
+if (isset($argv) && (strcasecmp(trim($argv[1]),'starting') != 0)) $randomSleep = rand(1,30);
 
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
@@ -1028,10 +1034,10 @@ function parityTuningDeleteFile($name) {
 // Helps break debug information into blocks to identify entries for a given entry point
 
 //       ~~~~~~~~~~~~~~~
-function spacerDebugLine($strt = true, $cmd) {
+function spacerDebugLine($start, $cmd) {
 //       ~~~~~~~~~~~~~~~
     // Not sure if this should be active at DEBUG level of only at TESTING level?
-    parityTuningLoggerTesting ('----------- ' . strtoupper($cmd) . (($strt == true) ? ' begin' : ' end') . ' ------');
+    parityTuningLoggerTesting ('----------- ' . strtoupper($cmd) . ($start ? ' begin' : ' end') . ' ------');
 }
 
 // Convert an array of drive names/temperatures into a simple list
@@ -1108,7 +1114,7 @@ function parityTuningProgressWrite($msg, $filename=PARITY_TUNING_PROGRESS_FILE) 
         foreach ($progressFields as $name) $line .= $name . '|';
         $line .= "Description\n";
 		file_put_contents($filename, $line);
-		parityTuningLoggerTesting ('written header record to  ' . parityTuningMarkerTidy($$filename));
+		parityTuningLoggerTesting ('written header record to  ' . parityTuningMarkerTidy($filename));
 		$trigger = operationTriggerType();
 		if ($trigger != $msg) {
 			parityTuningLoggerTesting ("add $trigger record type to Progress file");
@@ -1338,7 +1344,7 @@ END_PROGRESS_FOR_LOOP:
 		$unit='';
 		if ($reachedSector == 0) $reachedSector = $mdResyncSize;		// position reverts to 0 at end
 		$speed = my_scale(($reachedSector * (1024 / $duration)), $unit,1);
-		$speed .= "$unit/s";
+		$speed .= " $unit/s";
 		parityTuningLoggerTesting("totalSectors: $mdResyncSize, duration: $duration, speed: $speed");
 		// send Notification about operation
 		$actionType = actionDescription($startAction, $mdResyncCorr, $triggerType, true);

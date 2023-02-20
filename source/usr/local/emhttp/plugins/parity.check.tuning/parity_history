@@ -124,7 +124,8 @@ if (file_exists($log)) {
 					// Add in Correcting/Non-Correcting if known
 					if (count($parityTuningAction) > 1) {
 						// Need to allow for cases before this was added to plugin extra info
-						if (! $parityTuningType === $parityTuningAction[1]) {
+						// parityTuningLoggerTesting("action: $action, plugAction: ".$parityTuningAction[1]);
+						if (! ($action === $parityTuningAction[1])) {
 							$parityTuningType .= ' '.$parityTuningAction[1];
 						}
 					}

@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.02.11">
-<!ENTITY md5 "5da2b5112cb154d192e1e9746a80b2da">
+<!ENTITY version "2023.02.20">
+<!ENTITY md5 "5abf964155a2f1dec7eb4c08f53dc76c">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -18,7 +18,7 @@
 	pluginURL="&pluginURL;" 
 	min="6.9.2"
 	icon="wrench"
-	support="https://lime-technology.com/forums/topic/78394-parity-check-tuning/">
+	support="https://forums.unraid.net/topic/78394-plugin-parity-check-tuning/">
 
 <multiLanguage>true</multiLanguage>
 
@@ -29,6 +29,13 @@ The following are under consideration if a sensible method of implementing them 
  - Improve suppression of misleading Unraid messages about parity operations
  - See if can autostart array on restarts if needed.
 
+
+### 2023.02.20
+ - Fix: Small internal optimisations that should not affect any functionality
+ - Fix: support URL
+ - Fix: PHP Warnings in preperation for Unraid 6.12 release
+ - Fix: Display of whether parity check correcting in Parity History
+ 
 ### 2023.02.11
  - Fix: Permissions changes on standard Unraid system files/folders when installing
  - Fix: Parity History could display operation type twice
@@ -429,16 +436,22 @@ The 'post-install' script
     # Replace the standard parity history display script with our custom version for extra columns
     if [ -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history ]; then
 	    # Unraid version 6.11+
+		if [ ! -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history.orig ]; then
+			# Save original if not already done so in earlier plugin version install
+			mv -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history.orig
+        fi
 		chmod 755 /usr/local/emhttp/plugins/&plugin;/parity_history 
-        mv -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history.orig
-        cp /usr/local/emhttp/plugins/&plugin;/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history
+		cp /usr/local/emhttp/plugins/&plugin;/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history
 
 	
 	elif [ -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php ]; then
 	    # Unraid version earlier than 6.11
-		hmod 755 /usr/local/emhttp/plugins/&plugin;/ParityHistory.php
-        mv -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig
-        cp /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
+		if [ ! -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history.php.orig ]; then
+			# Save original if not already done so in earlier plugin version install
+			mv -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig
+        fi
+		chmod 755 /usr/local/emhttp/plugins/&plugin;/ParityHistory.php
+		cp /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
     fi
 	echo &version; > /boot/config/plugins/&plugin;/&plugin;.version;
 	# rm -rf /boot/config/plugins/&plugin;/&plugin;.log
