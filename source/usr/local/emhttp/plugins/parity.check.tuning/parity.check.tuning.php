@@ -245,7 +245,7 @@ switch (strtolower($command)) {
 
 		// Handle pause/resume around mover running
 		
-		if ($parityCheckMover) {
+		if ($parityTuningCfg['parityCheckMover']) {
 			parityTuningLoggerTesting ("mover " . (isMoverRunning() ? "" : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
 			if (isMoverRunning()) {
@@ -273,7 +273,7 @@ switch (strtolower($command)) {
 
 		// Handle pause/resume around CA Backup  running
 
-		if ($parityTuningCABackup) {
+		if ($parityTuningCfg['parityTuningCABackup']) {
 			parityTuningLoggerTesting ("CA Backup "
 									. (isCABackupRunning() ? (file_exists(PARITY_TUNING_RESTORE_FILE)?"":"restore") : "not ") 
 									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
