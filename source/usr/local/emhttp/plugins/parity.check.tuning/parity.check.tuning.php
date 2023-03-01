@@ -809,6 +809,7 @@ end_started:
 			} else {
 				parityTuningInactiveCleanup();
 				createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
+				if (! isset($restartDescription)) $restartDescription = _('Parity-Check');
 				sendNotification (sprintf('%s %s %s',
 										_('Automatic unRaid'), 
 										$restartDescription, 
@@ -942,9 +943,21 @@ end_started:
         break;
 
     case 'stop':
+		if ($parityTuningStartStop) {
+			parityTuningLogger(_('Stop array issued via Command Line'));
+			exec('emcmd cmdStop=Stop');
+		} else {
+			parityTuningLoggerCLI(_('Requires Unraid 6.10.3 or later'));
+		}
+		break;
     case 'start':
-        parityTuningLogger("$command " . _('option not currently implemented'));
-        // fallthru to usage section
+		if ($parityTuningStartStop) {
+			parityTuningLogger(_('Start array issued via Command Line'));
+			exec('emcmd cmdStart=Start');
+		} else {
+			parityTuningLoggerCLI(_('Requires Unraid 6.10.3 or later'));
+		}
+		break;
 
 
 	// Potential unRaid event types on which no action is (currently) being taken by this plugin?
@@ -999,6 +1012,8 @@ end_started:
 		parityTuningLoggerCLI ('  nocorrect        ' . _('Start a non-correcting parity check'));
 		parityTuningLoggerCLI ('  status           ' . _('Show the status of a running parity check'));
 		parityTuningLoggerCLI ('  cancel           ' . _('Cancel a running parity check'));
+		parityTuningLoggerCLI ('  start            ' . _('Start the array'));
+		parityTuningLoggerCLI ('  stop             ' . _('Stop the array'));
 //	    parityTuningLoggerCLI ('  partial          ' . _('Start partial parity check'));
 //		parityTuningLoggerCLI ('  history          ' . _('Display Parity History'));
 		parityTuningLoggerCLI ($parityTuningVersion);
@@ -1806,7 +1821,7 @@ function updateCronEntries() {
 			$frequency=$parityTuningCfg['parityTuningMonitorBusy'];
 		} else if ($parityTuningCfg['parityTuningHeat'] 
 			// check temperatures (default = 7 minutes)
-			   || $parityTuningCfg['parityTuningShutdown']) {
+			   || $parityTuningCfg['parityTuningHeatShutdown']) {
 			$frequency=$parityTuningCfg['parityTuningMonitorHeat'];
 		} else {
 			// Default if not monitoring more frequently for other 

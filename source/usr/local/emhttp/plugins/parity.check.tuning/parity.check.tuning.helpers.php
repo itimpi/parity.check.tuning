@@ -104,6 +104,7 @@ $parityTuningVersion = 'Version: '.(file_exists(PARITY_TUNING_VERSION_FILE) ? fi
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
 
+$parityTuningStartStop = version_compare($parityTuningUnraidVersion,'6.10.3','>');
 $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.3','>');
 parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Plugin ".substr($parityTuningVersion,0,-1).", Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
 
@@ -265,7 +266,7 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
 								: ($correcting == 0 
 								  ? _('Non-Correcting')
 								  : _('Correcting'))
-							      . ' ' . _('Parity Check')));
+							      . ' ' . _('Parity-Check')));
 						break;
         default:        $ret = sprintf('%s: %s',_('Unknown action'), $action);
 						break;
@@ -321,7 +322,9 @@ function parityTuningLoggerDebug($string) {
 function parityTuningLoggerTesting($string) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~
   global $parityTuningCfg, $command;
-  if ($parityTuningCfg['parityTuningLogging'] > 1) parityTuningLogger('TESTING:'.strtoupper($command)." $string");
+  if ($parityTuningCfg['parityTuningLogging'] > 1) {
+	parityTuningLogger('TESTING:'.(is_null($command)?'':strtoupper($command))." $string");
+  }
 }
 
 //       ~~~~~~~~~~~~~~~~~~~~~
