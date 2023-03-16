@@ -746,7 +746,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 
         // Handle restarting array operations
 
-		parityTuningLoggerdebug('restart to be attempted');
+		parityTuningLogger('restart to be attempted');
 		removeHistoryCancelEntry();		// Remove cancel entry from array shutdown 
 		// Special case for resarting operations that are not parity checks and where Unraid
 		// automatically starte the array operation again from the beginning so we need to cancel
@@ -1845,7 +1845,11 @@ function isMoverRunning() {
 }
 
 function isCABackupRunning() {
-	return (file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')|file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
+	return (file_exists('/tmp/appdata.backup/backupInProgress')
+		   |file_exists('/tmp/appdata.backup/restoreInProgress')
+		   |file_exists('/tmp/appdata.backup/verifyInProgress')
+		   |file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
+		   |file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
 }
 
 ?>

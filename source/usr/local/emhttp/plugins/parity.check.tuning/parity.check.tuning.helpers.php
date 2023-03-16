@@ -7,16 +7,12 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
  * as published by the Free Software Foundation.
- *oig
+ *
  * Limetech is given explicit permission to use this code in any way they like.
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-
-// Setting a reasonably strict PHP retorting level helps pick up non-obvious errors
-error_reporting(error_reporting() | E_STRICT | E_PARSE);  // Level at which we want normally want our code to be clean 
-// error_reporting(E_ALL);		 // This level should only be enabled for testing purposes
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -105,12 +101,19 @@ $parityTuningVersion = 'Version: '.(file_exists(PARITY_TUNING_VERSION_FILE) ? fi
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
 
 $parityTuningStartStop = version_compare($parityTuningUnraidVersion,'6.10.3','>');
-$parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.3','>');
+$parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.0','>');
 parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Plugin ".substr($parityTuningVersion,0,-1).", Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
-	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
+	if ($disks == false) {
+		parityTuningLoggerTesting('Failure parsing '.PARITY_TUNING_EMHTTP_DISKS_FILE);
+	} else {
+		parityTuningLoggerTesting('loaded disks array, entries: '.count($disks));
+		$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
+	}
+} else {
+	parityTuningLoggerTesting('File '.PARITY_TUNING_EMHTTP_DISKS_FILE.' not present');
 }
 
 // load some state information.
@@ -356,42 +359,6 @@ function endsWith($haystack, $ending, $caseInsensitivity = false){
         return strcasecmp(substr($haystack, strlen($haystack) - strlen($ending)), $haystack) === 0;
     else
         return strpos($haystack, $ending, strlen($haystack) - strlen($ending)) !== false;
-}
-
-// parityTuningLoggerTesting('PHP error_reporting() level set to '.errorLevelAsText());
-
-//	Convert the bit level error reporting to text values for display
-//       ~~~~~~~~~~~~~~~~
-function errorLevelAsText() {
-//       ~~~~~~~~~~~~~~~~~
-	$lvls = array(
-		'E_ERROR'=>E_ERROR,
-		'E_WARNING'=>E_WARNING,
-		'E_PARSE'=>E_PARSE,
-		'E_NOTICE'=>E_NOTICE,
-		'E_CORE_ERROR'=>E_CORE_ERROR,
-		'E_CORE_WARNING'=>E_CORE_WARNING,
-		'E_COMPILE_ERROR'=>E_COMPILE_ERROR,
-		'E_COMPILE_WARNING'=>E_COMPILE_WARNING,
-		'E_USER_ERROR'=>E_USER_ERROR,
-		'E_USER_WARNING'=>E_USER_WARNING,
-		'E_USER_NOTICE'=>E_USER_NOTICE,
-		'E_STRICT'=>E_STRICT, 
-		'E_RECOVERABLE_ERROR'=>E_RECOVERABLE_ERROR,
-		'E_DEPRECATED'=>E_DEPRECATED,
-		'E_USER_DEPRECATED'=>E_USER_DEPRECATED,
-	); 
-	$level = error_reporting();
-	if (($level & E_ALL) == E_ALL) return 'E_ALL';
-	
-	$ret = '';
-	foreach ($lvls as $key => $lvl) {
-		if (($level & $lvl) == $lvl) {
-			if ((strlen($ret)>0)) $ret.='|';
-			$ret .= $key;
-		}
-	}
-	return $ret;
 }
 
 ?>
