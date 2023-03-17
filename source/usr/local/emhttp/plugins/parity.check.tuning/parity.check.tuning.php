@@ -24,11 +24,11 @@
  */
 
 // Normnally cron triggers actions on minute boundaries and this can lead to two different invoations
-// of this script running in parallel.  Adding a random delay is an attempt to stop simultaneous 
-// calls interleaving although if they do things should still operate OK, but the logs look a lot 
-// tidier and are easier to interpret when investigating possible problems.
+// of this script running in parallel.  Adding a random delay to the monitor tasks which are not time
+// critical is an attempt to stop simultaneous calls interleaving although if they do things should
+// still operate OK, but the logs look a lot tidier and are easier to interpret.
 
-if (isset($argv) && (strcasecmp(trim($argv[1]),'starting') != 0)) $randomSleep = rand(1,30);
+if (isset($argv) && (strcasecmp(trim($argv[1]),'monitor') == 0)) $randomSleep = rand(15,45);
 
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 
@@ -245,9 +245,7 @@ switch (strtolower($command)) {
 
 		// Handle pause/resume around mover running
 		
-		if ($parityTuningCfg['parityCheckMover']) {
-			parityTuningLoggerTesting ("mover " . (isMoverRunning() ? "" : "not ") 
-									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
+		if ($parityTuningCfg['parityTuningMover']) {
 			if (isMoverRunning()) {
 				if ($parityTuningRunning) {
 					$msg = _('Paused') . ": " . _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
@@ -274,12 +272,9 @@ switch (strtolower($command)) {
 		// Handle pause/resume around CA Backup  running
 
 		if ($parityTuningCfg['parityTuningCABackup']) {
-			parityTuningLoggerTesting ("CA Backup "
-									. (isCABackupRunning() ? (file_exists(PARITY_TUNING_RESTORE_FILE)?"":"restore") : "not ") 
-									. "running, array operation " . ($parityTuningRunning ? "running" : "paused"));
 			if (isCABackupRunning()) {
 				if ($parityTuningRunning) {
-					$msg = _('Paused') . ": " . _('CA Backup or Restore running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('Paused') . ": " . _('CA Backup running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
 					sendArrayNotification ($msg);
@@ -289,7 +284,7 @@ switch (strtolower($command)) {
 				createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
 			} else {
 				if (file_exists(PARITY_TUNING_BACKUP_FILE)) {
-					$msg = _('Resumed') . ': ' . _('CA Backup or Restore no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('Resumed') . ': ' . _('CA Backup no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					parityTuningDeleteFile (PARITY_TUNING_BACKUP_FILE);
 					exec('/usr/local/sbin/mdcmd "check" "resume"');
@@ -340,14 +335,20 @@ switch (strtolower($command)) {
 									. ': ' . _('Pause') . ' ' .  $parityTuningCfg['parityTuningHeatHigh'] 
 									. ', ' . _('Resume') . ' ' . $parityTuningCfg['parityTuningHeatLow']
                 				   . ($parityTuningCfg['parityTuningShutdown'] ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
-								   
-		// gather temperature information from all array drives
+		// Get configuration settings
+		$parityTuningHeatCritical = $parityTuningCfg['parityTuningHeatCritical'];
+		$parityTuningHeatHigh     = $parityTuningCfg['parityTuningHeatHigh'];
+		$parityTuningHeatLow      = $parityTuningCfg['parityTuningHeatLow'];	
+		// gather temperature information from all drives
         foreach ($disks as $drive) {
             $name=$drive['name'];
             $temp = $drive['temp'];
 			// remove any lingering spinup marker file
 			parityTuningDeleteFile ("/mnt/$name/".PARITY_TUNING_SPINUP_FILE);
-            if ((!startsWith($drive['status'],'DISK_NP')) & (! $name == 'flash')) {
+			// The flash drive is ignored
+			// All other drives are potentially checked even if not part of the array
+            // if ((!startsWith($drive['status'],'DISK_NP')) && (!$name =='flash')) {
+			if ((!startsWith($drive['status'],'DISK_NP')) && (!($name === 'flash'))) {
                 $driveCount++;
 				$driveWarning = ($drive['hotTemp'] ?? $globalWarning);
 				$driveCritical= ($drive['maxTemp'] ?? $globalCritical);
@@ -359,10 +360,15 @@ switch (strtolower($command)) {
 									. ', ' . _('Critical') . ': ' . 
 									($driveCritical== 0?_('disabled'):$driveCritical));
 				}
-                $critical  = $driveCritical - $parityTuningCfg['parityTuningHeatCritical'];
-                $hot  = $driveWarning - $parityTuningCfg['parityTuningHeatHigh'];
-                $cool = $driveWarning - $parityTuningCfg['parityTuningHeatLow'];
-				// Check array drives for other over-heating
+                $critical  = $driveCritical - $parityTuningHeatCritical;
+                $hot  = $driveWarning - $parityTuningHeatHigh;
+                $cool = $driveWarning - $parityTuningHeatLow;
+				
+				// Restrict it to checking array drives for other over-heating
+				// TODO: Revisit whether restricting it to array drives is desireable or whether
+				//		 opool drives overheating during a parity check can also pause a check.
+				//		 This could also need looking at when multiple array support available
+				//		 Would be nice to also include Unassigned Drives if possible
 				if ((startsWith($name, 'parity')) || (startsWith($name,'disk'))) {
 					$arrayCount++;
 					if ($temp == "*" ) { 	// spun down
@@ -388,8 +394,8 @@ switch (strtolower($command)) {
 							}
 						}
 					}
-					//  Check all array and cache drives for critical temperatures
-					//  TODO: find way to include unassigned devices?
+					// parityTuningLoggerTesting ("name:$name, temp:$temp, status:$status (critical:$critical, hot:$hot, cool:$cool)");
+					//  Check drives for critical temperatures
 					if ($driveCritical == 0) {
 						if ($driveWarning == 0) $status = _('disabled');
 					} else {
@@ -1839,17 +1845,22 @@ function updateCronEntries() {
 
 //	Determine if mover currently active
 function isMoverRunning() {
+	global $parityTuningRunning;
 	unset ($output);
 	exec ("ps -ef | grep mover", $output);
-	return (count($output)> 2);
+	$ret = (count($output)> 2) ? 1 : 0;
+	parityTuningLoggerTesting ("mover running:$ret, array operation running:$parityTuningRunning");
+	return $ret;
 }
 
+// Determine if CA Backup currently active
 function isCABackupRunning() {
-	return (file_exists('/tmp/appdata.backup/backupInProgress')
-		   |file_exists('/tmp/appdata.backup/restoreInProgress')
-		   |file_exists('/tmp/appdata.backup/verifyInProgress')
-		   |file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
-		   |file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
+	global $parityTuningRunning;
+	$ret = (file_exists('/tmp/appdata.backup/backupInProgress')
+			|file_exists('/tmp/appdata.backup/restoreInProgress')
+			|file_exists('/tmp/appdata.backup/verifyInProgress')
+			|file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
+			|file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
+	parityTuningLoggerTesting ("CA Backup running:$ret, array operation running:$parityTuningRunning");
+	return $ret;
 }
-
-?>

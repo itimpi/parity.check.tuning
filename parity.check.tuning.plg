@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.03.01">
-<!ENTITY md5 "a81c801431f85fcb502948332359cae1">
+<!ENTITY version "2023.03.17">
+<!ENTITY md5 "be114270da6348ce3a52d2ae1f9992bf">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -29,7 +29,16 @@ The following are under consideration if a sensible method of implementing them 
  - Improve suppression of misleading Unraid messages about parity operations
  - See if can autostart array on restarts if needed.
  
- ### 2023-03-01
+Known Issues:
+ - Parity History showing blank dialog on Unraid v6.11.0/1
+ 
+### 2023-03-17
+  - New: Added some additional internal logging to help diagnose some unexpected behaviour being reported.
+  - New: Checks for CA.Backup v3 running
+  - Fix: Typo that broke monitoring disks for temperature
+  - Change: Removed internal option to set PHP reporting level used during testing 
+ 
+### 2023-03-01
   - Fix:  More PHP 8 fixes
   - New:  Added start/stop array options to CLI parity.check command for Unraid 6.10+
 

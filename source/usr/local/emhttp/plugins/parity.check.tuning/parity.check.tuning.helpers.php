@@ -57,19 +57,6 @@ $parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
  if (file_exists(PARITY_TUNING_CFG_FILE)) {
 	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
-// Handle migrating renamed options  (Remove in later release)
-// Increments -> Scheduled
-// if (array_key_exists('Increments', $parityTuningCfg)) {
-//	parityTuningLoggerTesting ('Migrating setting Increments => Scheduled');
-//	$parityTuningCfg['Scheduled'] = $parityTuningCfg['Increments'];
-//	unset($parityTuningCfg['Increments']);
-//}
-// Unscheduled -> Manual
-//if (array_key_exists('Unscheduled', $parityTuningCfg)) {
-//	parityTuningLoggerTesting ('Migrating setting Unscheduled => Manual');
-//	$parityTuningCfg['Manual'] = $parityTuningCfg['Unscheduled'];
-//	unset($parityTuningCfg['Unscheduled']);
-//}
 
 $dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 
@@ -106,14 +93,7 @@ parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Plugin "
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
-	if ($disks == false) {
-		parityTuningLoggerTesting('Failure parsing '.PARITY_TUNING_EMHTTP_DISKS_FILE);
-	} else {
-		parityTuningLoggerTesting('loaded disks array, entries: '.count($disks));
-		$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
-	}
-} else {
-	parityTuningLoggerTesting('File '.PARITY_TUNING_EMHTTP_DISKS_FILE.' not present');
+	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
 }
 
 // load some state information.
