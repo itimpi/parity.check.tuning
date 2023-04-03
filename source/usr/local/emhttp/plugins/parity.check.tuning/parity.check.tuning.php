@@ -251,7 +251,7 @@ switch (strtolower($command)) {
 					$msg = _('Paused') . ": " . _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
-					sendArrayNotification ();
+					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
@@ -1856,9 +1856,7 @@ function isMoverRunning() {
 // Determine if CA Backup currently active
 function isCABackupRunning() {
 	global $parityTuningRunning;
-	$ret = (file_exists('/tmp/appdata.backup/backupInProgress')
-			|file_exists('/tmp/appdata.backup/restoreInProgress')
-			|file_exists('/tmp/appdata.backup/verifyInProgress')
+	$ret = (file_exists('/tmp/appdata.backup/running')
 			|file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
 			|file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
 	parityTuningLoggerTesting ("CA Backup running:$ret, array operation running:$parityTuningRunning");
