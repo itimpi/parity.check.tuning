@@ -1218,7 +1218,7 @@ function parityTuningProgressAnalyze() {
     $line = $lines[count($lines) - 1];
     if ((! startsWith($line,'COMPLETED')) && (!startsWith($line,'CANCELLED')) && (!startsWith($line,'ABORTED'))) {
         $endType = file_exists(PARITY_TUNING_UNCLEAN_FILE) ? 'ABORTED' : 'COMPLETED';
-        parityTuningLoggerDebug("missing completion line in Progress file - add $end$YPE and restart analyze");
+        parityTuningLoggerDebug("missing completion line in Progress file - add end TYPE and restart analyze");
         parityTuningProgressWrite($endType,PARITY_TUNING_PROGRESS_SAVE );
 		$lines = file(PARITY_TUNING_PROGRESS_SAVE);	// Reload file
     }
@@ -1391,7 +1391,7 @@ END_PROGRESS_FOR_LOOP:
 		$action = "";
 		while ($matchLine < count($lines)) {
 			$line = $lines[$matchLine];
-			list($logstamp,$logduration, $logspeed,$logexit, $logerrors, $action) = explode('|',$line);
+			list($logstamp,$logduration, $logspeed,$logexit, $logerrors) = explode('|',$line);
 			$logtime = strtotime(substr($logstamp, 9, 3) . substr($logstamp,4,4) . substr($logstamp,0,5) . substr($logstamp,12));
 			// parityTuningLoggerTesting('history line ' . ($matchLine+1) . " $logstamp, logtime=$logtime=" . date(PARITY_TUNING_DATE_FORMAT,$logtime));
 			if ($logtime > $thisStart) {
@@ -1474,7 +1474,7 @@ function this_duration($time) {
   $days = floor($time/86400);
   $hmss = $time-$days*86400;
   $hour = floor($hmss/3600);
-  $mins = $hmss/60%60;
+  $mins = ((int)($hmss/60))%60;
   $secs = $hmss%60;
   return this_plus($days,_('day'),($hour|$mins|$secs)==0).this_plus($hour,_('hr'),($mins|$secs)==0).this_plus($mins,_('min'),$secs==0).this_plus($secs,_('sec'),true);
 }
