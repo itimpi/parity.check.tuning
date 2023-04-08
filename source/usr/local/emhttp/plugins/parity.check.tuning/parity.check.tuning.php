@@ -251,18 +251,20 @@ switch (strtolower($command)) {
 					$msg = _('Paused') . ": " . _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
+					createMarkerFile(PARITY_TUNING_MOVER_FILE);  // may already exist at this point
 					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
-				createMarkerFile(PARITY_TUNING_MOVER_FILE);  // may already exist at this point
 			} else {
 				if (file_exists(PARITY_TUNING_MOVER_FILE)) {
 					$msg = _('Resumed') . ": " . _('Mover no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger ($msg);
 					parityTuningDeleteFile (PARITY_TUNING_MOVER_FILE);
-					exec('/usr/local/sbin/mdcmd "check" "resume"');
-					sendArrayNotification ($msg);
+					if (isIncrementActive()) {
+						exec('/usr/local/sbin/mdcmd "check" "resume"');
+						sendArrayNotification ($msg);
+					}
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
@@ -272,23 +274,25 @@ switch (strtolower($command)) {
 		// Handle pause/resume around CA Backup  running
 
 		if ($parityTuningCfg['parityTuningCABackup']) {
-			if (isCABackupRunning()) {
+			if (isCABackupRunning($parityTuningAction)) {
 				if ($parityTuningRunning) {
 					$msg = _('Paused') . ": " . _('CA Backup running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
+					createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
 					sendArrayNotification ($msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
-				createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
 			} else {
 				if (file_exists(PARITY_TUNING_BACKUP_FILE)) {
 					$msg = _('Resumed') . ': ' . _('CA Backup no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					parityTuningDeleteFile (PARITY_TUNING_BACKUP_FILE);
-					exec('/usr/local/sbin/mdcmd "check" "resume"');
-					sendArrayNotification ($msg);
+					if (isIncrementActive($parityTuningAction)) {
+							exec('/usr/local/sbin/mdcmd "check" "resume"');
+							sendArrayNotification ($msg);
+					}
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
@@ -334,7 +338,7 @@ switch (strtolower($command)) {
         parityTuningLoggerTesting (_('plugin temperature settings') 
 									. ': ' . _('Pause') . ' ' .  $parityTuningCfg['parityTuningHeatHigh'] 
 									. ', ' . _('Resume') . ' ' . $parityTuningCfg['parityTuningHeatLow']
-                				   . ($parityTuningCfg['parityTuningShutdown'] ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
+                				   . ($parityTuningCfg['parityTuningHeatShutdown'] ? (', ' . _('Shutdown') . ' ' . $parityTuningCfg['parityTuningHeatCritical']) . ')' : ''));
 		// Get configuration settings
 		$parityTuningHeatCritical = $parityTuningCfg['parityTuningHeatCritical'];
 		$parityTuningHeatHigh     = $parityTuningCfg['parityTuningHeatHigh'];
@@ -411,14 +415,14 @@ switch (strtolower($command)) {
 												($temp=='*')?'':$parityTuningTempUnit, $status,
 												tempInDisplayUnit($hot), $parityTuningTempUnit,
 												tempInDisplayUnit($cool), $parityTuningTempUnit)
-											   . ($parityTuningCfg['parityTuningShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
+											   . ($parityTuningCfg['parityTuningHeatShutdown'] ? sprintf(', critical=%s%s',tempInDisplayUnit($critical), $parityTuningTempUnit) : ''). ')');
 				}
 			}
         }  // end of for loop gathering temperature information
 
         // Handle at least 1 drive reaching shutdown threshold
 		// (deemed more important than simple overheating)
-        if ($parityTuningCfg['parityTuningShutdown']) {
+        if ($parityTuningCfg['parityTuningHeatShutdown']) {
 			if (count($criticalDrives) == 0) {
 				if (count($spinDrives) == 0) {
 					parityTuningLoggerDebug(_('No drives appear to have reached shutdown threshold'));
@@ -784,7 +788,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			goto RUN_PAUSE;	
 		}
 		// NOTE:  Monitor process can pause it later as well if conditions for that are met.
-		if (isRunInIncrements($restartAction) && (! isActivePeriod()) ) {
+		if (isIncrementActive($restartAction)) {
 			parityTuningLoggerDebug(_('Outside time slot for running operation type'));
 			// $actionDescription = $restartDescription;		// Update description due to restart
 			goto RUN_PAUSE;
@@ -1773,7 +1777,7 @@ function isRunInIncrements($action) {
 
 function isIncrementActive($action) {
 
-	if (isRunInIncrements($action)) 	return false;
+	if (!isRunInIncrements($action)) 	return false;
 	return isActivePeriod();
 }
 

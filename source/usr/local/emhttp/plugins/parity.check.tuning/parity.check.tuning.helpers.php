@@ -68,8 +68,11 @@ $plugin = PARITY_TUNING_PLUGIN;
 if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	$login_locale = '';
 	if (!isset($_SESSION['locale']) || ($_SESSION['locale']=='')) {
-		parityTuningLoggerTesting("setting locale from dynamix setting");
-		$_SESSION['locale'] = $login_locale = $dynamixCfg['display']['locale'];
+		if (isset($dynamixCfg['display']['locale'])) {
+			parityTuningLoggerTesting("setting locale from dynamix setting");
+			$login_locale = $dynamixCfg['display']['locale'];
+		}
+		$_SESSION['locale'] = $login_locale;
 	}	
 	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
 	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
