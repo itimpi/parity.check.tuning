@@ -102,7 +102,8 @@ if (file_exists($log)) {
 			break;
 		
 	}
-	
+	// Workaround for earlier bug where $action field not populated in history file.
+	if ($action ==='') $action = 'check P';
 	
     $action = preg_split('/\s+/',$action);
     switch ($action[0]) {
@@ -133,7 +134,7 @@ if (file_exists($log)) {
 					$action = $parityTuningType.' '.$action;
 					break;
       case 'clear': $action = _('Disk-Clear'); break;
-      default     : $action = '-'; break;
+      default     : $action = '-';  break;
     }
 
 	

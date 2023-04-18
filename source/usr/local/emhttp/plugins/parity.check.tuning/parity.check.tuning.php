@@ -248,22 +248,22 @@ switch (strtolower($command)) {
 		if ($parityTuningCfg['parityTuningMover']) {
 			if (isMoverRunning()) {
 				if ($parityTuningRunning) {
-					$msg = _('Paused') . ": " . _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('Mover running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
 					createMarkerFile(PARITY_TUNING_MOVER_FILE);  // may already exist at this point
-					sendArrayNotification ($msg);
+					sendArrayNotification ( _('Paused') . ": " . $msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
 			} else {
 				if (file_exists(PARITY_TUNING_MOVER_FILE)) {
-					$msg = _('Resumed') . ": " . _('Mover no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('Mover no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger ($msg);
 					parityTuningDeleteFile (PARITY_TUNING_MOVER_FILE);
 					if (isIncrementActive()) {
 						exec('/usr/local/sbin/mdcmd "check" "resume"');
-						sendArrayNotification ($msg);
+						sendArrayNotification (_('Resumed') . ": " . $msg);
 					}
 				} else {
 					parityTuningLoggerTesting ("... no action required");
@@ -276,22 +276,22 @@ switch (strtolower($command)) {
 		if ($parityTuningCfg['parityTuningCABackup']) {
 			if (isCABackupRunning($parityTuningAction)) {
 				if ($parityTuningRunning) {
-					$msg = _('Paused') . ": " . _('CA Backup running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('CA Backup running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
 					createMarkerFile(PARITY_TUNING_BACKUP_FILE);  // may already exist at this point
-					sendArrayNotification ($msg);
+					sendArrayNotification (_('Paused') . ": " . $msg);
 				} else {
 					parityTuningLoggerTesting ("... no action required");
 				}					
 			} else {
 				if (file_exists(PARITY_TUNING_BACKUP_FILE)) {
-					$msg = _('Resumed') . ': ' . _('CA Backup no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
+					$msg = _('CA Backup no longer running') . ($parityTuningErrors > 0 ? "$parityTuningErrors " . _('errors') . ')' : '');
 					parityTuningLogger($msg);
 					parityTuningDeleteFile (PARITY_TUNING_BACKUP_FILE);
 					if (isIncrementActive($parityTuningAction)) {
-							exec('/usr/local/sbin/mdcmd "check" "resume"');
-							sendArrayNotification ($msg);
+						exec('/usr/local/sbin/mdcmd "check" "resume"');
+						sendArrayNotification (_('Resumed') . ': ' . $msg);
 					}
 				} else {
 					parityTuningLoggerTesting ("... no action required");
@@ -604,7 +604,7 @@ switch (strtolower($command)) {
 		}
 
 		if (configuredAction()) {
-				// TODO May want to create a 'paused' file to indicate reason for pause?
+			// TODO May want to create a 'paused' file to indicate reason for pause?
 RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningLogger(_('Paused').': '.$parityTuningDescription);
 			exec('/usr/local/sbin/mdcmd "nocheck" "pause"');
@@ -1236,7 +1236,7 @@ function parityTuningProgressAnalyze() {
 		if ($op === 'type') {
 			parityTuningLoggerTesting("ignore header record");
 			continue;
-		}
+		};
 		// A progress file can have a time offset which we can determine by comparing text and binary timestamps
 		// (This will only be relevant when testing Progress files submitted as part of a problem report)
         if (! $increments) {
@@ -1419,7 +1419,7 @@ END_PROGRESS_FOR_LOOP:
 		$gendate = date(PARITY_TUNING_DATE_FORMAT,$lastFinish);
 		if ($gendate[9] == '0') $gendate[9] = ' ';  // change leading 0 to leading space
 		// generate replacement parity history record
-		$generatedRecord = $gendate.'|'.$duration.'|'.$speed.'|'.$exitCode.'|'.$corrected.'|'.$action;
+		$generatedRecord = $gendate.'|'.$duration.'|'.$speed.'|'.$exitCode.'|'.$corrected.'|'.$startAction;
 		// Extra field included as standard on Unraid 6.11 or later
 		if ($parityTuningSizeInHistory) {
 			parityTuningLoggerTesting('add size to history record: '. $size); 
@@ -1492,7 +1492,7 @@ function sendNotification($msg, $desc = '', $type = 'normal') {
 //       ~~~~~~~~~~~~~~~~
 	global $dynamixCfg, $docroot;
 	global $parityTuningServer;
-    parityTuningLogger (_('Send notification') . ': ' . "$msg: $desc " . parityTuningCompleted());
+    parityTuningLogger (_('Send notification') . ': ' . "$msg: $desc ");
     if ($dynamixCfg['notify']['system'] == "" ) {
     	parityTuningLogger (_('... but suppressed as system notifications do not appear to be enabled'));
     } else {
@@ -1775,9 +1775,10 @@ function isRunInIncrements($action) {
 	return $ret;
 }
 
-function isIncrementActive($action) {
+// Check if the operation type is being run in increments and if so if we are in that period.
 
-	if (!isRunInIncrements($action)) 	return false;
+function isIncrementActive($action) {
+	if (!isRunInIncrements($action)) return true;	// If no increments used always assume true
 	return isActivePeriod();
 }
 
