@@ -37,7 +37,6 @@ Known Issues:
  - Fix: Resume not always correctly handled after pauses due to mover or Backup running.
  - New: Detect manual pause/resume to add to increment count (but does not handle very short pause/resume)
  - Fix: The plugin settings page help updated to better describe how the mover and backup settings operate.
- - Fix: Some PHP 8 Warnings
  
 ### 2023-04-18
  - Fix: Array operations not being resumed after mover/ca.backup active pause if no increment type set

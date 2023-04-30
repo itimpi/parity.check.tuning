@@ -41,7 +41,7 @@ Pause and Resume array operations if disks overheat=
 Pause array operations while appdata backup or restore running=
 Pause array operations while mover running=
 Read Check=
-Requires Unraid 6.10.3 or later=
+Requires Unraid 6103 or later=Requires Unraid 6.10.3 or later
 Resume an array operation at=
 Resume array operations on next array start=
 Resume running Array operations on next array start=
@@ -224,10 +224,13 @@ Array stopping while %s was in progress %s=
 but no action currently taken on started event=
 but no parity check was in progress when array stopped=
 Cancel request=
+Configuration=
 cool=
 Created cron entries for %s=
 ; where %s will be one of the following 4 values
 default monitoring=
+Manual pause detected=
+Manual resume detected=
 monitoring disk temperatures=
 monitoring partial parity checks=
 scheduled pause and resume=
@@ -247,6 +250,7 @@ Option not currently recognized=
 Parity check appears to be paused=
 Parity Check was in progress when array stopped at %s=
 Pause of=
+PAUSEDD=
 Pause request=
 Removed existing state file %s=
 Resume request=
@@ -254,7 +258,9 @@ so no further action to take=
 Temperature monitoring switched off=
 Unraid version %s is too old to support restart=
 Unscheduled array operation in progress=
+Updated cron settings are in %s=
 using scheduled mode of %s=
+Versions Unraid %s, Plugin %s=Versions: Unraid %s, Plugin %s
 warm=
 will not be restarted=
 with all array drives below temperature threshold for a Pause=
@@ -384,11 +390,19 @@ Method used to specify start and stop points=
 :end
 
 :parity_tune_mover_plug:
->Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  >Pause an array operation (Parity Check, Read-Check, Parity-Sync,. Disk Rebuild, Disk Clear) if mover is running.  An array operation being run in parallel to mover adversely affects the performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+> 
+> This setting takes affect even if you are not using any of the options to run an array operation in increments.
+> 
+> If you are running the array operation type in increments then the resume will only happen after mover finishes if you are still within the time windows for the increment.
 :end
 
 :parity_tune_backup_plug:
->Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the Appdata Backup/Restore plugin is running a backup or restore of docker container data.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>Pause an array operation (Parity Check, Read-Check, Parity-Sync,. Disk Rebuild, Disk Clear) if the CA Appdata or Appdat Backup plugins are running a backup or restore of docker container data.  An array operation being run in parallel to the backup or restore adversely affects the performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+> 
+> This setting takes affect even if you are not using any of the options to run an array operation in increments.
+> 
+>I f you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
 :end
 
 :parity_tune_hot_plug:

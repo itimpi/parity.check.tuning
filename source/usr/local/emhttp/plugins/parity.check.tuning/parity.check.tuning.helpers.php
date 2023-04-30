@@ -40,13 +40,15 @@ define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
 define('PARITY_TUNING_LOG_FILE',    PARITY_TUNING_FILE_PREFIX . 'log');
 define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial check in progress (contains end sector value)
 define('EMHTTP_VAR_DIR' ,           '/var/local/emhttp/');
-define('PARITY_TUNING_EMHTTP_VAR_FILE',   EMHTTP_VAR_DIR . 'var.ini');
-define('PARITY_TUNING_EMHTTP_DISKS_FILE', EMHTTP_VAR_DIR . 'disks.ini');
-define('PARITY_TUNING_CABACKUP_FILE',PLUGINS_DIR . '/ca.backup2.plg'); 
+define('PARITY_TUNING_EMHTTP_VAR_FILE',  EMHTTP_VAR_DIR . 'var.ini');
+define('PARITY_TUNING_EMHTTP_DISKS_FILE',EMHTTP_VAR_DIR . 'disks.ini');
+define('PARITY_TUNING_CABACKUP2_FILE',   PLUGINS_DIR . '/ca.backup2.plg'); 
+define('PARITY_TUNING_APPBACKUP_FILE',   PLUGINS_DIR . '/appdata.backup.plg'); 
 define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  // Created if array stopped with array operation active to hold restart info
 define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
 define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
 define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
+define('PARITY_TUNING_PAUSED_FILE',    PARITY_TUNING_FILE_PREFIX . 'paused');   // Created when we detect an array operation paused
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
 ;
 
@@ -74,7 +76,7 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 		}
 		$_SESSION['locale'] = $login_locale;
 	}	
-	parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
+	// parityTuningLoggerTesting("Multi-Language support active, locale: " . $_SESSION['locale']);
 	$_SERVER['REQUEST_URI'] = 'paritychecktuning';
 	require_once "$docroot/webGui/include/Translations.php";
 	parse_plugin('paritychecktuning');
@@ -92,7 +94,7 @@ $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
 
 $parityTuningStartStop = version_compare($parityTuningUnraidVersion,'6.10.3','>');
 $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.0','>');
-parityTuningLoggerTesting ("Unraid Version: $parityTuningUnraidVersion, Plugin ".substr($parityTuningVersion,0,-1).", Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
+// parityTuningLoggerTesting ("Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
@@ -119,8 +121,7 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
     $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0); // array action has been started
-	$GLOBALS['parityTuningPaused']    = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)); // Array action is paused
-    $GLOBALS['parityTuningRunning']    = ($GLOBALS['parityTuningActive'] && ($vars['mdResync']>0)); // Array action is running
+	$GLOBALS['parityTuningPaused']     = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)); // Array action is paused
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
@@ -130,9 +131,10 @@ loadVars();
 // TODO - decide if this really is worth doing?
 if ($parityTuningActive) {
 	$parityTuningDescription = actionDescription($parityTuningAction, $parityTuningCorrecting);
-	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningRunning ? _('running') : _('paused')));
+	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningPaused ? _('paused') : _('running')));
 } else {
 	$parityTuningDescription = _('No array operation in progress');
+	parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
 }
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
@@ -149,6 +151,21 @@ function createMarkerFile ($filename) {
 		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
 	}
 	$fnLock=false;
+}
+
+// Remove a file and if TESTING logging active then log it has happened
+// For marker files sanitize the name to a friendlier form.
+// Return true if file was deleted, and false if did not exist.
+
+//       ~~~~~~~~~~~~~~~~~~~~~~
+function parityTuningDeleteFile($name) {
+//       ~~~~~~~~~~~~~~~~~~~~~~
+ 	if (file_exists($name)) {
+		@unlink($name);
+		parityTuningLoggerTesting('Deleted ' . parityTuningMarkerTidy($name));
+		return true;
+	}
+	return false;
 }
 
 // Tidy up the name of a marker file for logging purposes

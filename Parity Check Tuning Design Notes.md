@@ -97,7 +97,7 @@ appears to provide information about parity checks
 | Field  | Value | Meaning |
 |----------|----------| -------|
 | sbSynced | |  time last check started as Unix time
-| sbSynced2      |              | time of last completion as Unix time.   duration = sbSynced2-sbSynced
+| sbSynced2      |              | time of last completion as Unix time.<br>0 if array action currently running.<br>Duration = sbSynced2-sbSynced<br>NOTE: Duration is current increment only if increment being used.
 | sbSyncErrs     |              | Error count from last operation
 | sbSyncExit     |              | exit code of last operation.  0=success, -4=cancelled
 |                |              |

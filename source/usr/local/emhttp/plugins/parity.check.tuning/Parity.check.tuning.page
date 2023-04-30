@@ -31,7 +31,7 @@ else:
 ?>
 <script>
 var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
-var noBackup = <?=(file_exists(PARITY_TUNING_CABACKUP_FILE) ? 'false' : 'true')?>;
+var noBackup = <?=((file_exists(PARITY_TUNING_CABACKUP2_FILE)||file_exists(PARITY_TUNING_APPBACKUP_FILE)) ? 'false' : 'true')?>;
 var cumulative = <?= $dynamixCfg['parity']['cumulative']==1 ? 'true' : 'false';?>;
 
 // Preset fields to be enabled/disabled as appropriate
@@ -56,7 +56,7 @@ function presetParityTuning(form) {
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
   form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
   form.parityTuningNotify.disabled       = parityTuningDisabled;
-  form.parityTuningCABackup.disabled     = noBackup;
+  form.parityTuningBackup.disabled     = noBackup;
   
   // Now the heat related options
   parityTuningDisabled = (form.parityTuningHeat.value == '0');
@@ -550,21 +550,29 @@ $(function() {
   </select>
   
 :parity_tune_mover_plug:
->Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if mover is running.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>Pause an array operation (Parity Check, Read-Check, Parity-Sync,. Disk Rebuild, Disk Clear) if mover is running.  An array operation being run in parallel to mover adversely affects the performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>
+> This setting takes affect even if you are not using any of the options to run an array operation in increments.
+> 
+> If you are running the array operation type in increments then the resume will only happen after mover finishes if you are still within the time windows for the increment.
 :end
 
 <?=_('Pause array operations while appdata backup or restore running')?>:
-: <select name="parityTuningCABackup"
+: <select name="parityTuningBackup"
           size='1' class='narrow' 
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningCABackup'], "1", _("Yes")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningCABackup'], "0", _("No")) . "\n"?>
-  </select><? if (!file_exists(PARITY_TUNING_CABACKUP_FILE)) echo '<font color=#FF8C2F>' . _('This option is only available if Appdata Backup/Restore v2 plugin installed') . '</font>'; ?>
+    <?=mk_option($parityTuningCfg['parityTuningBackup'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningBackup'], "0", _("No")) . "\n"?>
+  </select><? if (!(file_exists(PARITY_TUNING_CABACKUP2_FILE)||file_exists(PARITY_TUNING_APPBACKUP_FILE))) echo '<font color=#FF8C2F>' . _('This option is only available if Appdata Backup/Restore plugin installed') . '</font>'; ?>
 
 :parity_tune_backup_plug:
->Pause an array operation (Parity Check, Parity-Sync/Disk Rebuild, disk Clear) if the Appdata Backup/Restore plugin is running a backup or restore of docker container data.  These two types of activity adversely affect each other's performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>Pause an array operation (Parity Check, Read-Check, Parity-Sync,. Disk Rebuild, Disk Clear) if the CA Appdata or Appdat Backup plugins are running a backup or restore of docker container data.  An array operation being run in parallel to the backup or restore adversely affects the performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
+>
+> This setting takes affect even if you are not using any of the options to run an array operation in increments.
+>
+> If you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
 :end
 
 &nbsp;
