@@ -206,8 +206,10 @@ Unusually large value=
 %s Cancelled=
 Array not started so no action taken=
 as drives now cooled down=
+Cancel automatically started array operation=
 Following drives overheated=
 Only able to start a Read-Check due to number of disabled drives=
+to get ready for restart=
 
 ; Syslog messages (with debug logging enabled)
 ; ~~~~~~~~~~~~~~~

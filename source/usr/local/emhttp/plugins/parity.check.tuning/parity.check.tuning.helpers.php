@@ -49,7 +49,15 @@ define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');
 define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
 define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
 define('PARITY_TUNING_PAUSED_FILE',    PARITY_TUNING_FILE_PREFIX . 'paused');   // Created when we detect an array operation paused
-define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s')
+define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
+// Logging modes supported
+define('PARITY_TUNING_LOGGING_BASIC' , '0');
+define('PARITY_TUNING_LOGGING_DEBUG' , '1');
+define('PARITY_TUNING_LOGGING_TESTING' ,'2');
+// Targets for testing mode
+define('PARITY_TUNING_LOGGING_SYSLOG' ,'0');
+define('PARITY_TUNING_LOGGING_BOTH' ,'1');
+define('PARITY_TUNING_LOGGING_FLASH' ,'2');
 ;
 
 
@@ -120,8 +128,8 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
-    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0); // array action has been started
-	$GLOBALS['parityTuningPaused']     = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)); // Array action is paused
+    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0? 1 : 0); // array action has been started
+	$GLOBALS['parityTuningPaused']     = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)) ? 1 : 0; // Array action is paused
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
 }
@@ -228,14 +236,15 @@ function operationTriggerType($action = null, $active=null) {
 // if $active is omitted or false, then the mdstat active state will be used
 
 //       ~~~~~~~~~~~~~~~~
-function actionDescription($action, $correcting, $trigger = null, $active = null) {
+function actionDescription($action, $correcting = null, $trigger = null, $active = null) {
 //       ~~~~~~~~~~~~~~~~
-	global $parityTuningActive;
+	global $parityTuningActive,$parityTuningCorrecting;
 	
-	if (is_null($active)) $active = $parityTuningActive;
+	if (is_null($action)) return '';		// This should never happen	
 	
-	if (is_null($action)) return '';		// This should never happen!
-
+	if (is_null($correcting)) $correcting = $parityTuningCorrecting;
+	if (is_null($active))     $active     = $parityTuningActive;
+	if (is_null($trigger))    $trigger    = operationTriggerType($action,$active);
     
 	$act = explode(' ', $action );
 
@@ -248,23 +257,22 @@ function actionDescription($action, $correcting, $trigger = null, $active = null
         case 'check':   $type = (count($act) == 1) 
 								?
 								: _('Parity Check');
-						$triggerType = ((is_null($trigger)) ? operationTriggerType($action,$active):$trigger);
-						parityTuningLoggerTesting("triggerType: $triggerType");
-						switch (strtoupper($triggerType)) {
+						parityTuningLoggerTesting("triggerType: $trigger");
+						switch (strtoupper($trigger)) {
 							case 'AUTOMATIC': 
-								$triggerType =  _('Automatic');
+								$trigger =  _('Automatic');
 								break;
 							case 'MANUAL':	
-								$triggerType =  _('Manual');
+								$trigger =  _('Manual');
 								break;
 							case 'SCHEDULED':	
-								$triggerType =  _('Scheduled');
+								$trigger =  _('Scheduled');
 								break;
 							default:			
-								$triggerType =  '';
+								$trigger =  '';
 								break;
 						}
-        				$ret = ($triggerType . ' ' .
+        				$ret = ($trigger . ' ' .
 								(count($act) == 1 ?  _('Read-Check') 
 								: ($correcting == 0 
 								  ? _('Non-Correcting')
@@ -295,9 +303,8 @@ function parityTuningPartial() {
 //       ~~~~~~~~~~~~~~~~
 function parityTuningLogger($string) {  
 //       ~~~~~~~~~~~~~~~~
-  global $parityTuningCfg, $parityTuningServer;
+  global $parityTuningCfg, $parityTuningServer;	
   $logTarget = $parityTuningCfg['parityTuningLogTarget'];
-  parityTuningLoggerCLI ($string);
   $logName = parityTuningPartial() ? "Parity Problem Assistant" : "Parity Check Tuning";
   if ($logTarget > 0) {
 	 $line = date(PARITY_TUNING_DATE_FORMAT) . ' ' . $parityTuningServer . " $logName: $string\n";
@@ -330,11 +337,22 @@ function parityTuningLoggerTesting($string) {
   }
 }
 
+// Output a message to the console if running in CLI mode.
+// An optional parameter specifies if it should also be written to the log file (and at what level)
+
 //       ~~~~~~~~~~~~~~~~~~~~~
-function parityTuningLoggerCLI($string) {
+function parityTuningLoggerCLI($string, $logging=null) {
 //       ~~~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCLI;
-  	if ($parityTuningCLI) echo $string . "\n";
+	switch ($logging) {
+		case PARITY_TUNING_LOGGING_BASIC:
+			parityTuningLogger($string); break;
+		case PARITY_TUNING_LOGGING_DEBUG:
+			parityTuningLoggerDebug($string); break;
+		case PARITY_TUNING_LOGGING_TESTING:
+			parityTuningLoggerTesting($string); break;
+	}
+	if (($parityTuningCLI)) echo $string . "\n";
 }
 
 // Useful matching functions

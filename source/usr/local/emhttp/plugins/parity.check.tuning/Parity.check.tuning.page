@@ -688,15 +688,15 @@ $(function() {
 : <select name="parityTuningLogging" 
           size='1' class='narrow'
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "0", _("Basic")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "1", _("Debug")) . "\n"?>
-    <?=mk_option($parityTuningCfg['parityTuningLogging'], "2", _("Testing")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_BASIC, _("Basic")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_DEBUG, _("Debug")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_TESTING, _("Testing")) . "\n"?>
   </select>  <select name="parityTuningLogTarget"
           size='1' class='narrow'
 		  onchange="presetParityTuning(this.form); checkLoggingTarget(this.form)">
-		  <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "0", _("Syslog only")) . "\n"?>
-          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "1", _("Syslog and Flash")) . "\n"?>
-          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], "2", _("Flash only")) . "\n"?>
+		  <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_SYSLOG, _("Syslog only")) . "\n"?>
+          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_BOTH, _("Syslog and Flash")) . "\n"?>
+          <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_FLASH, _("Flash only")) . "\n"?>
 	  </select>
 	  
 :parity_tune_logging_plug:
