@@ -3,7 +3,7 @@
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
 <!ENTITY version "2023.06.18">
-<!ENTITY md5 "79db3332b79f591c9aec17d44c1c89db">
+<!ENTITY md5 "aff2bbcdfa1560a59a36c56266a9ae55">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -34,7 +34,7 @@ Known Issues:
 
 ### 2023-06-18
  - Fix: Some minor PHP issues (Warnings and Deprecated) 
- - Fix: Error happening when trying to detect manual pause or resume had occurred.
+ - Fix: Error happening when trying to detect  manual pause or resume had occurred.
  
 ### 2023-05-07
  - Refactored code around CLI interface

@@ -128,7 +128,7 @@ function loadVars($delay = 0) {
     $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
-    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0? 1 : 0); // array action has been started
+    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0 ? 1 : 0); // array action has been started
 	$GLOBALS['parityTuningPaused']     = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)) ? 1 : 0; // Array action is paused
     $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
     $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
@@ -196,7 +196,7 @@ function operationTriggerType($action = null, $active=null) {
 	if (is_null($action)) $action = $parityTuningAction;
 	if (is_null($active)) $active = $parityTuningActive;
 	if (! file_exists(PARITY_TUNING_RESTART_FILE) ) {
-		// parityTuningLoggerTesting ('... ' . _('no restart operation active'));
+		// parityTriggerType:tyTuningLoggerTesting ('... ' . _('no restart operation active'));
 		if (!($active)) {
 			// parityTuningLoggerTesting ('... ' . _('no array operation active so trigger type not relevant'));
 			return '';

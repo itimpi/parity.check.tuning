@@ -239,28 +239,29 @@ switch (strtolower($command)) {
 			parityTuningInactiveCleanup();
 			break;
 		}
+		// Consistency checks
+		$trigger = operationTriggerType();
+		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
+			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
+			parityTuningLogger ($parityTuningDescription.' '._('detected'));
+			parityTuningProgressWrite ($trigger);
+			updateCronEntries();    // ensure reasonably frequent monitor checks
+		}
 		// Add missing entries to Progress file if manual pause/resume is detected.
 		if ($parityTuningPaused) {
 			if (!file_exists(PARITY_TUNING_PAUSED_FILE)) {
-				ParityCheckLogger(_('Manual pause detected'));
+				ParityTuningLogger($parityTuningDescription.': '._('Manually paused'));
 				parityTuningProgressWrite('PAUSE (MANUAL)');
 				createMarkerFile(PARITY_TUNING_PAUSED_FILE);
 			}
 		} else {
-			if (file_exists(PARITY_TUNING_PAUSED_FILE)) {
-				ParityCheckLoggerDebug(_('Manual resume detected'));
+			if ($trigger == 'MANUAL' && file_exists(PARITY_TUNING_PAUSED_FILE)) {
+				ParityTuningLogger($parityTuningDescription.': '._('Manually resumed'));
 				parityTuningProgressWrite('RESUME (MANUAL)');
 				parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
 			}
 		}
-		// Consistency checks
-		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-			parityTuningLoggerTesting (_('appears there is a running array operation but no Progress file yet created'));
-			$trigger = operationTriggerType();
-			parityTuningLoggerDebug ($parityTuningDescription);
-			parityTuningProgressWrite ($trigger);
-			updateCronEntries();    // ensure reasonably frequent monitor chechs
-		}
+
 
 		// Handle pause/resume around background tasks running
 		// TODO:  See if we can immediately break if pause was activeated?
@@ -568,13 +569,18 @@ switch (strtolower($command)) {
 		if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
 			parityTuningProgressWrite(operationTriggerType());
 		}
+		
+		// We only need to really issue the pause if not already paused
 		if ($parityTuningPaused) {
 			parityTuningLoggerDebug(sprintf('%s %s!', $parityTuningDescription, _('already paused')));
 			break;
 		}
 
 		if (configuredAction()) {
-			// TODO May want to create a 'paused' file to indicate reason for pause?
+			// Remove any files indicated we might have paused for some other reason
+			parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
+			parityTuningDeleteFile(PARITY_TUNING_BACKUP_FILE);
+			parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
 RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningLogger(_('Paused').': '.$parityTuningDescription);
 			exec('/usr/local/sbin/mdcmd "nocheck" "pause"');
@@ -1619,7 +1625,7 @@ function configuredAction() {
 	// check configured options against array operation type in progress
 
     $triggerType = operationTriggerType();
-    if (startsWith($$parityTuningAction,'recon')) {
+    if (startsWith($parityTuningAction,'recon')) {
     	$result = $parityTuningCfg['parityTuningRecon'];
     } else if (startsWith($parityTuningAction,'clear')) {
     	$result = $parityTuningCfg['parityTuningClear'];
@@ -1661,7 +1667,7 @@ function isArrayOperationActive() {
 	// 	parityTuningLoggerTesting ('Restart file found - so treat as isArrayOperationActive=true');
 	// 	return true;
 	// }
-	parityTuningLoggerTesting("parityTuningActive:$parityTuningActive, parityTuningPos:$parityTuningPos");
+	parityTuningLoggerTesting("isArrayOperationActive - parityTuningActive:$parityTuningActive, parityTuningPos:$parityTuningPos");
 	if (file_exists(PARITY_TUNING_RESTART_FILE)) {
 		parityTuningLoggerTesting('  restart pending so treat as array operation active');	
 	} else if (!$parityTuningActive) {
