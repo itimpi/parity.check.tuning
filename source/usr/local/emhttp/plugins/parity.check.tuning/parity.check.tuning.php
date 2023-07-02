@@ -1705,14 +1705,14 @@ function isActivePeriod() {
 		$resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
 		$pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
 		$currentTime = (date("H") * 60) + date("i");
-		parityTuningLoggerTesting(".. PauseTIme=$pauseTime, Resumetime=$resumeTime, currentTime=$currentTime");
+		parityTuningLoggerTesting(".. pauseTime=$pauseTime, resumeTime=$resumeTime, currentTime=$currentTime");
 		if ($pauseTime > $resumeTime) {         // We need to allow for times spanning midnight!
 			$inPeriod = (($currentTime > $resumeTime) && ($currentTime < $pauseTime)) ? 1 : 0;
 		} else {
 			$inPeriod = (($currentTime > $resumeTime) || ($currentTime < $pauseTime)) ? 1 : 0;
 		}
 	}
-	parityTuningLoggerTesting('isAcivePeriod()='.$inPeriod);
+	parityTuningLoggerTesting('isActivePeriod()='.$inPeriod);
 	return $inPeriod;
 }
 
