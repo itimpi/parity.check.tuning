@@ -487,7 +487,7 @@ switch (strtolower($command)) {
 						// Decide if we are outside an increment window
 						// so must not resume even though drives cooled
 						if (! isActivePeriod()) {
-							parityTuningLoggerDebug(_('Outside increment scheguled time'));
+							parityTuningLoggerDebug(_('Outside increment scheduled time'));
 							if ((($parityTuningCfg['parityTuningScheduled'] && file_exists(PARITY_TUNING_SCHEDULED_FILE)))
 							|| (($parityTuningCfg['parityTuningManual'] && file_exists(PARITY_TUNING_MANUAL_FILE)))
 							|| (($parityTuningCfg['parityTuningAutomatic'] && file_exists(PARITY_TUNING_AUTOMATIC_FILE)))){
@@ -1706,9 +1706,9 @@ function isActivePeriod() {
 		$pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
 		$currentTime = (date("H") * 60) + date("i");
 		parityTuningLoggerTesting(".. pauseTime=$pauseTime, resumeTime=$resumeTime, currentTime=$currentTime");
-		if ($pauseTime > $resumeTime) {         // We need to allow for times spanning midnight!
+		if ($pauseTime > $resumeTime) {
 			$inPeriod = (($currentTime > $resumeTime) && ($currentTime < $pauseTime)) ? 1 : 0;
-		} else {
+		} else { // We need to allow for times spanning midnight!
 			$inPeriod = (($currentTime > $resumeTime) || ($currentTime < $pauseTime)) ? 1 : 0;
 		}
 	}
