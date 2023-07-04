@@ -109,10 +109,12 @@ switch (strtolower($command)) {
 		@copy (PARITY_TUNING_DEFAULTS_FILE,PARITY_TUNING_CFG_FILE);
 		parityTuningLogger(_('Settings reset to default values'));
 		// FALLTHRU
+	case 'config':
+		parityTuningLogger (sprintf( _('Versions: Unraid %s, Plugin %s'),$parityTuningUnraidVersion,substr($parityTuningVersion,0,-1)));
+		parityTuningLogger(_('Configuration').': '.print_r($parityTuningCfg,true));
+		// FALLTHRU
 	case 'updatecron':
 		// set up cron entries based on current configuration values
-		parityTuningLoggerDebug (sprintf( _('Versions: Unraid %s, Plugin %s'),$parityTuningUnraidVersion,substr($parityTuningVersion,0,-1)));
-		parityTuningLoggerDebug(_('Configuration').': '.print_r($parityTuningCfg,true));
 		updateCronEntries();
         break;
 
@@ -1705,14 +1707,14 @@ function isActivePeriod() {
 		$resumeTime = ($parityTuningCfg['parityTuningResumeHour'] * 60) + $parityTuningCfg['parityTuningResumeMinute'];
 		$pauseTime  = ($parityTuningCfg['parityTuningPauseHour'] * 60) + $parityTuningCfg['parityTuningPauseMinute'];
 		$currentTime = (date("H") * 60) + date("i");
-		parityTuningLoggerTesting(".. PauseTIme=$pauseTime, Resumetime=$resumeTime, currentTime=$currentTime");
-		if ($pauseTime > $resumeTime) {         // We need to allow for times spanning midnight!
+		parityTuningLoggerTesting(".. PauseTIme=$pauseTime, resumeTime=$resumeTime, currentTime=$currentTime");
+		if ($pauseTime < $resumeTime) {         // We need to allow for times spanning midnight!
 			$inPeriod = (($currentTime < $resumeTime) && ($currentTime > $pauseTime)) ? 1 : 0;
 		} else {
 			$inPeriod =(($currentTime > $resumeTime) && ($currentTime < $pauseTime)) ? 1 : 0;
 		}
 	}
-	parityTuningLoggerTesting('isAcivePeriod()='.$inPeriod);
+	parityTuningLoggerTesting('isActivePeriod()='.$inPeriod);
 	return $inPeriod;
 }
 

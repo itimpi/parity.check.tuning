@@ -289,7 +289,7 @@ $(function() {
        value="<?=PARITY_TUNING_PHP_FILE?>">
 <input type="hidden"
        name="#arg[1]"
-       value="updatecron">
+       value="config">
 
 :parity_tune_explain_plug:
 > The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.
