@@ -36,6 +36,7 @@ var cumulative = <?= $dynamixCfg['parity']['cumulative']==1 ? 'true' : 'false';?
 
 // Preset fields to be enabled/disabled as appropriate
 function presetParityTuning(form) {
+  form.parityTuningShutdown.disabled = true;	// Alwaysn disable until ready for use.
   if (noParity) {
     form.parityTuningRecon.value = "0";
     form.parityTuningClear.value = "0";
@@ -219,6 +220,13 @@ function checkAutomaticMode (form) {
               icon: "Warning"});
      }
 }
+
+function checkShutdown (form) {
+    if (form.parityTuningShutdown.value == '1') {
+        swal({title: "_(Do you really want this)_?",
+              text: "_(No check is made to see if there is any other activity running on the server at the time the array operation completes)_.",
+              icon: "Warning"});
+     }}
 
 function checkLoggingMode (form) {
     switch (form.parityTuningLogging.value) {
@@ -654,7 +662,6 @@ $(function() {
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Yes")) . "\n"?>
-
   </select>
 
 :parity_tune_shutdown_plug:
@@ -681,7 +688,22 @@ $(function() {
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
 
-
+<?=_('Shutdown server when array operation completes')?>:
+: <select name="parityTuningShutdown" 
+          size='1' class='narrow'
+          onchange="checkShutdown(this.form)">
+    <?=mk_option($parityTuningCfg['parityTuningShutdown'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningShutdown'], "1", _("Yes")) . "\n"?>
+  </select>
+  
+:parity_tune_complete_plug:
+> If set to **Yes** then automatically start a tidy shutdown of the server when the current array operation completes.
+>
+>This option is only likely to be of use on a server that is powered off most of the time as it is used for something like backup purposes.   The idea is that you can initiate the array operation (either manually or via a schedule) and then leave the server to power itself down without having to know how long the array operation will take to complete.
+>
+>**CAUTION:**  No check is made to see if there is any other activity running on the server at the time the array operation completes.
+:end
+  
 &nbsp;
 
 <?=_('Parity Check Tuning logging')?>:

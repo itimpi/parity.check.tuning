@@ -52,6 +52,7 @@ scheduled=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
 Shutdown server at=
+Shutdown server when array operation completes=
 spundown=
 Stop array issued via Command Line=
 Start array issued via Command Line=
@@ -185,6 +186,7 @@ Do you really want this=
 Error in custom entry=
 extra time that will elapse before the system is once again in a protected state=
 Logging to the flash drive can cause a lot additional writes thus potentially shortening its lifetime=
+No check is made to see if there is any other activity running on the server at the time the array operation completes=
 Notifications not enabled=
 On most systems a disk Clear operation does not adversely affect performance so typically this option is left disabled=
 Only enable this option if the operation is adversely affecting system use and you are not worried about the extra time that will elapse before the system is once again in a protected state=
@@ -460,6 +462,14 @@ Method used to specify start and stop points=
 > You may want a small positive value to trigger the pause before unRaid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.
 >
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
+:end
+
+:parity_tune_complete_plug:
+> If set to **Yes** then automatically start a tidy shutdown of the server when the current array operation completes.
+>
+>This option is only likely to be of use on a server that is powered off most of the time as it is used for something like backup purposes.   The idea is that you can initiate the array operation (either manually or via a schedule) and then leave the server to power itself down without having to know how long the array operation will take to complete.
+>
+>**CAUTION:**  No check is made to see if there is any other activity running on the server at the time the array operation completes.
 :end
 
 :parity_tune_logging_plug:
