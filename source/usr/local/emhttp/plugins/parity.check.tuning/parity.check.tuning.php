@@ -457,10 +457,10 @@ switch (strtolower($command)) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
 						// Generate notification if Pause seemes to be excessive
 						// (this may be due to resume threshold being too high)
-						$waitMinutes = int((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
-						$toLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
-						if (($waitMinutes > $toLongMinutes)
-						&&  ($waitMinutes <= ($toLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
+						$waitMinutes = (int)((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
+						$tooLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
+						if (($waitMinutes > $tooLongMinutes)
+						&&  ($waitMinutes <= ($tooLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
 						{
 							sendTempNotification(opWithErrorCount(_('Waiting')), sprintf(_('Drives been above resume temperature threshold for %s minutes'),$waitMinutes));
 						}
