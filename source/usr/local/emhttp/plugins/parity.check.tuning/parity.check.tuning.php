@@ -456,9 +456,9 @@ switch (strtolower($command)) {
 						// Generate notification if Pause seemes to be excessive
 						// (this may be due to resume threshold being too high)
 						$waitMinutes = (int)((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
-						$toLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
-						if (($waitMinutes > $toLongMinutes)
-						&&  ($waitMinutes <= ($toLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
+						$tooLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
+						if (($waitMinutes > $tooLongMinutes)
+						&&  ($waitMinutes <= ($tooLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
 						{
 							sendTempNotification(opWithErrorCount(_('Waiting')), sprintf(_('Drives been above resume temperature threshold for %s minutes'),$waitMinutes));
 						}
