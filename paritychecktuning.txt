@@ -14,7 +14,7 @@ below warning disk temperature threshold=
 CA Backup or Restore running=
 CA Backup or Restore no longer running=
 CAUTION=
-Click to show Parity Operations history=
+Click to show Array Operations history=
 Data Rebuild=
 Debug=
 Disk Clear=
@@ -306,7 +306,7 @@ Method used to specify start and stop points=
 >* You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.  
 >* The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.
 >
->**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  For parity checks you can avoid this if you set the plugin option to resume parity checks on next array start.
+>**CAUTION:**  If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  You can avoid this if you set the plugin option to resume array operations on next array start.
 :end
 
 :parity_tune_increments_plug:

@@ -124,63 +124,64 @@ switch (strtolower($command)) {
         $cmd = 'mdcmd '; for ($i = 3; $i < count($argv) ; $i++)  $cmd .= $argv[$i] . ' ';
         parityTuningLoggerDebug(sprintf(_('detected that mdcmd had been called from %s with command %s'), $argv['2'], $cmd));
         switch (strtolower($argv[2])) {
-        case 'crond':
-        case 'sh':
-            switch (strtolower($argv[3])) {
-            case 'check':
-					parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
-                    loadVars(5);         // give time for start/resume
-                    if (strtolower($argv[4]) === 'resume') {
-                        parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . $parityTuningDescription));
-                        parityTuningProgressWrite('RESUME');		// We want state after resume has started
-                    } else {
-						if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
-							parityTuningLoggerTesting('analyze previous progress before starting new one');
-							parityTuningProgressAnalyze();
-						}
-						// Work out what type of trigger
-						if (strtolower($argv[2]) === 'crond') {
-							parityTuningLoggerTesting ('... ' . _('appears to be a regular scheduled check'));
-							createMarkerFile(PARITY_TUNING_SCHEDULED_FILE);
-							parityTuningProgressWrite ('SCHEDULED');
+			case 'crond':
+			case 'sh':
+				switch (strtolower($argv[3])) {
+					case 'check':
+						parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
+						loadVars(5);         // give time for start/resume
+						if (strtolower($argv[4]) === 'resume') {
+							parityTuningLoggerDebug ('... ' . _('Resume' . ' ' . $parityTuningDescription));
+							parityTuningProgressWrite('RESUME');		// We want state after resume has started
 						} else {
-							$triggerType = operationTriggerType();
-							parityTuningLoggerTesting ('... ' . _("appears to be a $triggerType array operation"));
-							parityTuningProgressWrite ($triggerType);
+							if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
+								parityTuningLoggerTesting('analyze previous progress before starting new one');
+								parityTuningProgressAnalyze();
+							}
+							// Work out what type of trigger
+							if (strtolower($argv[2]) === 'crond') {
+								parityTuningLoggerTesting ('... ' . _('appears to be a regular scheduled check'));
+								createMarkerFile(PARITY_TUNING_SCHEDULED_FILE);
+								parityTuningProgressWrite ('SCHEDULED');
+							} else {
+								$triggerType = operationTriggerType();
+								parityTuningLoggerTesting ('... ' . _("appears to be a $triggerType array operation"));
+								parityTuningProgressWrite ($triggerType);
+							}
 						}
-                    }
-                    break;
-            case 'nocheck':
-					createMarkerFile(PARITY_TUNING_PAUSED_FILE);
-					loadVars(5);         // give time for pause/cancel  
-					switch (strtolower($argv[4])) {
-                    case 'pause':                     
-					    parityTuningLoggerDebug ('...' . _('Pause' . ' ' . $parityTuningDescription));
-                        parityTuningProgressWrite ("PAUSE");
 						break;
-					case 'cancel':
-                    default:
-                        parityTuningProgressWrite ('CANCELLED');
-                        parityTuningProgressAnalyze();
-                        parityTuningInactiveCleanup();
+					case 'nocheck':
+						createMarkerFile(PARITY_TUNING_PAUSED_FILE);
+						loadVars(5);         // give time for pause/cancel  
+						switch (strtolower($argv[4])) {
+							case 'pause':                     
+								parityTuningLoggerDebug ('...' . _('Pause' . ' ' . $parityTuningDescription));
+								parityTuningProgressWrite ("PAUSE");
+								break;
+							case 'cancel':
+							default:
+								parityTuningProgressWrite ('CANCELLED');
+								parityTuningProgressAnalyze();
+								parityTuningInactiveCleanup();
+								break;
+						}
+						updateCronEntries();
 						break;
-                    }
-                    updateCronEntries();
-                    break;
-			} // end of operation type switch
-		case 'array_started':
-				if ($argv[4] === 'pause') {
-					parityTuningProgressWrite ('PAUSE');
-				}
+				}  // end of 'crond/sh' switch
 				break;
-		case 'started':
-				updateCronEntries();
-				parityTuningLoggerTesting('Must be part of restart operation so nothing further to do!');
-				break;
-		default:
-				parityTuningLoggerDebug(_('Option not currently recognized'));
-				break;
-		}  // end of 'crond' switch
+			case 'array_started':
+					if ($argv[4] === 'pause') {
+						parityTuningProgressWrite ('PAUSE');
+					}
+					break;
+			case 'started':
+					updateCronEntries();
+					parityTuningLoggerTesting('Must be part of restart operation so nothing further to do!');
+					break;
+			default:
+					parityTuningLoggerDebug(_('Option not currently recognized'));
+					break;
+		}  // end of operation type switch
 		break;
 
     case 'monitor':
@@ -457,10 +458,10 @@ switch (strtolower($command)) {
 						parityTuningLoggerDebug (_('Array operation paused but drives not cooled enough to resume'));
 						// Generate notification if Pause seemes to be excessive
 						// (this may be due to resume threshold being too high)
-						$waitMinutes = int((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
-						$toLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
-						if (($waitMinutes > $toLongMinutes)
-						&&  ($waitMinutes <= ($toLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
+						$waitMinutes = (int)((time() - filemtime(PARITY_TUNING_HOT_FILE)) / 60);
+						$tooLongMinutes = $parityTuningCfg['parityTuningHeatTooLong'];
+						if (($waitMinutes > $tooLongMinutes)
+						&&  ($waitMinutes <= ($tooLongMinutes + $parityTuningCfg['parityTuningMonitorHeat'])))
 						{
 							sendTempNotification(opWithErrorCount(_('Waiting')), sprintf(_('Drives been above resume temperature threshold for %s minutes'),$waitMinutes));
 						}
@@ -1099,11 +1100,8 @@ function parityTuningProgressWrite($msg, $filename=PARITY_TUNING_PROGRESS_FILE) 
 	global $parityTuningVar, $parityTuningDescription;
 	global $parityTuningAction, $parityTuningCorrecting;
 	
-	static $fnLock = false;
-	while ($fnLock) usleep(100000);
-	$fnLock=true;
-	
     parityTuningLoggerTesting ($msg . ' record to be written');
+	loadVars();	// Ensure these are up-to-date;
     // List of fields we save for progress.
 	// Might not all be needed but better to have more information than necessary
 	$progressFields = array('sbSynced','sbSynced2','sbSyncErrs','sbSyncExit',

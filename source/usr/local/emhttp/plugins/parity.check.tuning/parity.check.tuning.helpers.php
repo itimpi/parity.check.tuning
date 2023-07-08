@@ -95,7 +95,7 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
-$parityTuningVersion = 'Version: '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
+$parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
 
 // Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
