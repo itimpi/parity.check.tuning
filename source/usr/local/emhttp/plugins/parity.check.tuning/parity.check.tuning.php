@@ -23,10 +23,11 @@
  * all copies or substantial portions of the Software.
  */
 
-// Normnally cron triggers actions on minute boundaries and this can lead to two different invoations
-// of this script running in parallel.  Adding a random delay to the monitor tasks which are not time
-// critical is an attempt to stop simultaneous calls interleaving although if they do things should
-// still operate OK, but the logs look a lot tidier and are easier to interpret.
+// Normally cron triggers actions on minute boundaries and this can lead to two different
+// invocations of this script running in parallel.  Adding a random delay to the monitor 
+// tasks which are not time critical is an attempt to stop simultaneous calls interleaving
+// although if they do things should still operate OK, but the logs look a lot tidier 
+// and are easier to interpret.
 
 if (isset($argv) && (strcasecmp(trim($argv[1]),'monitor') == 0)) $randomSleep = rand(15,45);
 
@@ -46,6 +47,7 @@ define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); 
 define('PARITY_TUNING_DISKS_FILE',     PARITY_TUNING_FILE_PREFIX . 'disks');    // Copy of disks.ini  info saved to allow check if disk configuration changed
 define('PARITY_TUNING_TIDY_FILE',      PARITY_TUNING_FILE_PREFIX . 'tidy');	    // Create when we think there was a tidy shutdown
 define('PARITY_TUNING_UNCLEAN_FILE',   PARITY_TUNING_FILE_PREFIX . 'unclean');  // Create when we think untidy shutdown happened (TODO is it really needed)
+define('PARITY_TUNING_SHUTDOWN_FILE',  PARITY_TUNING_FILE_PREFIX . 'shutdown');	// Create when shutdown required after array operation
 define('PARITY_TUNING_SPINUP_FILE',    'ParityTuningSpinup');					// Create when we think drive needs spinning up
 
 loadVars();
@@ -89,6 +91,7 @@ $filesToCheck = array(UNRAID_PARITY_SYNC_FILE,
 					  PARITY_TUNING_DISKS_FILE,
 					  PARITY_TUNING_HOT_FILE,
 					  PARITY_TUNING_CRITICAL_FILE,
+					  PARITY_TUNING_SHUTDOWN_FILE . 
 					  PARITY_TUNING_MOVER_FILE);
 foreach ($filesToCheck as $filename) {
 	if ($parityTuningCfg['parityTuningLogging'] > 1) {
@@ -267,6 +270,15 @@ switch (strtolower($command)) {
 			}
 		}
 
+		// Added Shutdown marker file if required
+		if ($parityTuningCfg['parityTuningShutdown'] ) {
+			if (! file_exists(PARITY_TUNING_SHUTDOWN_FILE)) {
+				$msg=_('Server will be shutdown when array operation completes');
+				parityTuningLogger ($msg);
+				sendNotification($msg);
+				createMarkerFile (PARITY_TUNING_SHUTDOWN_FILE);
+			}
+		}
 
 		// Handle pause/resume around background tasks running
 		// TODO:  See if we can immediately break if pause was activeated?
@@ -410,15 +422,8 @@ switch (strtolower($command)) {
 					parityTuningLoggerTesting('array operation is active');
 					$msg .= '<br>' . _('Abandoned ') . $parityTuningDescription . parityTuningCompleted();
 				}
-				sendNotification (_('Array shutdown'), $msg, 'alert');
-				if ($parityTuningTesting) {
-					parityTuningLoggerTesting (_('Shutdown not actioned as running in TESTING mode'));
-					exit(0);
-				} else {
-					sleep (15);	// add a delay for notification to be actioned
-					parityTuningLogger (_('Starting Shutdown'));
-					exec('/sbin/shutdown -h -P now');
-				}
+				parityTuningShutdown ($msg);
+
 				break;
 			}
 	    }
@@ -1122,7 +1127,6 @@ function parityTuningProgressWrite($msg, $filename=PARITY_TUNING_PROGRESS_FILE) 
     $line .= "$parityTuningDescription|\n";
 	file_put_contents($filename, $line, FILE_APPEND | LOCK_EX);
     parityTuningLoggerTesting ('written ' . $msg . ' record to  ' . parityTuningMarkerTidy($filename));
-	$fnLock=false;
 }
 
 //  Function that looks to see if a previously running array operation has finished.
@@ -1401,8 +1405,8 @@ END_PROGRESS_FOR_LOOP:
 	parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
 	updateCronEntries();
 exit_analyze:
+	parityTuningShutdown(_('Array operation completed'));	// Shutdown server if set
 	spacerDebugLine(false, 'PROGRESS_ANALYZE');
-	$fnLock = false;
 }
 
 // This function renames the current progress file in preperation to analyzing it.
@@ -1596,6 +1600,7 @@ function parityTuningInactiveCleanup() {
 	$ret |= parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
 	$ret |= parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
 	$ret |= parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
+	$ret |= parityTuningDeleteFile(PARITY_TUNING_SHUTDOWN_FILE);
 	if ($ret) updateCronEntries();
 	return $ret;
 }
@@ -1917,4 +1922,28 @@ function backGroundTaskHandling($configName, $appName, $markerName, $activityTes
 		}
 	}
 	return false;
+}
+
+//	Function to initiate a tidy (hopefully) shutdown of the server
+//  (as a safety check make sure option has not been uinset).
+
+//		 ~~~~~~~~~~~~~~~~~~~~	
+function parityTuningShutdown($msg) {
+//		 ~~~~~~~~~~~~~~~~~~~~
+	global $parityTuningCfg,$parityTuningTesting;
+	if (file_exists(PARITY_TUNING_SHUTDOWN_FILE)) {
+		parityTuningInactiveCleanup();
+		if ($parityTuningCfg['parityTuningShutdown']) {
+			sendNotification (_('Array shutdown'), $msg, 'alert');		
+			sleep (30);	// add a delay for notification to be actioned
+			parityTuningLogger (_('Starting Shutdown'));
+			if ($parityTuningTesting) {
+				parityTuningLoggerTesting (_('Shutdown not actioned as running in TESTING mode'));
+			} else {
+				exec('/sbin/shutdown -h -P now');
+			}
+		} else {
+			sendNotification (_('Shutdown aborted'), $msg, 'alert');
+		}
+	}
 }

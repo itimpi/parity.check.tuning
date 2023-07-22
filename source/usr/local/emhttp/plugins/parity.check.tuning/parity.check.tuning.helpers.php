@@ -23,7 +23,7 @@ $parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
 
 if (!isset ($randomSleep)) $randomSleep = 0;	// If not set previously assume a value of 0
 if ($parityTuningCLI) $randomSleep = 0;			// also want 0 for CLI calls
-if ($randomSleep > 0) sleep ($randomSleep);
+if ($randomSleep > 0) sleep ($randomSleep);		// Desynchonize calls via ccron
 
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
@@ -151,14 +151,10 @@ if ($parityTuningActive) {
 function createMarkerFile ($filename) {
 //       ~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningCorrecting;
-	static $fnLock = false;
-	while ($fnLock) usleep(100000);
-	$fnLock=true;
 	if (!file_exists($filename)) {
 		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT, LOCK_EX));
 		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
 	}
-	$fnLock=false;
 }
 
 // Remove a file and if TESTING logging active then log it has happened
