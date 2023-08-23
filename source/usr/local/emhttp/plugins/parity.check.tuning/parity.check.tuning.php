@@ -1709,7 +1709,12 @@ function isActivePeriod() {
 	// If no array operation active or pending restart then no need to look further
 	
 	parityTuningLoggerTesting('Check if within increment active period');
+	if (! isRunInIncrements($parityTuningAction)) {
+		parityTuningLoggerTesting('Increments not being used for this operation so must be within Active period.');
+		return 1;
+	}
 	parityTuningLoggerTesting("... Active=$parityTuningActive, Action=$parityTuningAction, Restart=".file_exists(PARITY_TUNING_RESTART_FILE));
+	
 	if (! $parityTuningActive) {
 		$inPeriod = 0;
 	} else {
@@ -1841,7 +1846,7 @@ function updateCronEntries() {
 // Returns:
 //		True	Mover is currently running
 //		False	Mover is not currently running
-// TODO:  Check if this works correcyy when Mover Tu8ning plugin installed
+// TODO:  Check if this works correcyy when Mover Tuning plugin installed
 
 //		 ~~~~~~~~~~~~~~
 function isMoverRunning() {
@@ -1862,8 +1867,8 @@ function isMoverRunning() {
 function isBackupRunning() {
 //		 ~~~~~~~~~~~~~~~
 	$ret = (file_exists('/tmp/appdata.backup/running')
-			|file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
-			|file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
+		  ||file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
+		  ||file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
 	return $ret;
 }
 
