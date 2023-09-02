@@ -177,7 +177,7 @@ function parityTuningDeleteFile($name) {
 function parityTuningMarkerTidy($name) {
 //       ~~~~~~~~~~~~~~~~~~~~~~
 	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
-		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file ';
+		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file';
 	}
 	return $name;
 }
