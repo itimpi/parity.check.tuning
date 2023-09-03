@@ -268,7 +268,7 @@ switch (strtolower($command)) {
 				createMarkerFile(PARITY_TUNING_PAUSED_FILE);
 			}
 		} else {
-			if ($trigger == 'MANUAL' && file_exists(PARITY_TUNING_PAUSED_FILE)) {
+			if (file_exists(PARITY_TUNING_PAUSED_FILE)) {
 				ParityTuningLogger($parityTuningDescription.': '._('Manually resumed'));
 				parityTuningProgressWrite('RESUME (MANUAL)');
 				parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
@@ -662,6 +662,11 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		    goto end_started;
 		}
 		
+		if (!file_exists(UNRAID_PARITY_SYNC_FILE)) {
+			createMarkerFile(PARITY_TUNING_TIDY_FILE);
+		} else {
+			parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
+		}
 		if (! file_exists(PARITY_TUNING_RESTART_FILE)) {
 			parityTuningLogger (_('No restart information present'));
 			goto end_started;
@@ -1495,7 +1500,7 @@ function sendNotificationWithCompletion($op, $desc = '', $type = 'normal') {
 // Send a notification if increment notifications enabled
 
 //       ~~~~~~~~~~~~~~~~~~~~~
-function sendArrayNotification ($op) {
+function sendArrayNotification ($op, $type='warning') {
 //       ~~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningCfg, $parityTuningDescription;
     parityTuningLoggerTesting("Pause/Resume notification message: $op");
@@ -1505,7 +1510,7 @@ function sendArrayNotification ($op) {
     							 	  . parityTuningCompleted());		// Simply log message if not notifying
         return;
     }
-    sendNotificationWithCompletion($op);
+    sendNotificationWithCompletion($op,'', $type);
 }
 
 // Send a notification if temperature related notifications enabled
@@ -1719,7 +1724,7 @@ function isActivePeriod() {
 			$inPeriod = (($currentTime > $resumeTime) || ($currentTime < $pauseTime))?1:0;
 		} else {
 			// All of increment on same day
-			$inPeriod = (($currentTime < $resumeTime) && ($currentTime > $pauseTime))?1:0;
+			$inPeriod = (($currentTime < $resumeTime) && ($currentTime >= $pauseTime))?1:0;
 		}
 	}
 	parityTuningLoggerTesting("isActivePeriod()=$inPeriod");
@@ -1925,23 +1930,21 @@ function backGroundTaskHandling($configName, $appName, $markerName, $activityTes
 		if (file_exists($markerName)) {
 			sendNotification($appName.' '._('no longer running'), ' ');
 			parityTuningDeleteFile ($markerName);
-		}
-
-		if (!$parityTuningPaused) {
-			parityTuningLoggerTesting ("... no action required as array operation not paused");
-		} else {
-			if (!$parityTuningCfg[$configName]) {
-				parityTuningLoggerTesting ("... no action required as not configured for this task");
+			if (!$parityTuningPaused) {
+				parityTuningLoggerTesting ("... no action required as array operation not paused");
 			} else {
-				if (!isIncrementActive($parityTuningAction)) {
-					sendNotificationWithCompletion (_('Array operation not resumed - outside increment window'));
+				if (!$parityTuningCfg[$configName]) {
+					parityTuningLoggerTesting ("... no action required as not configured for this task");
 				} else {
-					parityTuningResume();
+					if (!isIncrementActive($parityTuningAction)) {
+						sendArrayNotification (_('Array operation not resumed - outside increment window'));
+					} else {
+						parityTuningResume();
+					}
 				}
+
 			}
-
 		}
-
 	}
 	parityTuningLoggerTesting ("backGroundTaskHandling: return value=$ret");
 	return $ret;
@@ -1974,7 +1977,7 @@ function parityTuningPause() {
 	exec('/usr/local/sbin/mdcmd "nocheck" "PAUSE"');
 	createMarkerFile(PARITY_TUNING_PAUSED_FILE);  // may already exist at this point
 	loadVars(5);
-	sendNotificationWithCompletion ( _('Paused'),'','warning');
+	sendArrayNotification( _('Paused'),'warning');
 }
 
 //		 ~~~~~~~~~~~~~~~~~~
@@ -1982,7 +1985,7 @@ function parityTuningResume() {
 //		 ~~~~~~~~~~~~~~~~~~
 	exec('/usr/local/sbin/mdcmd "check" "resume"');
 	parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
-	sendNotificationWithCompletion (_('Resumed'),'','warning');
+	sendArrayNotification(_('Resumed'),'warning');
 	loadVars(5);
 }
 
