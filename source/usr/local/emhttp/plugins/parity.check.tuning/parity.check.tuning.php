@@ -46,7 +46,6 @@ define('PARITY_TUNING_HOT_FILE',       PARITY_TUNING_FILE_PREFIX . 'hot');	    /
 define('PARITY_TUNING_CRITICAL_FILE',  PARITY_TUNING_FILE_PREFIX . 'critical'); // Created when parused besause at least one drive found to reach critical temperature
 define('PARITY_TUNING_DISKS_FILE',     PARITY_TUNING_FILE_PREFIX . 'disks');    // Copy of disks.ini  info saved to allow check if disk configuration changed
 define('PARITY_TUNING_TIDY_FILE',      PARITY_TUNING_FILE_PREFIX . 'tidy');	    // Create when we think there was a tidy shutdown
-define('PARITY_TUNING_UNCLEAN_FILE',   PARITY_TUNING_FILE_PREFIX . 'unclean');  // Create when we think untidy shutdown happened (TODO is it really needed)
 define('PARITY_TUNING_SHUTDOWN_FILE',  PARITY_TUNING_FILE_PREFIX . 'shutdown');	// Create when shutdown required after array operation
 define('PARITY_TUNING_SPINUP_FILE',    'ParityTuningSpinup');					// Create when we think drive needs spinning up
 
@@ -585,7 +584,6 @@ switch (strtolower($command)) {
 			parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
 			parityTuningDeleteFile(PARITY_TUNING_BACKUP_FILE);
 			parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
-RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningPause();
 		}
         break;	
@@ -613,9 +611,24 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		sendNotification(_("Partial parity check ($runType)"), parityTuningPartialRange());
     	break;
 		
+	case 'driver_loaded':	// Point before any array operations start happening
+		suppressMonitorNotification();
+		// consistency check
+		if (file_exists(UNRAID_PARITY_SYNC_FILE)) {
+			if (file_exists(PARITY_TUNING_TIDY_FILE)) {
+				parityTuningLoggerDebug('plugin and Unraid disagree on whether unclean shutdown');
+				parityTuningDeleteFile (PARITY_TUNING_TIDY_FILE);
+			}
+			parityTuningLogger(_('Unclean shutdown detected'));
+			sendNotification ('Unclean shutdown detected', ' ','alert');
+		} else {
+			createMarkerFile(PARITY_TUNING_TIDY_FILE);
+		}
+		break;
+			
 	// runs with 'md' devices valid and when array is about to be started
 	// Other services dependent on array active are not yet started
-	
+
     case 'array_started':
     	suppressMonitorNotification();
     	parityTuningLoggerDebug (_('Array is being started'));
@@ -630,23 +643,23 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningLogger ("$reason\n$drives");
 	    }
 		parityTuningDeleteFile(PARITY_TUNING_HOT_FILE);
-
     	if (!file_exists(PARITY_TUNING_TIDY_FILE)) {
     		parityTuningLoggerTesting(_("Tidy shutdown file not present in $command event"));
-			parityTuningLogger(_('Unclean shutdown detected'));
 			suppressMonitorNotification();
-			if (file_exists(PARITY_TUNING_PROGRESS_FILE)
-			&&  file_exists(PARITY_TUNING_RESTART_FILE)) {
-			    sendNotification (_('Array operation will not be restarted'), _('Unclean shutdown detected'), 'alert');
-				parityTuningProgressWrite('RESTART CANCELLED');
-				parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
+			if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
+				if (file_exists(PARITY_TUNING_RESTART_FILE)) {
+					sendNotification (_('Array operation will not be restarted'), _('Unclean shutdown detected'), 'warning');
+					parityTuningProgressWrite('RESTART CANCELLED');
+					parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
+				}
 			}
 			parityTuningProgressWrite('ABORTED');
+			parityTuningProgressAnalyze();
     	} 
     	break;
 
 	// runs with when system startup complete and array is fully started
-	
+
     case 'started':
         parityTuningLoggerDebug (_('Array has just been started'));
 
@@ -661,19 +674,14 @@ RUN_PAUSE:	// Can jump here after doing a restart
 			parityTuningLogger(_('Something wrong: restart information present without progress present'));
 		    goto end_started;
 		}
-		
-		if (!file_exists(UNRAID_PARITY_SYNC_FILE)) {
-			createMarkerFile(PARITY_TUNING_TIDY_FILE);
-		} else {
-			parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
-		}
+
 		if (! file_exists(PARITY_TUNING_RESTART_FILE)) {
 			parityTuningLogger (_('No restart information present'));
 			goto end_started;
 		}
-		
+	
 		// Get restart information
-		
+
 		$restart = parse_ini_file(PARITY_TUNING_RESTART_FILE);
 		parityTuningLoggerTesting('restart information:');
 		foreach ($restart as $key => $value) parityTuningLoggerTesting("$key=$value");
@@ -694,7 +702,7 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		}
 		$restartDescription = actionDescription($restartAction, $restartCorrect);
 
-
+		
 		// Check the stored disk information against the current assignments
 		//		0 (false)	Disks appear unchanged
 		//		-1			New disk present (New Config used?)
@@ -754,7 +762,6 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		} else {
 			parityTuningLoggerTesting('no array operation currently active');
 		}
-		
 		// set up restart command
 		$cmd = 'mdcmd check ' . ($restartCorrect ? '' : 'NO') . 'CORRECT ' . $restartPos;
 		suppressMonitorNotification();
@@ -765,19 +772,21 @@ RUN_PAUSE:	// Can jump here after doing a restart
 		suppressMonitorNotification();
 		parityTuningProgressWrite('RESUME (RESTART)');
 		$actionDescription =  $restartDescription . parityTuningCompleted();
-		sendNotification(_('Array operation restarted'),  $actionDescription);
+		sendNotification(_('Array operation restarted'),  $actionDescription, 'normal');
+
 		if ($restartPaused) {
 			parityTuningLogger(_('operation waas paused when reboot initiated so pause it immediately'));
-			goto RUN_PAUSE;	
+			parityTuningPause();
+			goto end_started;			
 		}
 		// NOTE:  Monitor process can pause it later as well if conditions for that are met.
-		if (isIncrementActive($restartAction)) {
+		if (!isIncrementActive($restartAction)) {
 			parityTuningLogger(_('Outside time slot for running operation type'));
 			// $actionDescription = $restartDescription;		// Update description due to restart
-			goto RUN_PAUSE;
+			parityTuningPause();
 		}
 		goto end_started;
-		// FALL-THRU
+	
 end_norestart:
   		if (file_exists(PARITY_TUNING_RESTART_FILE)) {
 			// This means we got here without attempting restart
@@ -785,6 +794,7 @@ end_norestart:
  			parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
  			if (file_exists(PARITY_TUNING_PROGRESS_FILE)) {
  			    parityTuningProgressWrite('RESTART CANCELLED');
+				parityTuningProgressWrite('ABORTED');
  			}
  		}
  		parityTuningDeleteFile(PARITY_TUNING_DISKS_FILE);
@@ -794,8 +804,8 @@ end_started:
 		parityTuningProgressAnalyze();
 		if (file_exists(PARITY_TUNING_TIDY_FILE)) {
 			parityTuningLoggerTesting(_("does not appear to be an unclean shutdown"));
+			parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
 		} else {
-			createMarkerFile (PARITY_TUNING_UNCLEAN_FILE);
 			parityTuningLoggerTesting(_("appears to be an unclean shutdown"));
 			if ($parityTuningNoParity) {
 				parityTuningLoggerTesting(_("No parity present, so no automatic parity check"));
@@ -803,12 +813,12 @@ end_started:
 				parityTuningInactiveCleanup();
 				createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
 				if (! isset($restartDescription)) $restartDescription = _('Parity-Check');
-				sendNotification (sprintf('%s %s %s',
-										_('Automatic unRaid'), 
-										$restartDescription, 
-										('will be started')), 
-										_('Unclean shutdown detected'), 
-										'warning');
+//				sendNotification (sprintf('%s %s %s',
+//										_('Automatic unRaid'), 
+//										$restartDescription, 
+//										('will be started')), 
+//										_('Unclean shutdown detected'), 
+//										'warning');
 				loadVars(5);
 				suppressMonitorNotification();
 
@@ -822,12 +832,12 @@ end_started:
 						parityTuningLoggerTesting(_('... outside active period so needs pausing'));
 						loadVars(60);		// always let run for short time before pausing.
 						parityTuningLoggerTesting(_('Pausing automatic parity check'));
-						goto RUN_PAUSE;
+						parityTuningPause();
 					}
 				}
 			}
 		}
-		parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
+
 		parityTuningDeleteFile(PARITY_TUNING_RESTART_FILE);
 		// parityTuningDeleteFile(PARITY_TUNING_STARTING_FILE);
 		if ($parityTuningAction == 'check') suppressMonitorNotification();
@@ -966,30 +976,17 @@ CLI_Status:
 	// Potential unRaid event types on which no action is (currently) being taken by this plugin?
 	// They are being caught at the moment so we can see when they actually occur.
 
-
-	case 'starting':		// Sytem being started up (after initial load)
-		// createMarkerFile(PARITY_TUNING_STARTING_FILE);
-		suppressMonitorNotification();
-		// consistency check
-		if (file_exists(UNRAID_PARITY_SYNC_FILE)) {
-			if (file_exists(PARITY_TUNING_TIDY_FILE) ) {
-				parityTuningLoggerDebug('plugin and Unraid disagree on whether unclean shutdown');
-				parityTuningDeleteFile (PARITY_TUNING_TIDY_FILE);
-			} else {
-				createMarkerFile(PARITY_TUNING_UNCLEAN_FILE);
-			}
-		}
 	
 
 		
 	// The following could be commented out as not used by the plugin
 	// (but still useful to see when these event fire)
-	case 'driver_loaded':
+
+	case 'starting':	// Button to start the array has been used (or auto-start)
 	case 'disks_mounted':
 	case 'svcs_restarted':
 	case 'docker_started':
 	case 'libvirt_started':
-	case 'stopped':
     case 'stopping_svcs':
     case 'stopping_libvirt':
     case 'stopping_docker':
@@ -1148,7 +1145,7 @@ function parityTuningProgressAnalyze() {
     }
     if (! file_exists(PARITY_TUNING_PROGRESS_FILE)) {
         parityTuningLoggerTesting('No progress file to analyze');
-		parityTuningDeleteFile(PARITY_TUNING_UNCLEAN_FILE);
+		parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
         return;
     }
 	// This is safety check - in ideal world we would not get here
@@ -1179,9 +1176,8 @@ function parityTuningProgressAnalyze() {
     }
     $line = $lines[count($lines) - 1];
     if ((! startsWith($line,'COMPLETED')) && (!startsWith($line,'CANCELLED')) && (!startsWith($line,'ABORTED'))) {
-        $endType = file_exists(PARITY_TUNING_UNCLEAN_FILE) ? 'ABORTED' : 'COMPLETED';
         parityTuningLoggerDebug("missing completion line in Progress file - add end TYPE and restart analyze");
-        parityTuningProgressWrite($endType,PARITY_TUNING_PROGRESS_SAVE );
+        parityTuningProgressWrite('COMPLETED',PARITY_TUNING_PROGRESS_SAVE);
 		$lines = file(PARITY_TUNING_PROGRESS_SAVE);	// Reload file
     }
     $duration = $elapsed = $increments = $corrected = $size = 0;
@@ -1304,11 +1300,6 @@ function parityTuningProgressAnalyze() {
         } // end switch
     }  // end foreach
 END_PROGRESS_FOR_LOOP:
-	
-    if (file_exists(PARITY_TUNING_UNCLEAN_FILE) && ($exitCode != -5)) {
-        parityTuningLoggerTesting ("exitCode forced to -5 for unclean shutdown");
-    	$exitCode = -5;		// Force error code for history
-    }
     switch ($exitCode) {
     	case 0:  $exitStatus = _("finished");
     			 break;
@@ -1396,8 +1387,6 @@ END_PROGRESS_FOR_LOOP:
 		file_put_contents($myParityLogFile, $generatedRecord, FILE_APPEND);  // Save for debug purposes
 		file_put_contents(UNRAID_PARITY_HISTORY_FILE,$lines);
 	}
-	parityTuningDeleteFile(PARITY_TUNING_UNCLEAN_FILE);
-	parityTuningDeleteFile(PARITY_TUNING_TIDY_FILE);
 	updateCronEntries();
 exit_analyze:
 	parityTuningShutdown(_('Array operation completed'));	// Shutdown server if set
@@ -1413,11 +1402,11 @@ function parityTuningProgressSave() {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~
 	if (rename (PARITY_TUNING_PROGRESS_FILE, PARITY_TUNING_PROGRESS_SAVE)) {
 		parityTuningLoggerDebug('Old progress file available as ' . PARITY_TUNING_PROGRESS_SAVE);
-		return true;
+		return 1;
 	} else {
 		// I think This should only happen if there is a race condition occuring?
 		parityTuningLoggerDebug('rename of progress file failed');
-		return false;
+		return 0;
 	}
 }
 
