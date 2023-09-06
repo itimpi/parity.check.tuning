@@ -1943,7 +1943,7 @@ function backGroundTaskHandling($configName, $appName, $markerName, $activityTes
 function backGroundTaskRunning() {
 //		 ~~~~~~~~~~~~~~~~~~~~~
 	$ret = backGroundTaskHandling('parityTuningMover', _('mover'), PARITY_TUNING_MOVER_FILE, 'isMoverRunning')
-		 ||backGroundTaskHandling('parityTuningBackup', _('backup'), PARITY_TUNING_BACKUP_FILE, 'isBackupRunning');
+		 + backGroundTaskHandling('parityTuningBackup', _('backup'), PARITY_TUNING_BACKUP_FILE, 'isBackupRunning');
 	parityTuningLoggerTesting ("backGroundTaskRunning: return value=$ret");
 	return $ret;
 
