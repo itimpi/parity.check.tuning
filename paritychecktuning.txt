@@ -50,6 +50,7 @@ Run %s %s in increments=
 ; First %s is type (e.g. manual, automatic)
 ; Second %s is operation type (e.g Parity-Check, Parity-Sync)
 scheduled=
+Send notifications for mover or backup running=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
 Server will be shutdown when array operation completes=
@@ -128,6 +129,8 @@ Resume=
 Resumed=
 Runtime=
 Scheduled pause=
+See Troubleshooting section of online documentation for guidance on resolving this=See **Troubleshooting** section of online documentation for guidance on resolving this
+
 Unclean shutdown detected=
 warning=
 will be started=
@@ -365,7 +368,7 @@ Method used to specify start and stop points=
 :parity_tune_notify_plug:
 > Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an array operation.
 >If you would rather not get such notifications then leave this option set to **No**.
->The notification is sent as a **Notice** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
+>The notification is sent as a **Warning** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
 :parity_tune_allops_plug:
@@ -413,6 +416,18 @@ Method used to specify start and stop points=
 > This setting takes affect even if you are not using any of the options to run an array operation in increments.
 > 
 >I f you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
+:end
+
+:parity_tune_background_plug:
+> Setting this option to <strong>Yes</strong> means that you will be sent a notification every
+> time a background task such as appdata backup or mover starts or completes. If this option
+> is set then the notification is sent whenever these operations start or stop while an array
+> operation is active even if you have not set the operation to be paused or resume while
+> such tasks are running.   This can be helpful to help see when the performance of the array
+> operation is likely to be interacting badly with the background task in terms of performance.
+>
+>If you would rather not get such notifications then leave this option set to **No**.
+>The notification is sent as a **Notice** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
 :parity_tune_hot_plug:

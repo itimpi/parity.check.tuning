@@ -482,7 +482,7 @@ $(function() {
 :parity_tune_notify_plug:
 > Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an array operation.
 >If you would rather not get such notifications then leave this option set to **No**.
->The notification is sent as a **Notice** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
+>The notification is sent as a **Warning** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
 
@@ -581,6 +581,27 @@ $(function() {
 >
 > If you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
 :end
+
+<?=sprintf(_('Send notifications for mover or backup running'))?>:
+: <select name="parityTuningBackground" 
+          size='1' class='narrow'
+          onchange="checkNotifications(this)">
+    <?=mk_option($parityTuningCfg['parityTuningBackground'], "0", _("No")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningBackground'], "1", _("Yes")) . "\n"?>
+  </select>
+
+:parity_tune_background_plug:
+> Setting this option to <strong>Yes</strong> means that you will be sent a notification every
+> time a background task such as appdata backup or mover starts or completes. If this option
+> is set then the notification is sent whenever these operations start or stop while an array
+> operation is active even if you have not set the operation to be paused or resume while
+> such tasks are running.   This can be helpful to help see when the performance of the array
+> operation is likely to be interacting badly with the background task in terms of performance.
+>
+>If you would rather not get such notifications then leave this option set to **No**.
+>The notification is sent as a **Notice** category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
+:end
+
 
 &nbsp;
 
