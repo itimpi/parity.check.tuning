@@ -1991,9 +1991,9 @@ function parityTuningResume() {
 //		 ~~~~~~~~~~~~~~~~~~
 	exec('/usr/local/sbin/mdcmd "check" "resume"');
 	parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
+	sendArrayNotification(_('Resumed'),'warning');
 	parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
 	parityTuningDeleteFile(PARITY_TUNING_BACKUP_FILE);
-	sendArrayNotification(_('Resumed'),'warning');
 	loadVars(5);
 }
 
