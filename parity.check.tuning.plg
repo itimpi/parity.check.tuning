@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.09.13">
-<!ENTITY md5 "4adda02b5eb4cf8a42073ec91fa95602">
+<!ENTITY version "2023.10.07">
+<!ENTITY md5 "8755311c34fef16618b191a3eb38241e">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -32,7 +32,13 @@ The following are under consideration if a sensible method of implementing them 
 KNOWN ISSUES
  - If you cancel an automatic parity check after an unclean shutdown and then 
    stop/restart the array the notification for the unclean shutdown can repeat.
-   
+  
+### 2023-10-07
+ - Fix: Minor installation issue to update installed version before dumping config to syslog
+ - Fix: Stop email alerts having html bold tag in Unclean Shutodwn message
+ - Fix: Typo that could stop background tasks being always handled correctly
+ - Fix: Unclean Shutdown notification message slightly clearer where to go in manual. 
+ 
 ### 2023-09-13
  - Fix: An Unclean shutdown message was erroneously being generated if you stopped 
    the array without doing it via a shutdown or reboot.
@@ -546,6 +552,9 @@ The 'post-install' script
     fi
 	rm -rf /boot/config/plugins/&plugin;/&plugin;.stopping
 	# rm -rf /boot/config/plugins/&plugin;/&plugin;.log
+	echo &version; > /boot/config/plugins/&plugin;/&plugin;.version;
+	# dump current config settings and set up initial cron schedules
+    /usr/local/emhttp/plugins/&plugin;/&plugin;.php "config"
     echo ""
     echo "----------------------------------------------------"
     echo " &name; has been installed."
@@ -553,9 +562,6 @@ The 'post-install' script
     echo " Version: &version;"
     echo "----------------------------------------------------"
     echo ""
-	# dump current config sttings and set up initial cron schedules
-    /usr/local/emhttp/plugins/&plugin;/&plugin;.php "config"
-	echo &version; > /boot/config/plugins/&plugin;/&plugin;.version;
   </INLINE>
 </FILE>
 

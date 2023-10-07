@@ -129,7 +129,9 @@ Resume=
 Resumed=
 Runtime=
 Scheduled pause=
-; The next two are used to construct the message pointing to Troubleshooting in online manual
+; The next threeo are used to construct the notification message pointing to 
+; Troubleshooting in online manual after an Unclean shutdown
+See=
 Troubleshooting=
 section of the Unraid OS Manual in the online documetaion to get guidance on resolving this=
 Unclean shutdown detected=

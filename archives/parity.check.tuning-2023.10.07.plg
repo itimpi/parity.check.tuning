@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.09.20">
-<!ENTITY md5 "3467e09f6fab398d91d6ac33db9bcf77">
+<!ENTITY version "2023.10.07">
+<!ENTITY md5 "79d6cbd68e57ddd26083914268cb4c14">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -35,7 +35,7 @@ KNOWN ISSUES
   
 ### 2023-10-07
  - Fix: Minor installation issue to update installed version before dumping config to syslog
- - Fix: Stop email alerts having <b> in message when pointing to troubleshooting in manual.
+ - Fix: Stop email alerts having html bold tag in Unclean Shutodwn message
  - Fix: Typo that could stop background tasks being always handled correctly
  - Fix: Unclean Shutdown notification message slightly clearer where to go in manual. 
  

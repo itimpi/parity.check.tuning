@@ -632,7 +632,7 @@ switch (strtolower($command)) {
 				parityTuningLogger(_('Unclean shutdown detected'));
 				sendNotification(_('Unclean shutdown detected'), 
 				// Need to construct message to stop ** being converted to <b> by translation system which messes up email type alerts
-				sprintf('**%s** %s',('Troubleshooting'),_('section of the Unraid OS Manual in the online documetaion to get guidance on resolving this')),'alert','');
+				sprintf('%s **%s** %s',_('See'),('Troubleshooting'),_('section of the Unraid OS Manual in the online documetaion to get guidance on resolving this')),'alert','');
 			}
 		} else {
 			createMarkerFile(PARITY_TUNING_TIDY_FILE);
@@ -1991,6 +1991,8 @@ function parityTuningResume() {
 //		 ~~~~~~~~~~~~~~~~~~
 	exec('/usr/local/sbin/mdcmd "check" "resume"');
 	parityTuningDeleteFile(PARITY_TUNING_PAUSED_FILE);
+	parityTuningDeleteFile(PARITY_TUNING_MOVER_FILE);
+	parityTuningDeleteFile(PARITY_TUNING_BACKUP_FILE);
 	sendArrayNotification(_('Resumed'),'warning');
 	loadVars(5);
 }
