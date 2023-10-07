@@ -129,8 +129,9 @@ Resume=
 Resumed=
 Runtime=
 Scheduled pause=
-See Troubleshooting section of online documentation for guidance on resolving this=See **Troubleshooting** section of online documentation for guidance on resolving this
-
+; The next two are used to construct the message pointing to Troubleshooting in online manual
+Troubleshooting=
+section of the Unraid OS Manual in the online documetaion to get guidance on resolving this=
 Unclean shutdown detected=
 warning=
 will be started=
@@ -166,7 +167,6 @@ Start a correcting parity check=
 Start a correcting parity check=
 Start a parity check with scheduled settings=
 Starting Shutdown=
-Unclean shutdown detected=
 Unknown action=
 Unrecognized option=
 Usage=

@@ -631,7 +631,8 @@ switch (strtolower($command)) {
 			} else {
 				parityTuningLogger(_('Unclean shutdown detected'));
 				sendNotification(_('Unclean shutdown detected'), 
-				_('See **Troubleshooting** section of online documentation for guidance on resolving this'),'alert','');
+				// Need to construct message to stop ** being converted to <b> by translation system which messes up email type alerts
+				sprintf('**%s** %s',('Troubleshooting'),_('section of the Unraid OS Manual in the online documetaion to get guidance on resolving this')),'alert','');
 			}
 		} else {
 			createMarkerFile(PARITY_TUNING_TIDY_FILE);
@@ -1909,7 +1910,7 @@ function backGroundTaskHandling($configName, $appName, $markerName, $activityTes
 				createMarkerFile($markerName); 
 			}
 			if (!$parityTuningCfg[$configName]) {
-				if (parityTuningCfg['parityTuningBackground']) {
+				if ($parityTuningCfg['parityTuningBackground']) {
 					sendNotification($appName.' '._('running'),' ');
 				}					
 				parityTuningLoggerTesting ("... no action required as not configured to pause");
@@ -1933,7 +1934,7 @@ function backGroundTaskHandling($configName, $appName, $markerName, $activityTes
 			sendNotification($appName.' '._('no longer running'), ' ');
 			parityTuningDeleteFile ($markerName);
 			if (!$parityTuningPaused) {
-				if (parityTuningCfg['parityTuningBackground']) {
+				if ($parityTuningCfg['parityTuningBackground']) {
 					sendNotification($appName.' '._('running'),' ');
 				}
 				parityTuningLoggerTesting ("... no action required as array operation not paused");
