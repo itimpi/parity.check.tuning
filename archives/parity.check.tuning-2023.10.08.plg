@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2023.10.07">
-<!ENTITY md5 "434037ca8cbcdef2e7344cbb47f2b6de">
+<!ENTITY version "2023.10.08">
+<!ENTITY md5 "50b4473b51f07e999775bf1452f0d392">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -521,11 +521,13 @@ The 'post-install' script
     chown -R root /usr/local/emhttp/plugins/&plugin;
     chgrp -R root /usr/local/emhttp/plugins/&plugin;
     # Set up option for CLI usage
+	rm -f /usr/local/bin/parity.check
     ln -s /usr/local/emhttp/plugins/&plugin;/&plugin;.php /usr/local/bin/parity.check
+	echo "Created parity.check" CLI command.
 	# If necesserary set plugin cfg file to defaults
 	if [ ! -f /boot/config/plugins/&plugin;/&plugin;.cfg ]; then
 		cp /usr/local/emhttp/plugins/&plugin;/&plugin;.defaults /boot/config/plugins/&plugin;/&plugin;.cfg
-		echo "default settings installed"
+		echo "Default settings installed"
 	fi
     # Replace the standard mdcmd one with our custom version
     if [ -f /usr/local/sbin/mdcmd ]; then
