@@ -1877,7 +1877,7 @@ function isBackupRunning() {
 	$ret = (file_exists('/tmp/appdata.backup/running')
 		  ||file_exists('/tmp/ca.backup2/tempFiles/backupInProgress')
 		  ||file_exists('/tmp/ca.backup2/tempFiles/restoreInProgress'));
-	return $ret;
+	return ($ret ? 1 : 0);
 }
 
 // Function that handles pause/resume around background task being active.
