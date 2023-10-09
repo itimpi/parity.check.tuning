@@ -1725,7 +1725,7 @@ function isActivePeriod() {
 			$inPeriod = (($currentTime > $resumeTime) || ($currentTime < $pauseTime))?1:0;
 		} else {
 			// All of increment on same day
-			$inPeriod = (($currentTime < $resumeTime) && ($currentTime >= $pauseTime))?1:0;
+			$inPeriod = (($currentTime >= $resumeTime) && ($currentTime < $pauseTime))?1:0;
 		}
 	}
 	parityTuningLoggerTesting("isActivePeriod()=$inPeriod");
