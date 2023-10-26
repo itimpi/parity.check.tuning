@@ -384,12 +384,11 @@ switch (strtolower($command)) {
 							  $hotDrives[$name] = $temp;
 							  $status = _('hot');
 							} else {
-								$warmDrives[$name] = temp;
+								$warmDrives[$name] = $temp;
 								$status = _('warm');
 							}
 						}
 					}
-					// parityTuningLoggerTesting ("name:$name, temp:$temp, status:$status (critical:$critical, hot:$hot, cool:$cool)");
 					//  Check drives for critical temperatures
 					if ($driveCritical == 0) {
 						if ($driveWarning == 0) $status = _('disabled');
