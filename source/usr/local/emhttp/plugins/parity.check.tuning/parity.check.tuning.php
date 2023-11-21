@@ -624,7 +624,7 @@ switch (strtolower($command)) {
 				parityTuningLoggerDebug('plugin and Unraid disagree on whether unclean shutdown');
 				parityTuningDeleteFile (PARITY_TUNING_TIDY_FILE);
 			}
-			// We cannot assume an unclean shitdown if array is currently being stopped.
+			// We cannot assume an unclean shutdown if array is currently being stopped.
 			if (file_exists(PARITY_TUNING_STOPPING_FILE)) {
 				parityTuningLoggerTesting('Array stopping - so do not assume unclean shutdown');
 			} else {
