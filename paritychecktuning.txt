@@ -491,7 +491,7 @@ Method used to specify start and stop points=
 >
 > This option is only likely to be of use on a server that is powered off most of the time as it is used for something like backup purposes.   The idea is that you can initiate the array operation (either manually or via a schedule) and then leave the server to power itself down without having to know how long the array operation will take to complete.
 >
-> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shitdown will happen.  As a safety mesure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
+> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shutdown will happen.  As a safety mesure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
 >
 > **CAUTION:**  No check is made to see if there is any other activity running on the server at the time the array operation completes before the shutdown is initiated
 :end
