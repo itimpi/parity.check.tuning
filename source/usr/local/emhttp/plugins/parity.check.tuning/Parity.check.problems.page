@@ -186,7 +186,7 @@ It is also not uncommon, particularly on **Ryzen/ThreadRipper** based systems, t
 and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
 If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
 This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk.<p/>
-**IMPORTANT**:  This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
+**IMPORTANT**: This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
 :end
 
 <?=_('Method used to specify start and stop points')?>:
@@ -207,7 +207,7 @@ This can be much faster than having to run a full parity check or read check to 
 > You are likely to want to use absolute sector numbers if there are ones that have previously been listed in the syslog as being an error.
 > Using absolute sector numbers tends to be more precise and lead to shorter tests but can be more effort to set up.
 >
-> The alternative is to use percentages.  When using percentages then the sector numbers these represent are calculated as percentages of the largest parity disk.
+> The alternative is to use percentages. When using percentages then the sector numbers these represent are calculated as percentages of the largest parity disk.
 :end
 
 <?=_('Start point for check')?>:
@@ -252,7 +252,7 @@ This can be much faster than having to run a full parity check or read check to 
 </span>
 
 :parityProblems_end_plug:
-> Select where you want the check to be ended.  You can specify the start point as either a sector number or as a percentage of the size of the largest parity disk.
+> Select where you want the check to be ended. You can specify the start point as either a sector number or as a percentage of the size of the largest parity disk.
 >
 > In practice for technical reasons the check may end later than the point you specify as a check is only made once a minute to see if the end point has been reached.
 :end
@@ -298,8 +298,8 @@ This can be much faster than having to run a full parity check or read check to 
      onclick="done()"><a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
 	 
 :parityProblems_check_plug:
-> When you click on  **Check** then a partial check is initiated that
-> will cover at least the start and end points that you have specified.  It will be a correcting check 
+> When you click on **Check** then a partial check is initiated that
+> will cover at least the start and end points that you have specified. It will be a correcting check 
 > if the option to **Write Corrections** is set to **Yes**, and a read-check otherwise.
 > Note that this check will run for a minimum of 1 minute even if you specify a very small number of sectors to be checked.
 :end

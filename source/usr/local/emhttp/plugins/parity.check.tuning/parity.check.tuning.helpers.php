@@ -48,7 +48,6 @@ define('PARITY_TUNING_RESTART_FILE',   PARITY_TUNING_FILE_PREFIX . 'restart');  
 define('PARITY_TUNING_SCHEDULED_FILE', PARITY_TUNING_FILE_PREFIX . 'scheduled');// Created when we detect an array operation started by cron
 define('PARITY_TUNING_MANUAL_FILE',    PARITY_TUNING_FILE_PREFIX . 'manual');   // Created when we detect an array operation started manually
 define('PARITY_TUNING_AUTOMATIC_FILE', PARITY_TUNING_FILE_PREFIX . 'automatic');// Created when we detect an array operation started automatically after unclean shutdown
-define('PARITY_TUNING_PAUSED_FILE',    PARITY_TUNING_FILE_PREFIX . 'paused');   // Created when we detect an array operation paused
 define('PARITY_TUNING_DATE_FORMAT', 'Y M d H:i:s');
 // Logging modes supported
 define('PARITY_TUNING_LOGGING_BASIC' , '0');
@@ -142,7 +141,7 @@ if ($parityTuningActive) {
 	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningPaused ? _('paused') : _('running')));
 } else {
 	$parityTuningDescription = _('No array operation in progress');
-	parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
+//	parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
 }
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
@@ -153,7 +152,7 @@ function createMarkerFile ($filename) {
 	global $parityTuningAction, $parityTuningCorrecting;
 	if (!file_exists($filename)) {
 		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT, LOCK_EX));
-		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate how " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " was started");
+		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " state");
 	}
 }
 
