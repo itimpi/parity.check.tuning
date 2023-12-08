@@ -19,12 +19,6 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/webGui/include/Helpers.php";
 
-$parityTuningCLI = isset($argv)?(basename($argv[0]) == 'parity.check'):false;
-
-if (!isset ($randomSleep)) $randomSleep = 0;	// If not set previously assume a value of 0
-if ($parityTuningCLI) $randomSleep = 0;			// also want 0 for CLI calls
-if ($randomSleep > 0) sleep ($randomSleep);		// Desynchonize calls via ccron
-
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
@@ -59,7 +53,6 @@ define('PARITY_TUNING_LOGGING_BOTH' ,'1');
 define('PARITY_TUNING_LOGGING_FLASH' ,'2');
 ;
 
-
 // Configuration information
 
 $parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
@@ -67,8 +60,13 @@ $parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
 	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
 }
 
-$dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
+// Only want this line active while debugging to help clear up all PHP errors.
+if ($parityTuningCfg['parityTuningLogging'] > 1) {
+	// parityTuningLoggerTesting("Set PHP reporting level for TESTING mode");
+	error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+}
 
+$dynamixCfg = parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
 $parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
 
 // Multi-Language support code enabler for non-GUI usage
@@ -91,8 +89,6 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	require_once EMHTTP_DIR . "/plugins/parity.check.tuning/Legacy.php";
 	parityTuningLoggerTesting('Legacy Language support active');
 }
-
-if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
 $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
 
@@ -124,6 +120,7 @@ function loadVars($delay = 0) {
 	$GLOBALS['parityTuningVar']        = $vars;
 	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
 	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
+	$GLOBALS['parityTuningStarted']	   = $vars['mdState'] == 'STARTED' ? 1 : 0; 
     $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
     $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
@@ -136,7 +133,7 @@ loadVars();
 
 // Load up default description to avoid redundant calls elsewhere
 // TODO - decide if this really is worth doing?
-if ($parityTuningActive) {
+if (isset($parityTuningActive) && $parityTuningActive) {
 	$parityTuningDescription = actionDescription($parityTuningAction, $parityTuningCorrecting);
 	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningPaused ? _('paused') : _('running')));
 } else {
@@ -332,23 +329,7 @@ function parityTuningLoggerTesting($string) {
   }
 }
 
-// Output a message to the console if running in CLI mode.
-// An optional parameter specifies if it should also be written to the log file (and at what level)
 
-//       ~~~~~~~~~~~~~~~~~~~~~
-function parityTuningLoggerCLI($string, $logging=null) {
-//       ~~~~~~~~~~~~~~~~~~~~~~~
-	global $parityTuningCLI;
-	switch ($logging) {
-		case PARITY_TUNING_LOGGING_BASIC:
-			parityTuningLogger($string); break;
-		case PARITY_TUNING_LOGGING_DEBUG:
-			parityTuningLoggerDebug($string); break;
-		case PARITY_TUNING_LOGGING_TESTING:
-			parityTuningLoggerTesting($string); break;
-	}
-	if (($parityTuningCLI)) echo $string . "\n";
-}
 
 // Useful matching functions
 
@@ -357,6 +338,10 @@ function startsWith($haystack, $beginning, $caseInsensitivity = false){
 //       ~~~~~~~~~~
 	if (is_null($haystack)) {
 		parityTuningLoggerTesting("haystack=null on call to startsWith()");
+		return false;
+	}
+	if (is_null($beginning)) {
+		parityTuningLoggerTesting("beginning=null on call to startsWith()");
 		return false;
 	}
     if ($caseInsensitivity)
