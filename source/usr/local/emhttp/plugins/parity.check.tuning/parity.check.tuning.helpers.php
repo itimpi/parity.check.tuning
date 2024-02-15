@@ -119,7 +119,7 @@ function loadVars($delay = 0) {
    	$vars = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
 	$GLOBALS['parityTuningVar']        = $vars;
 	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
-	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
+//	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
 	$GLOBALS['parityTuningStarted']	   = $vars['mdState'] == 'STARTED' ? 1 : 0; 
     $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
     $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
