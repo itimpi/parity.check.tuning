@@ -94,13 +94,12 @@ if (file_exists($log)) {
 			[$date,$duration,$speed,$status,$error,$action,$size,$elapsed,$increments,$parityTuningType] = my_explode('|',$row,10);
 			break;
 		default:
-			//parityTuningLoggerTesting("ERROR:  Unexpected number of fields ($fieldCount) in history record on line $lineNumber:");
+			parityTuningLogger("ERROR:  Unexpected number of fields ($fieldCount) in parity-check.log on line $lineNumber:");
 			//parityTuningLoggerTesting("        $row");
 			//parityTuningLoggerTesting("        Assume legacy Unraid history format");
-			[$date,$duration,$speed,$status,$error,$action] = my_explode('|',$row,6);
+			// [$date,$duration,$speed,$status,$error,$action] = my_explode('|',$row,6);
 			$size="";
-			break;
-		
+			continue;		// Ignore this record
 	}
 	// Workaround for earlier bug where $action field not populated in history file.
 	if ($action ==='') $action = 'check P';

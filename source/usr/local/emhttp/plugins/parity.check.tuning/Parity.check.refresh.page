@@ -1,0 +1,38 @@
+Menu="Buttons:198"
+Link="nav-user"
+---
+<?PHP
+/* Copyright 2024, Dave Walker (itimpi).
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *'
+ * Limetech is given explicit permission to use this code in any way they like.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?if(stripos($path, "main") !== false):?>
+<?if(version_compare(parse_ini_file('/etc/unraid-version')['version'],'6.12.6', '>')):?>
+<?$parityTuningExperimental = file_exists('/boot/config/plugins/parity.check.tuning/parity.check.tuning.experimental');?>
+<?if($parityTuningExperimental):?>
+<!--
+#########################
+Parity.check.refresh.page
+#########################
+-->
+<script type="text/javascript">
+  // this section gets added to all GUI pages where path has 'main' in the URL
+  // could check for parity check status here, e.g. communicating with PHP script
+  // or checking for file existence. could parse result and enable/disable parity
+  // buttons using jQuery afterwards. a timer could run check function periodically.
+  
+  function updateParityButtons() {
+  }
+</script>
+<?endif;?>
+<?endif;?>
+<?endif;?>
+

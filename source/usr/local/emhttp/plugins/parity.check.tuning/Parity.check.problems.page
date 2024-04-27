@@ -35,7 +35,7 @@ loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if ($parityTuningActive)   echo "<p class='notice'>" . $parityTuningDescription . ' ' .  _('running') . "</p>"; 
 loadVars(0);
-if ($parityTuningVar['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
+if ($vars['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
 
 ?>
 

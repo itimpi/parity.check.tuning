@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2024.04.27">
+<!ENTITY version "2024.04.23">
 <!ENTITY md5 "76c66f8a250334672be83f2333075cf2">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
@@ -34,7 +34,7 @@ The following are under consideration if a sensible method of implementing them 
 
 ### 2024-04-27
  - Change: Moved check for Unclean shutdowns to when array being started
-           (stops unclean shutdown warnings happening until array started).
+           )stops unclean shutdown warnings happening until array started).
  - Change: Completion notification changed to 'error' type if any errors during operation.
  - Fix: Monitor task could abort if custom SMART settings were set at the global level
  - Fix: Improved warning message about not using Unraid's 'Cumulative parity check' setting

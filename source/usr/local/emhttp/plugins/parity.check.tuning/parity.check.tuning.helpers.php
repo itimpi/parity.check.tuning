@@ -19,6 +19,9 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/webGui/include/Helpers.php";
 
+//	See if any experimental options should be active
+$parityTuningExperimental = false;		// Set to true to enable experimental code
+
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
@@ -104,9 +107,14 @@ if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
 }
 
-// load some state information.
+// load some state information into global variables for directly referencing elsewhere.
 // (written as a function to facilitate reloads)
 function loadVars($delay = 0) {
+	global $var;
+	global $parityTuningServer, $parityTuningStarted, $parityTuningPos, $parityTuningSize;
+	global $parityTuningAction, $parityTuningActive, $parityTuningPaused;
+	global $parityTuningCorrecting, $parityTuningErrors;
+	
     if ($delay > 0) {
 		parityTuningLoggerTesting ("loadVars($delay)");
 		sleep($delay);
@@ -116,20 +124,19 @@ function loadVars($delay = 0) {
 		return;
 	}
 
-   	$vars = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
-	$GLOBALS['parityTuningVar']        = $vars;
-	$GLOBALS['parityTuningServer']     = strtoupper($vars['NAME']);
-//	$GLOBALS['parityTuningCsrf']       = $vars['csrf_token'];
-	$GLOBALS['parityTuningStarted']	   = $vars['mdState'] == 'STARTED' ? 1 : 0; 
-    $GLOBALS['parityTuningPos']        = $vars['mdResyncPos'];
-    $GLOBALS['parityTuningSize']       = $vars['mdResyncSize'];
-    $GLOBALS['parityTuningAction']     = $vars['mdResyncAction'];
-    $GLOBALS['parityTuningActive']     = ($vars['mdResyncPos'] > 0 ? 1 : 0); // array action has been started
-	$GLOBALS['parityTuningPaused']     = ($GLOBALS['parityTuningActive'] && ($vars['mdResync'] == 0)) ? 1 : 0; // Array action is paused
-    $GLOBALS['parityTuningCorrecting'] = $vars['mdResyncCorr'];
-    $GLOBALS['parityTuningErrors']     = $vars['sbSyncErrs'];
+  	$var = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
+	$parityTuningServer     = strtoupper($var['NAME']);
+	$parityTuningStarted	= $var['mdState'] == 'STARTED' ? 1 : 0; 
+    $parityTuningPos        = $var['mdResyncPos'];
+    $parityTuningSize       = $var['mdResyncSize'];
+    $parityTuningAction     = $var['mdResyncAction'];
+    $parityTuningActive     = ($var['mdResyncPos'] > 0 ? 1 : 0); // array action has been started
+	$parityTuningPaused     = ($parityTuningActive && ($var['mdResync'] == 0)) ? 1 : 0; // Array action is paused
+    $parityTuningCorrecting = $var['mdResyncCorr'];
+    $parityTuningErrors     = $var['sbSyncErrs'];
 }
 loadVars();
+
 
 // Load up default description to avoid redundant calls elsewhere
 // TODO - decide if this really is worth doing?
@@ -138,8 +145,10 @@ if (isset($parityTuningActive) && $parityTuningActive) {
 	parityTuningLoggerDebug($parityTuningDescription.' '.($parityTuningPaused ? _('paused') : _('running')));
 } else {
 	$parityTuningDescription = _('No array operation in progress');
-//	parityTuningDeleteFile (PARITY_TUNING_PAUSED_FILE);
 }
+
+// ----------------------- Support/Utility  Functions ----------------------------
+
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
 
@@ -185,6 +194,7 @@ function operationTriggerType($action = null, $active=null) {
 //		 ~~~~~~~~~~~~~~~~~~~~
 	global $parityTuningAction, $parityTuningActive;
 	
+
 	if (is_null($action)) $action = $parityTuningAction;
 	if (is_null($active)) $active = $parityTuningActive;
 	if (! file_exists(PARITY_TUNING_RESTART_FILE) ) {
@@ -197,19 +207,33 @@ function operationTriggerType($action = null, $active=null) {
 	if (! startsWith($action, 'check')) {
 		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
 		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
-		if (file_exists(PARITY_TUNING_SCHEDULED_FILE))	parityTuningLogger("ERROR: marker file found for both automatic and scheduled $parityTuningAction");
-		if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
+			parityTuningLogger("ERROR: scheduled marker file found for $parityTuningAction");
+			parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
+		}
+		if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
+			parityTuningLogger("ERROR: manual marker file found for $parityTuningAction");
+			parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
+		}
 		return 'AUTOMATIC';
 	} else {
 		// If we have not caught the start then assume an automatic parity check
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
-			if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
-			if (file_exists(PARITY_TUNING_AUTOMATIC_FILE))	parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+			if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
+				parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
+				parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
+			}
+			if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
+				parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+			}
 			return 'SCHEDULED';
 		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
-			if (file_exists(PARITY_TUNING_MANUAL_FILE))		parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+			if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
+				parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+				parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
+			}
 			return 'AUTOMATIC';
 		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
@@ -285,6 +309,47 @@ function actionDescription($action, $correcting = null, $trigger = null, $active
 function parityTuningPartial() {
 //       ~~~~~~~~~~~~~~~~~~~
 	return file_exists(PARITY_TUNING_PARTIAL_FILE);
+}
+
+//	Get a list of docker containers.
+//  If the $status parameter is provided then the list is restricted ones with that status.
+//	Expected values of $status to check for are:
+//		running
+//		paused
+//  Returns:
+//		false if none found
+//		array of names if found
+
+function dockerContainerList($status=null) {
+	parityTuningLoggerTesting("DockerContainerStatus($status)");
+		// Create list of dockers in json format
+	$containersJson=null;
+	$resultCode=null;
+	exec('/usr/bin/docker ps -a --format \'json\'',$containersJson,$resultCode);
+	parityTuningLoggerTesting("Result Code: $resultCode");
+	file_put_contents (PARITY_TUNING_FILE_PREFIX . 'docker', print_r($containersJson, true));
+	parityTuningLoggerTesting("Json: ".print_r($containersJson,true));
+	$containers=[];
+//	foreach($containersJson as $json) {
+//		parityTuningLoggerTesting("Container: ".print_r($json,true));
+//		$jsonObj = json_encode($json);
+//		containers[]+=$jsonObj.Names;
+//		parityTuningLoggerTesting("Container name: ".print_r(%json,true));
+//	}
+	// load json into PHP associative array 
+		//$containersObj=json_encode($containersJson);
+		
+		//$containersArray=[];
+		//$containersArray=json_decode($containersObj,true);
+		//parityTuningLoggerTesting(print_r($containersArray));
+		// work through array finding containers marked as running
+		//parityTuningLoggerTesting("docker count: ".count($containersArray));
+		//foreach ($containersArray as $container) {
+		//  parityTuningLoggerTesting("docker: ".print_r($container));
+		  // $name=$container['Names'];
+		  // echo "\<option value=\"$name\"\>$name\</option>\n";
+		//}
+	//}
 }
 
 // Logging functions

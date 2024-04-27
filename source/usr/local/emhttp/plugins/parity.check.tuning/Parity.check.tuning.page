@@ -25,8 +25,7 @@ require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.
 
 // Multi-language support
 $translations = file_exists("/usr/local/emhttp/webGui/include/Translations.php");
-if (!$translations):
-  eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
+if (!$translations):  eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
 else:
 ?>
 <script>
@@ -107,7 +106,7 @@ function checkCumulative(form){
 	if (cumulative) {
 		if	(form.parityTuningScheduled.value == "1") {
 			swal({title: "_(Incompatible options)_",
-				  text: "_(The Unraid Cumulative Parity Check option must not be used if you want to use this plugin to handle pause and resume of scheduled Parity Checks)_",
+				  text: "_(The Unraid 'Cumulative Parity Check' setting must be set to No if you want to use the Parity Check Tuning plugin to handle pause and resume of scheduled Parity Checks)_",
 				  icon: "Error"});
 		}
 		form.parityTuningScheduled.value = "0"
@@ -601,10 +600,55 @@ $(function() {
 >The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
+
+<?if(!$parityTuningExperimental):?>
+<!--
+<?endif;?>
+<?=_('Pause Docker Containers while array operations running')?>:
+: <select name="parityTuningDocker" 
+          size='1' class='narrow'
+          onClick="presetParityTuning(this.form)"
+          onBlur="presetParityTuning(this.form)"
+          onchange="presetParityTuning(this.form)"> 
+    <?=mk_option($parityTuningCfg['parityTuningDocker'], "1", _("Yes")) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityTuningDocker'], "0", _("No")) . "\n"?>
+  </select>
+
+:parity_tune_docker_plug:
+>Setting this option allows you to pause docker containers while a parity operation is running.
+:end
+
+
+<?=_('Docker containers to be paused')?>:
+: <select multiple
+	 name="parityTuningContainers" 
+          size='1' class='narrow'
+          onClick="presetParityTuning(this.form)"
+          onBlur="presetParityTuning(this.form)"
+          onchange="presetParityTuning(this.form)">
+	
+	<? $parityTuningContainers = $parityTuningCfg['parityTuningContainers'];	?>
+	<? parityTuningLoggerTesting("parityTuningDockerList: $parityTuningContainers");	?>
+	<? $dockerContainersInstalled = dockerContainerList();	?>
+	<? if ($dockerContainersInstalled != null) foreach ($dockerContainersInstalled as $container) echo mk_option_check($container, $parityTuningDockers, $container) . "\n";	?>
+  </select>
+
+
+:parity_tune_dockerlist_plug:
+>A list of docker containers to be paused.
+>You are only likely to want to pause containers that would be accessing the array.
+>The containers will only actually be paused if they have running status at the time.
+:end
+
+<?if(!$parityTuningExperimental):?>
+-->
+<?endif;?>
+
+
 <!-- &nbsp; -->
 
 <?=_('Pause and Resume array operations if disks overheat')?>:
-: <select name="parityTuningHeat" 
+: <select name="parityTuningHeat"
           size='1' class='narrow'
           onClick="presetParityTuning(this.form)"
           onBlur="presetParityTuning(this.form)"
@@ -612,7 +656,6 @@ $(function() {
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "0", _("No")) . "\n"?>
   </select>
-
 
 :parity_tune_hot_plug:
 >Pause an array operation(Parity Check, Parity-Sync/Disk Rebuild, disk Clear)if the disk temperatures exceeds the limits you have set. 
