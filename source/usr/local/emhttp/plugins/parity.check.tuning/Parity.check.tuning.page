@@ -3,7 +3,7 @@ Title="Parity Check Tuning"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2019-2023, Dave Walker (itimpi).
+/* Copyright 2019-2024, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -46,16 +46,19 @@ function presetParityTuning(form) {
                            && (form.parityTuningClear.value == '0')
                            && (form.parityTuningHeat.value == '0'));
   form.parityTuningFrequency.disabled    = parityTuningDisabled;
-  form.parityTuningResumeDay.disabled   = parityTuningDisabled;
+  form.parityTuningResumeDay.disabled    = parityTuningDisabled;
   form.parityTuningResumeHour.disabled   = parityTuningDisabled;
   form.parityTuningResumeMinute.disabled = parityTuningDisabled;
   form.parityTuningResumeCustom.disabled = parityTuningDisabled;
-  form.parityTuningPauseDay.disabled    = parityTuningDisabled;
+  form.parityTuningPauseDay.disabled     = parityTuningDisabled;
   form.parityTuningPauseHour.disabled    = parityTuningDisabled;
   form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
   form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
   form.parityTuningNotify.disabled       = parityTuningDisabled;
-  form.parityTuningBackup.disabled     = noBackup;
+  form.parityTuningBackup.disabled       = noBackup;
+  <?if($parityTuningExperimental):?>
+  form.parityTuningContainers.style.displayform = form.parityTuningDocker.value == '0' ? 'none' : 'inline';
+  <?endif;?>
   
   // Now the heat related options
   parityTuningDisabled = (form.parityTuningHeat.value == '0');
@@ -601,9 +604,8 @@ $(function() {
 :end
 
 
-<?if(!$parityTuningExperimental):?>
-<!--
-<?endif;?>
+<?if($parityTuningExperimental):?>
+
 <?=_('Pause Docker Containers while array operations running')?>:
 : <select name="parityTuningDocker" 
           size='1' class='narrow'
@@ -619,6 +621,7 @@ $(function() {
 :end
 
 
+<span id="dockerList">
 <?=_('Docker containers to be paused')?>:
 : <select multiple
 	 name="parityTuningContainers" 
@@ -633,15 +636,12 @@ $(function() {
 	<? if ($dockerContainersInstalled != null) foreach ($dockerContainersInstalled as $container) echo mk_option_check($container, $parityTuningDockers, $container) . "\n";	?>
   </select>
 
-
 :parity_tune_dockerlist_plug:
 >A list of docker containers to be paused.
 >You are only likely to want to pause containers that would be accessing the array.
 >The containers will only actually be paused if they have running status at the time.
 :end
 
-<?if(!$parityTuningExperimental):?>
--->
 <?endif;?>
 
 
@@ -736,19 +736,23 @@ $(function() {
 >**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning (unless you have enabled the restart option *and* the shutdown is a tidy shutdown).
 :end
 
+
+<span id="shutdownAt">
 <?=_('Shutdown server at')?>:
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
            type='text'
            value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below critical disk temperature threshold')?>
-  
+		   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold the temperature is of a disk is allowed to reach before a shutdown of the server is triggered.
 > You may want a small positive value to trigger the pause before Unraid gets around to sending you a notification that the temperature critical threshold has been reached for a disk.
 >
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
-
+</span>
+  
+  
 <?=_('Shutdown server when array operation completes')?>:
 : <select name="parityTuningShutdown" 
           size='1' class='narrow'

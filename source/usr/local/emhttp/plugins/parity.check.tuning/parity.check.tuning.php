@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?PHP
 /*
- * Script tparityTuningRestartOKhat is run to carry out support tasks for the parity.check.tuning plugin.
+ * Script parity,check.tuning.php that is run to carry out support tasks for the parity.check.tuning plugin.
  *
  * It can be triggered in a variety of ways such as an Unraid event; a cron job;
  * a page file command; or from another script.
@@ -11,7 +11,7 @@
  * In can also be called via CLI as the command 'parity.check' to expose functionality
  * that relates to parity checking.
  *
- * Copyright 2019-2023, Dave Walker (itimpi).
+ * Copyright 2019-2024, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -31,6 +31,9 @@ if (empty($argv)) {
   exit(0);
 }
 
+$command = (count($argv) > 1) ? trim($argv[1]) : '?';
+spacerDebugLine(true, $command);
+
 // Normally cron triggers actions on minute boundaries and this can lead to two different
 // invocations of this script running in parallel.  Adding a random delay to the monitor 
 // tasks which are not time critical is an attempt to stop simultaneous calls interleaving
@@ -46,8 +49,6 @@ if (isset($argv) && (strcasecmp(trim($argv[1]),'monitor') == 0) && !$parityTunin
 // Show the start of the action in the logs requested via the command line argument(s)
 // Effectively each command line option is like an event type1
 
-$command = (count($argv) > 1) ? trim($argv[1]) : '?';
-spacerDebugLine(true, $command);
 if ($parityTuningCLI) parityTuningLoggerTesting("CLI Mode active");
 
 // Some useful constants local to this file
@@ -660,44 +661,11 @@ switch (strtolower($command)) {
 		sendNotification(_("Partial parity check ($runType)"), parityTuningPartialRange());
 		break;
 
-	//	-------------------------------- Unraid Events ---------------------------------------
+	//	------------------------------ Unraid Events --------------------------------------
 	//							Options that are triggered by Unraid events
 
-	
-/*
-	case 'driver_loaded':
-		//	Occurs early in emhttp initialization.
-		//	Can also occur as a result of init-config and device slot change.
-		//	Status information is valid.
-		// 	Point before any array operations start happening	
-		suppressMonitorNotification();
-		// consistency check
-		if (file_exists(UNRAID_PARITY_SYNC_FILE)) {
-			if (file_exists(PARITY_TUNING_TIDY_FILE)) {
-				parityTuningLoggerDebug('plugin and Unraid disagree on whether unclean shutdown');
-				parityTuningDeleteFile (PARITY_TUNING_TIDY_FILE);
-			}
-			// We cannot assume an unclean shutdown if array is currently being stopped.
-			if (file_exists(PARITY_TUNING_STOPPING_FILE)) {
-				parityTuningLoggerTesting('Array stopping - so do not assume unclean shutdown');
-			} else {
-				parityTuningLogger(_('Unclean shutdown detected'));
-				sendNotification(_('Unclean shutdown detected'), 
-				// Need to construct message to stop ** being converted to <b> by translation system which messes up email type alerts
-				sprintf('%s **%s** %s',_('See'),('Troubleshooting'),_('section of the Unraid OS Manual in the online documetaion to get guidance on resolving this')),'alert','');
-				// Remove any state files that applied before the Unclean shutdown.
-				parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
-				parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
-			}
-		} else {
-			createMarkerFile(PARITY_TUNING_TIDY_FILE);
-		}
-		break; 
-		
-*/
-    case 'array_started':
-		// runs with 'md' devices valid and when array is about to be started
-		// Other services dependent on array active are not yet started
+
+	case 'starting':		// Button to start the array has been used (or auto-start)
 		parityTuningLoggerDebug (_('Array is being started'));
     	suppressMonitorNotification();
 		
@@ -718,9 +686,13 @@ switch (strtolower($command)) {
 			parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
 			parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
 		}
+		break;
 
 
-
+	// runs with 'md' devices valid and when array is about to be started
+	// Other services dependent on array active are not yet started
+	
+    case 'array_started':
     	if (file_exists(PARITY_TUNING_CRITICAL_FILE) && ($drives=file_get_contents(PARITY_TUNING_CRITICAL_FILE))) {
 			$reason = _('Detected shutdown that was due to following drives reaching critical temperature');
 			parityTuningLogger ("$reason\n$drives");
@@ -750,9 +722,9 @@ switch (strtolower($command)) {
     	break;
 
 
-
+	// runs with when system startup complete and array is fully started
+	
 	case 'started':
-		// runs with when system startup complete and array is fully started
         parityTuningLoggerDebug (_('Array has just been started'));
 		suppressMonitorNotification();
 		parityTuningDeleteFile(PARITY_TUNING_STOPPING_FILE);
@@ -915,9 +887,10 @@ end_started:
 		break;
 
 
+	//	Runs when the Stop button is used to stop the array 
+	//	OR when the shutdown/reboot buttons are used.
+	
     case 'stopping':
-		//	Runs when the Stop button is used to stop the array 
-		//	OR when the shutdown/reboot buttons are used.
         parityTuningLoggerDebug(_('Array stopping'));
 		suppressMonitorNotification();
 		createMarkerFile(PARITY_TUNING_STOPPING_FILE);
@@ -956,11 +929,13 @@ end_started:
 			suppressMonitorNotification();
         }
     	break;
+
+
+	//	Runs when system stopped.
+	//	Occurs at end of cmdStop execution, or if cmdStart failed.
+	//	The array has been stopped.
 	
 	case 'stopped':
-		//	Runs when system stopped.
-		//	Occurs at end of cmdStop execution, or if cmdStart failed.
-		//	The array has been stopped.
 	    createMarkerFile(PARITY_TUNING_TIDY_FILE);
 		parityTuningDeleteFile(PARITY_TUNING_STOPPING_FILE);
 		sleep(1);  // Give some time for file operations to complete
@@ -1066,7 +1041,7 @@ CLI_Status:
 	// The following could be commented out as not used by the plugin
 	// (but still useful to see when these event fire)
 
-	case 'starting':		// Button to start the array has been used (or auto-start)
+	case 'driver_loaded':
 	case 'disks_mounted':	// The disks and user shares (if enabled) are mounted.
 	case 'svcs_restarted':	// Occurs as a result of changing/adding/deleting a share.
 							//	The network services are started and may be 
@@ -1525,6 +1500,7 @@ exit_analyze:
 //       ~~~~~~~~~~~~~~~~~~~~~~~~	
 function parityTuningProgressSave() {
 //       ~~~~~~~~~~~~~~~~~~~~~~~~
+	parityTuningDeleteFile(PARITY_TUNING_PROGRESS_SAVE);
 	if (rename (PARITY_TUNING_PROGRESS_FILE, PARITY_TUNING_PROGRESS_SAVE)) {
 		parityTuningLoggerDebug('Old progress file available as ' . PARITY_TUNING_PROGRESS_SAVE);
 		return 1;

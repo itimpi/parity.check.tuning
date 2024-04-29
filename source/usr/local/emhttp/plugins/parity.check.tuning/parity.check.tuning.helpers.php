@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tuning plugin
  *
- * Copyright 2019-2023, Dave Walker (itimpi).
+ * Copyright 2019-2024, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -107,6 +107,9 @@ if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
 }
 
+$parityTuningExperimental = file_exists(PARITY_TUNING_FILE_PREFIX . 'experimental');
+if ($parityTuningExperimental) parityTuningLoggerTesting ("Experimental mode active");
+
 // load some state information into global variables for directly referencing elsewhere.
 // (written as a function to facilitate reloads)
 function loadVars($delay = 0) {
@@ -115,15 +118,16 @@ function loadVars($delay = 0) {
 	global $parityTuningAction, $parityTuningActive, $parityTuningPaused;
 	global $parityTuningCorrecting, $parityTuningErrors;
 	
-    if ($delay > 0) {
-		parityTuningLoggerTesting ("loadVars($delay)");
-		sleep($delay);
-	}
 	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initializing so this file not yet created
 		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_EMHTTP_VAR_FILE));
 		return;
 	}
 
+    if ($delay > 0) {
+		parityTuningLoggerTesting ("loadVars($delay)");
+		sleep($delay);
+	} 
+	
   	$var = parse_ini_file(PARITY_TUNING_EMHTTP_VAR_FILE);
 	$parityTuningServer     = strtoupper($var['NAME']);
 	$parityTuningStarted	= $var['mdState'] == 'STARTED' ? 1 : 0; 
@@ -158,7 +162,8 @@ function createMarkerFile ($filename) {
 	global $parityTuningAction, $parityTuningCorrecting;
 	if (!file_exists($filename)) {
 		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT, LOCK_EX));
-		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " state");
+		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created"); 
+//		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " state");
 	}
 }
 
