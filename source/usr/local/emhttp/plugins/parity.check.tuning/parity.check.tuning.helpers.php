@@ -213,11 +213,11 @@ function operationTriggerType($action = null, $active=null) {
 		parityTuningLoggerTesting ('... ' . _('not a parity check so always treat it as an automatic operation'));
 		createMarkerFile (PARITY_TUNING_AUTOMATIC_FILE);
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
-			parityTuningLogger("ERROR: scheduled marker file found for $parityTuningAction");
+			parityTuningLogger("WARNING: scheduled marker file found for $parityTuningAction");
 			parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
 		}
 		if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
-			parityTuningLogger("ERROR: manual marker file found for $parityTuningAction");
+			parityTuningLogger("WARNING: manual marker file found for $parityTuningAction");
 			parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
 		}
 		return 'AUTOMATIC';
@@ -226,17 +226,18 @@ function operationTriggerType($action = null, $active=null) {
 		if (file_exists(PARITY_TUNING_SCHEDULED_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as scheduled parity check'));
 			if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
-				parityTuningLogger("ERROR: marker file found for both scheduled and manual $parityTuningAction");
+				parityTuningLogger("WARNING: marker file found for both scheduled and manual $parityTuningAction");
 				parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
 			}
 			if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
-				parityTuningLogger("ERROR: marker file found for both scheduled and automatic $$parityTuningAction");
+				parityTuningLogger("WARNING: marker file found for both scheduled and automatic $$parityTuningAction");
+				parityTuningDeleteFile(PARITY_TUNING_SCHEDULED_FILE);
 			}
 			return 'SCHEDULED';
 		} else if (file_exists(PARITY_TUNING_AUTOMATIC_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be marked as automatic parity check'));
 			if (file_exists(PARITY_TUNING_MANUAL_FILE))	{
-				parityTuningLogger("ERROR: marker file found for both automatic and manual $parityTuningAction");
+				parityTuningLogger("WARNING: marker file found for both automatic and manual $parityTuningAction");
 				parityTuningDeleteFile(PARITY_TUNING_MANUAL_FILE);
 			}
 			return 'AUTOMATIC';
@@ -325,7 +326,10 @@ function parityTuningPartial() {
 //		false if none found
 //		array of names if found
 
+//       ~~~~~~~~~~~~~~~~~~~
 function dockerContainerList($status=null) {
+//       ~~~~~~~~~~~~~~~~~~~
+
 	parityTuningLoggerTesting("DockerContainerStatus($status)");
 		// Create list of dockers in json format
 	$containersJson=null;

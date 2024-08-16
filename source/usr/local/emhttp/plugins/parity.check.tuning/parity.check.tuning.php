@@ -124,7 +124,8 @@ switch (strtolower($command)) {
 		// FALLTHRU
 	case 'config':
 		parityTuningLogger (sprintf( _('Versions: Unraid %s, Plugin %s'),$parityTuningUnraidVersion,substr($parityTuningVersion,0,-1)));
-		parityTuningLogger(_('Configuration').': '.print_r($parityTuningCfg,true));
+		parityTuningLogger(_('Configuration'));
+		parityTuningLogger(print_r($parityTuningCfg,true));
 		// FALLTHRU
 	case 'updatecron':
 		// set up cron entries based on current configuration values
@@ -298,6 +299,7 @@ switch (strtolower($command)) {
 			updateCronEntries();    // ensure reasonably frequent monitor checks
 		}
 		// Add any missing entries to Progress file if manual pause/resume is detected.
+		// TODO:  Is this really necessary?   Does it do any harm?
 		
 		if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
 			if (parityTuningProgressWrite($parityTuningPaused?'PAUSE (MANUAL)':'RESUME (MANUAL)')) {				
@@ -1033,6 +1035,7 @@ CLI_Status:
 		break;
 
 	case 'history':			// Option being considered for adding to CLI support
+		parityTuningLogger("History CLI option not yet implemented");
 		break;
 
 	// Potential Unraid event types on which no action is (currently) 

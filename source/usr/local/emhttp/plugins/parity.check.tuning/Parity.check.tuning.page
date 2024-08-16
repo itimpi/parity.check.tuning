@@ -56,16 +56,13 @@ function presetParityTuning(form) {
   form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
   form.parityTuningNotify.disabled       = parityTuningDisabled;
   form.parityTuningBackup.disabled       = noBackup;
-  <?if($parityTuningExperimental):?>
-  form.parityTuningContainers.style.displayform = form.parityTuningDocker.value == '0' ? 'none' : 'inline';
-  <?endif;?>
   
   // Now the heat related options
   parityTuningDisabled = (form.parityTuningHeat.value == '0');
-  form.parityTuningHeatHigh.disabled    = parityTuningDisabled;
-  form.parityTuningHeatLow.disabled     = parityTuningDisabled;
-  form.parityTuningHeatNotify.disabled  = parityTuningDisabled;
-  form.parityTuningHeatCritical.disabled= (form.parityTuningHeatShutdown.value !== '1');
+  // form.parityTuningHeatHigh.disabled    = parityTuningDisabled;
+  // form.parityTuningHeatLow.disabled     = parityTuningDisabled;
+  // form.parityTuningHeatNotify.disabled  = parityTuningDisabled;
+  // form.parityTuningHeatCritical.disabled= (form.parityTuningHeatShutdown.value !== '1');
   
   switch (form.parityTuningFrequency.value) {
 	case "1": // custom
@@ -76,7 +73,7 @@ function presetParityTuning(form) {
 		break;
 	case "2": // weekly
 	case "0": // daily)
-		if (form.parityTuningFrequency.value == 0) {
+		if (form.parityTuningFrequency.value == '0') {
 			form.parityTuningResumeDay.style.display="none";
 			form.parityTuningPauseDay.style.display ="none";
 		} else {
@@ -90,11 +87,18 @@ function presetParityTuning(form) {
 		break;
 		 
   }
-
+  <?if($parityTuningExperimental):?>
+  document.getElementById('parityTuningDockersDisplay').style.display = (form.parityTuningHeatDockers.value == '0' ? "none" : "inline");
+  <?endif;?>
+  
+  document.getElementById('parityTuningOverheatDisplay').style.display = (form.parityTuningHeat.value == '0' ? "none" : "inline");
+  
+  document.getElementById('parityTuningHeatShutdownDisplay').style.display = (form.parityTuningHeatShutdown.value == '0' ? "none" : "inline");
+  
   switch (form.parityTuningLogging.value) {
 	case "0": // Basic
 	case "1": // Debug
-		// Only allow logging to flash in Testing Mode
+		// Only allow logging to flash drive in Testing Mode
 		form.parityTuningLogTarget.value = "0";	
 		form.parityTuningLogTarget.style.display = "none";
 		break;
@@ -321,8 +325,6 @@ $(function() {
 <?= sprintf(_('Use increments for %s %s'), _('scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningScheduled" 
           size='1' class='narrow' 
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onChange="presetParityTuning(this.form)">
      <?=mk_option($parityTuningCfg['parityTuningScheduled'], "0", _("No")) . "\n"?>
      <?=mk_option($parityTuningCfg['parityTuningScheduled'], "1", _("Yes")) . "\n"?>
@@ -506,6 +508,7 @@ $(function() {
 >You also want to make sure that the time allocated to running increments is sufficient to expect the parity check to run to completion before the next check is scheduled to start. Since most people only schedule parity checks to run infrequently (e.g. Monthly or Quarterly) then this is unlikely to be an issue but it is something to take into consideration.  
 :end
 
+<span id="parityTuningPauseResumeDisplay">
 <?=sprintf(_('Send notifications for Pause or Resume of increments'))?>:
 : <select name="parityTuningNotify" 
           size='1' class='narrow'
@@ -519,7 +522,7 @@ $(function() {
 >If you would rather not get such notifications then leave this option set to **No**.
 >Notifications that are deemed to be just informative are sent as a **Normal** (green) category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*, although more important ones will use the **Warning** (orange) or *Error** (red) type notifications where it seems appropriate.
 :end
-
+</span>
 
 <?=_('Resume array operations on next array start')?>:
 : <select name="parityTuningRestart" 
@@ -550,8 +553,6 @@ $(function() {
 <?=_('Pause array operations while mover running')?>:
 : <select name="parityTuningMover" 
           size='1' class='narrow'
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningMover'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningMover'], "0", _("No")) . "\n"?>
@@ -568,8 +569,6 @@ $(function() {
 <?=_('Pause array operations while appdata backup or restore running')?>:
 : <select name="parityTuningBackup"
           size='1' class='narrow' 
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningBackup'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningBackup'], "0", _("No")) . "\n"?>
@@ -582,6 +581,8 @@ $(function() {
 >
 > If you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
 :end
+
+<span id="parityTuningBackgroundDisplay">
 
 <?=sprintf(_('Send notifications for mover or backup running'))?>:
 : <select name="parityTuningBackground" 
@@ -603,38 +604,34 @@ $(function() {
 >The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
+</span>
 
-<?if($parityTuningExperimental):?>
 
 <?=_('Pause Docker Containers while array operations running')?>:
 : <select name="parityTuningDocker" 
           size='1' class='narrow'
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)"> 
     <?=mk_option($parityTuningCfg['parityTuningDocker'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningDocker'], "0", _("No")) . "\n"?>
-  </select>
+  </select><?if(!$parityTuningExperimental):?><font color="red">Not yet ready for use</font><?endif;?>
 
 :parity_tune_docker_plug:
 >Setting this option allows you to pause docker containers while a parity operation is running.
 :end
 
+<span id="parityTuningDockersDisplay">
 
-<span id="dockerList">
 <?=_('Docker containers to be paused')?>:
 : <select multiple
 	 name="parityTuningContainers" 
           size='1' class='narrow'
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
 	
 	<? $parityTuningContainers = $parityTuningCfg['parityTuningContainers'];	?>
 	<? parityTuningLoggerTesting("parityTuningDockerList: $parityTuningContainers");	?>
 	<? $dockerContainersInstalled = dockerContainerList();	?>
 	<? if ($dockerContainersInstalled != null) foreach ($dockerContainersInstalled as $container) echo mk_option_check($container, $parityTuningDockers, $container) . "\n";	?>
-  </select>
+  </select><?if(!$parityTuningExperimental):?><font color="red">Not yet ready for use</font><?endif;?>
 
 :parity_tune_dockerlist_plug:
 >A list of docker containers to be paused.
@@ -642,16 +639,13 @@ $(function() {
 >The containers will only actually be paused if they have running status at the time.
 :end
 
-<?endif;?>
-
+</span>
 
 <!-- &nbsp; -->
 
 <?=_('Pause and Resume array operations if disks overheat')?>:
 : <select name="parityTuningHeat"
           size='1' class='narrow'
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)"> 
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "0", _("No")) . "\n"?>
@@ -666,6 +660,8 @@ $(function() {
 >
 >If the array operation was part of running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
 :end
+
+<div id="parityTuningOverheatDisplay">
 
 <?=_('Pause an array operation at')?>:
 : <input name="parityTuningHeatHigh" 
@@ -688,7 +684,7 @@ $(function() {
 : <input name="parityTuningHeatLow" 
          size='1' class='narrow'
          type='text'
-         onchange="checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
+		onchange="checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
          value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
 
 :parity_tune_low_plug:
@@ -713,13 +709,13 @@ $(function() {
 > Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**. The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
+</div>
+
 <!-- &nbsp; -->
 
 <?=_('High disk temperatures can shutdown server')?>:
 : <select name="parityTuningHeatShutdown" 
           size='1' class='narrow'
-          onClick="presetParityTuning(this.form)"
-          onBlur="presetParityTuning(this.form)"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Yes")) . "\n"?>
@@ -736,8 +732,8 @@ $(function() {
 >**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning (unless you have enabled the restart option *and* the shutdown is a tidy shutdown).
 :end
 
+<span id="parityTuningHeatShutdownDisplay">
 
-<span id="shutdownAt">
 <?=_('Shutdown server at')?>:
   : <input name="parityTuningHeatCritical" 
            size='1' class='narrow'
@@ -750,6 +746,7 @@ $(function() {
 >
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
+
 </span>
   
   

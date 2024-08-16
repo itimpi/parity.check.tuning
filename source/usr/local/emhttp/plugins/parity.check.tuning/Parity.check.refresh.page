@@ -2,7 +2,10 @@ Menu="Buttons:198"
 Link="nav-user"
 ---
 <?PHP
-/* Copyright 2024, Dave Walker (itimpi).
+/*
+ * This page is designed to keep the Cancel/Resume parity check buttons updated. 
+ *
+ * Copyright 2024, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -16,22 +19,39 @@ Link="nav-user"
 ?>
 <?if(stripos($path, "main") !== false):?>
 <?if(version_compare(parse_ini_file('/etc/unraid-version')['version'],'6.12.6', '>')):?>
-<?$parityTuningExperimental = file_exists('/boot/config/plugins/parity.check.tuning/parity.check.tuning.experimental');?>
-<?if($parityTuningExperimental):?>
+<?if (file_exists("/usr/local/emhttp/var.ini")):?>
+<?$var = parse_ini_file("/usr/local/emhttp/var.ini");?>
+<?if($var['mdResyncPos'] > 0):?>
 <!--
 #########################
 Parity.check.refresh.page
 #########################
+
+// this section gets added to all GUI pages where path has 'main' in the URL
+// could check for parity check status here, e.g. communicating with PHP script
+// or checking for file existence. could parse result and enable/disable parity
+// buttons using jQuery afterwards. a timer could run check function periodically.
 -->
 <script type="text/javascript">
-  // this section gets added to all GUI pages where path has 'main' in the URL
-  // could check for parity check status here, e.g. communicating with PHP script
-  // or checking for file existence. could parse result and enable/disable parity
-  // buttons using jQuery afterwards. a timer could run check function periodically.
+
   
   function updateParityButtons() {
   }
 </script>
+<form   markdown = "1" 
+        id       = "parityTuningRefresh"
+        method   = "POST" 
+        action   = "/update.php" 
+        target   = "progressFrame">
+        
+<input type="hidden" 
+       name="#command" 
+       value="<?=PARITY_TUNING_PHP_FILE?>">
+<input type="hidden"
+       name="#arg[1]"
+       value="refresh">
+</form>
+<?endif;?>
 <?endif;?>
 <?endif;?>
 <?endif;?>

@@ -19,9 +19,17 @@
 ?>
 <?
 require_once  '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
+parityTuningLogger("Parity History invoked");
 extract(parse_plugin_cfg('dynamix',true));
 
+// add translations
+$_SERVER['REQUEST_URI'] = 'main';
+$login_locale = _var($display,'locale');
+require_once "$docroot/webGui/include/Translations.php";
+
 $month = [' Jan '=>'-01-',' Feb '=>'-02-',' Mar '=>'-03-',' Apr '=>'-04-',' May '=>'-05-',' Jun '=>'-06-',' Jul '=>'-07-',' Aug '=>'-08-',' Sep '=>'-09-',' Oct '=>'-10-',' Nov '=>'-11-',' Dec '=>'-12-'];
+$log   = "/boot/config/parity-checks.log";
+$list  = [];
 
 function this_plus($val, $word, $last) {
   return $val>0 ? (($val||$last)?($val.' '.$word.($last?'':', ')):'') : '';
@@ -31,11 +39,12 @@ function this_duration($time) {
   $days = floor($time/86400);
   $hmss = $time-$days*86400;
   $hour = floor($hmss/3600);
-  $mins = intval($hmss/60)%60;
+  $mins = floor($hmss/60)%60;
   $secs = $hmss%60;
   return this_plus($days,_('day'),($hour|$mins|$secs)==0).this_plus($hour,_('hr'),($mins|$secs)==0).this_plus($mins,_('min'),$secs==0).this_plus($secs,_('sec'),true);
 }
-$log  = "/boot/config/parity-checks.log";
+
+parityTuningLoggerTesting("Parity History: Checking for records in extended format");
 $lines = @file($log);
 $extended = false;
 if ($lines != false) {
@@ -47,10 +56,14 @@ if ($lines != false) {
   }
 }
 parityTuningLoggerTesting("Parity History: records with extended format present:$extended");
-$head = "<table style='margin-top:10px;background-color:inherit'><tr style='font-weight:bold'><td>"._('Action')."</td><td>"._('Date')."</td><td>"._('Size')."</td><td>"._('Duration')."</td><td>"._('Speed')."</td><td>"._('Status')."</td><td>"._('Errors')
-        .($extended?"<td>"._('Elapsed Time')."</td><td>"._('Increments')."</td>":'')
-		."</td></tr>";
-$list = [];
+?>
+<table style='margin-top:10px;background-color:inherit'>
+<tr style='font-weight:bold'><td><?=_('Action')?></td><td><?=_('Date')?></td><td><?=_('Size')?></td><td><?=_('Duration')?></td><td><?=_('Speed')?></td><td><?=_('Status')?></td><td><?=_('Errors')?></td>
+<?=($extended?"<td>"._('Elapsed Time')."</td><td>"._('Increments')."</td>":'')
+		."</td></tr>"?></tr>
+		
+<?
+
 
 if (file_exists($log)) {
   $handle = fopen($log, 'r');
@@ -58,49 +71,49 @@ if (file_exists($log)) {
   while (($row = fgets($handle))!==false) {
 	$lineNumber ++;
 	// workout what format the record it in and handle accordingly
-	// parityTuningLoggerTesting("Parity History Record: $row");
+	parityTuningLoggerTesting("Parity History Record $lineNumber: $row");
 	$fieldCount = count(explode('|',$row));
 	// Preset fields only present in extended formats for backwards compatibility
-	$increments = $elapsed = $parityTuningType = "";
+	$increments = $elapsed = $parityTuningType = $size = "";
+	$action = _('check P');
 	switch ($fieldCount) {
+		case 4:	// very old Unraid format prior to 2018.
+				// Has no year in date field  so ignore
+			ParityTuningLoggerTesting("Line $lineNumber: Old Unraid format from 2018 or earlier - record ignored");
+			continue 2;
 		case 5: // Unraid format prior to 6.10 
-			//parityTuningLoggerTesting("... Unraid format before6.10");
+			parityTuningLoggerTesting("... Unraid format before 6.10");
 			[$date,$duration,$speed,$status,$error] = my_explode('|',$row,5);
-			$action = _('Parity-Check');
-			$size = "";
 			break;
 		case 6: // Unraid format (adds operation type) from 6.10 onwards
-			//parityTuningLoggerTesting("... new Unraid format from 6.10");
+			parityTuningLoggerTesting("... Unraid format from 6.10");
 			[$date,$duration,$speed,$status,$error,$action] = my_explode('|',$row,6);
 			break;
 		case 7:	// Unraid format (adds size) from 6.11 onwards
-			//parityTuningLoggerTesting("... new Unraid format from Unraid 6.11");
+			parityTuningLoggerTesting("... Unraid format from Unraid 6.11");
 			[$date,$duration,$speed,$status,$error,$action,$size] = my_explode('|',$row,7);
 			break;
 		
 		case 8: // plugin extended format (adds elapsed time, increments and type to 6.10 format)
-			//parityTuningLoggerTesting("... extended plugin format for Unraid < 6.10");
+			parityTuningLoggerTesting("... plugin format for Unraid < 6.10");
 			[$date,$duration,$speed,$status,$error,$elapsed,$increments,$parityTuningType] = my_explode('|',$row,8);
-			$action = _('Parity-Check') ;
-			$size="";
 			break;
-		case 9: // plugin extended format (adds elapsed time, increments and type to 6.11 format)
-			//parityTuningLoggerTesting("... new plugin format before Unraid <6.10");
+		case 9: // plugin extended format (adds elapsed time, increments and type to 6.10 format)
+			parityTuningLoggerTesting("... plugin format for Unraid 6.10");
 			[$date,$duration,$speed,$status,$error,$action,$elapsed,$increments,$parityTuningType] = my_explode('|',$row,9);
-			$size="";
 			break;
 		case 10:// plugin extended format (adds elapsed time, increments and type to 6.11 format)
-			//parityTuningLoggerTesting("... new plugin format for Unraid 6.11+");
+			parityTuningLoggerTesting("... plugin format for Unraid 6.11+");
 			[$date,$duration,$speed,$status,$error,$action,$size,$elapsed,$increments,$parityTuningType] = my_explode('|',$row,10);
 			break;
 		default:
-			parityTuningLogger("ERROR:  Unexpected number of fields ($fieldCount) in parity-check.log on line $lineNumber:");
+			parityTuningLoggerDebug("ERROR:  Unexpected number of fields ($fieldCount) in parity-check.log on line $lineNumber:");
 			//parityTuningLoggerTesting("        $row");
 			//parityTuningLoggerTesting("        Assume legacy Unraid history format");
 			// [$date,$duration,$speed,$status,$error,$action] = my_explode('|',$row,6);
-			$size="";
-			continue;		// Ignore this record
+			continue 2;		// Ignore this record
 	}
+
 	// Workaround for earlier bug where $action field not populated in history file.
 	if ($action ==='') $action = 'check P';
 	
@@ -135,7 +148,6 @@ if (file_exists($log)) {
       case 'clear': $action = _('Disk-Clear'); break;
       default     : $action = '-';  break;
     }
-
 	
     $date = str_replace(' ',', ',strtr(str_replace('  ',' 0',$date),$month));
     $date .= ' ('._(date('l',strtotime($date)),0).')';
@@ -147,17 +159,16 @@ if (file_exists($log)) {
     $speed = $speed ? (is_numeric($speed) ? my_scale($speed,$unit,1)." $unit/s" : $speed) : _('Unavailable');
     $status = $status==0 ? _('OK') : ($status==-4 ? _('Canceled') : $status);
     // $list[] = "<tr><td>$action</td><td>$date</td><td>$size</td><td>$duration</td><td>$speed</td><td>$status</td><td>$error</td></tr>";
-	$list[] = "<tr><td>$action</td><td>&nbsp;$date</td><td>&nbsp;$size</td><td>&nbsp;$duration</td><td>&nbsp;$speed</td><td>&nbsp;$status</td><td>&nbsp;$error</td>"
-			  .($extended?"<td>&nbsp;$elapsed</td><td>&nbsp;$increments</td>":'')
-			  ."</tr>";
+	// $list[] = "<tr><td>$action</td><td>&nbsp;$date</td><td>&nbsp;$size</td><td>&nbsp;$duration</td><td>&nbsp;$speed</td><td>&nbsp;$status</td><td>&nbsp;$error</td>"
+	//		  .($extended?"<td>&nbsp;$elapsed</td><td>&nbsp;$increments</td>":'')
+	//		  ."</tr>";
+    array_unshift($list, "<tr><td>$action</td><td>$date</td><td>$size</td><td>&nbsp;$duration</td><td>&nbsp;$speed</td><td>&nbsp;$status</td><td>&nbsp;$error</td>"
+	.($extended?"<td>&nbsp;$elapsed</td><td>&nbsp;$increments</td>":'')."</tr>");
 
   }
   fclose($handle);
 }
-if ($list) {
-  $list = array_reverse($list);
-} else {
-  $list[] = "<tr><td colspan='7' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
-}
-echo $head,implode($list),"</table>";
+echo $list ? implode($list) : "<tr><td colspan='7' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
 ?>
+</table>
+

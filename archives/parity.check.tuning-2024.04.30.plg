@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2024.08.16">
-<!ENTITY md5 "cd698c3c209af389c5e67e2cd9c411ca">
+<!ENTITY version "2024.04.30">
+<!ENTITY md5 "752833a97b77ba734152868e79998d55">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -32,10 +32,6 @@ The following are under consideration if a sensible method of implementing them 
  - Update Pause/Resume buttons for array operations on Main page to reflect status
  - Ability to pause nominated docker containers during array operations.
 
-### 2024-08-16
- - Fix: Very old entries (prior to 2019) could stop history being displayed.
- - Fix: parity Histsory not displaying on Unraid 6,11 or later
- 
 ### 2024-04-28
  - Fix: Stop spurious Unclean Shutdown notification due to incorrect fix in previous release.
  
@@ -580,16 +576,14 @@ The 'post-install' script
 	  chmod 754 /usr/local/sbin/mdcmd
     fi
     # Replace the standard parity history display script with our custom version for extra columns
-	chmod 755 /usr/local/emhttp/plugins/&plugin;/parity.check.history.php 
     if [ -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history ]; then
 	    # Unraid version 6.11+
 		if [ ! -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history.orig ]; then
 			# Save original if not already done so in earlier plugin version install
 			mv -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history.orig
         fi
-		rm -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history 
-		# Replace it with our new custom variant
-		cp /usr/local/emhttp/plugins/&plugin;/parity.check.history.php /usr/local/emhttp/plugins/dynamix/scripts/parity_history 
+		chmod 755 /usr/local/emhttp/plugins/&plugin;/parity_history 
+		cp /usr/local/emhttp/plugins/&plugin;/parity_history /usr/local/emhttp/plugins/dynamix/scripts/parity_history
 
 	
 	elif [ -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php ]; then
@@ -598,8 +592,8 @@ The 'post-install' script
 			# Save original if not already done so in earlier plugin version install
 			mv -f /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php.orig
         fi
-		rm -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history 
-		cp /usr/local/emhttp/plugins/&plugin;/parity.check.history.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php 
+		chmod 755 /usr/local/emhttp/plugins/&plugin;/ParityHistory.php
+		cp /usr/local/emhttp/plugins/&plugin;/ParityHistory.php /usr/local/emhttp/plugins/dynamix/include/ParityHistory.php
     fi
 	rm -rf /boot/config/plugins/&plugin;/&plugin;.stopping
 	# rm -rf /boot/config/plugins/&plugin;/&plugin;.log
