@@ -607,6 +607,8 @@ $(function() {
 </span>
 
 
+<span id="parityTuningDockersDisplay">
+
 <?=_('Pause Docker Containers while array operations running')?>:
 : <select name="parityTuningDocker" 
           size='1' class='narrow'
@@ -618,8 +620,6 @@ $(function() {
 :parity_tune_docker_plug:
 >Setting this option allows you to pause docker containers while a parity operation is running.
 :end
-
-<span id="parityTuningDockersDisplay">
 
 <?=_('Docker containers to be paused')?>:
 : <select multiple
@@ -661,7 +661,7 @@ $(function() {
 >If the array operation was part of running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
 :end
 
-<div id="parityTuningOverheatDisplay">
+<span id="parityTuningOverheatDisplay">
 
 <?=_('Pause an array operation at')?>:
 : <input name="parityTuningHeatHigh" 
@@ -709,7 +709,7 @@ $(function() {
 > Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**. The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
-</div>
+</span>
 
 <!-- &nbsp; -->
 
