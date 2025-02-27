@@ -1,6 +1,6 @@
 # Parity Check Tuning  
 
-Fine-tune the execution of long-running array operations such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.
+Fine-tune the execution of long-running array operations on Unraid servers such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.
 
 This will be of particular use to those who have large parity drives which can mean a full scheduled parity check can take a day or more to complete.   By using this plugin the parity check can be run in smaller increments that are scheduled to run when the array would otherwise be idle.  
 
