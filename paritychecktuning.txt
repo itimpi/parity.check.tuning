@@ -52,6 +52,8 @@ Run %s %s in increments=
 ; First %s is type (e.g. manual, automatic)
 ; Second %s is operation type (e.g Parity-Check, Parity-Sync)
 scheduled=
+section of the Unraid OS Manual in the online documentation to get guidance on resolving this=
+Send notifications for mover running=
 Send notifications for mover or backup running=
 Send notifications for Pause or Resume of increments=
 Send notifications for temperature related Pause or Resume=
@@ -63,9 +65,12 @@ Stop array issued via Command Line=
 Start array issued via Command Line=
 Syslog only=
 Syslog and Flash=
+System crashed=
 Flash only=
 This option is only available if Appdata BackupRestore v2 plugin installed=This option is only available if Appdata Backup/Restore v2 plugin installed
+Unable to stop array=
 unknown=
+Troubleshooting=
 Unscheduled=
 Use increments for %s %s=
 Use increments for Clear operations=
@@ -135,7 +140,7 @@ Scheduled pause=
 ; Troubleshooting in online manual after an Unclean shutdown
 See=
 Troubleshooting=
-section of the Unraid OS Manual in the online documetaion to get guidance on resolving this=
+section of the Unraid OS Manual in the online documentation to get guidance on resolving this=
 Unclean shutdown detected=
 warning=
 will be started=
@@ -178,7 +183,7 @@ where action is one of=
 
 ; Swal warnings
 ; ~~~~~~~~~~~~~
-; (these are popups from web page as a result of field validation)
+; (these are popups from the plugin's settings web page as a result of field validation)
 ; (translation optional)
 
 A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week=
@@ -210,7 +215,7 @@ Testing mode is very verbose and generates a lot of additional log entries so yo
 The Pause and Resume times cannot be identical=
 The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
 The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
-The Unraid 'Cumulative parity Check' setting must be set to No if you want to use the Parity Check Tuning plugin to handle pause and resume of scheduled Parity Checks=
+The Unraid Cumulative parity check setting must be set to No if you want to use the Parity Check Tuning plugin to run Array operations in increments=
 The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the Unraid level=
 This might affect array integrity=
 Unusually large value=
@@ -304,11 +309,14 @@ Method used to specify start and stop points=
 ; These could perhaps be left in English to keep translation task easier)
 
 :parity_tune_explain_plug:
-> The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.
+> This plugin does not initate array operations - instead it modifies/enhances the behaviour once the array operation has started.
 >
->If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
+> The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.  You can specify individually whether increments should be used for each major type of array operation.
 >
->Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
+>Setting one of these options to **No** means you get the default system behaviour of the operation running without a break to completion unless you manually stop/pause/cancel the operation.
+>
+>Setting one of these options to **Yes** specifies that the array operation should be run in increments spread over several days.
+>
 > As an example of what this plugin can do assume
 >You have a parity check you have scheduled to start on the first of every month at midnight  
 >* Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.  
@@ -318,36 +326,58 @@ Method used to specify start and stop points=
 >* You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.  
 >* The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.
 >
->**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  You can avoid this if you set the plugin option to resume array operations on next array start.
+>**NOTES:** 
+>* The standard Unraid behaviour if the array is stopped while an array operation is incomplete is that the progress so far is lost and it can only be restarted from the beginning.  You can avoid this if you set the plugin option to resume array operations on next array start.
+>* If you have no parity disk or if the number of failed drives equals the number of disabled drives then a **Read Check** is carried out rather than a **Parity Check** to ensure that all the remaining drive can be read without error.
 :end
 
 :parity_tune_increments_plug:
->Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
+>Scheduled Checks are those that you have configured to run at set times via Settings->Scheduler.
 >
->If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
-:end
-
-:parity_tune_frequency_plug:
-> The frequency at which parity check increments should be run.<br><br>In normal operation it is expected that the <strong>Daily</strong> option will be the one that most users will want to use so this is the default. To support any user looking for other frequencies there is the option to set up <strong>Custom</strong> schedules which will allow for more complicated schedules for the Pause and Resume times. When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> utility
+>Setting this option to **Yes** specifies that checks should be run in increments spread over several days.  Note that if you want to use the plugin to handle the array operation increments then you must **not** set the Cumulative Parity Check option to **Yes** in the standard Unraid Parity Check settings.
+>
+>If you have set this to **No** then you get the default system behaviour of checks running without a break to completion unless you manually stop/pause/cancel them.  
 :end
 
 :parity_tune_manual_plug:
-> Should parity checks that are started manually also be run in increments?
+> Manual Checks are those that you have initiated via the **Check** button the Main tab.
+>
+> Set this to **Yes** if you want checks that are started manually also be run in increments?
 >
 > It is quite likely that you will want such a check to run to completion without interruption and if so leave this option set to **No**.
-> With this option set to **Yes** then if you manually start a Parity Check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
+> With this option set to **Yes** then if you manually start a check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the check completes.
 :end
 
 :parity_tune_automatic_plug:
-> if the Unraid system is not shutdown cleanly then the next time the array is started Unraid will automatically start a non-correcting parity check (or a read check if you have no parity disk). This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issues. The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
+> Automatic Checks are those that are initiated automatically by Unraid after an unclean shutdown.
+>
+> if the Unraid system is not shutdown cleanly then the next time the array is started Unraid will automatically start a check. This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issues. The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
 > 
-> If this option is set then the check will be allowed to run for a few minutes (as any errors after an unclean shutdown are most likely to be at the start of the disks as they were not unmounted cleanly) and then automatically put the check into a paused state (if outside the time specified for running increments) and then the  remainder of the check subsequently run in increments according to the time slots specified for running increments.
+> If this option is set to **Yes** then the check will always be allowed to run for a few minutes (as any errors after an unclean shutdown are most likely to be at the start of the disks as they were not unmounted cleanly.  Then if outside the time specified for running increments the check is put into a paused state. The  remainder of the check subsequently runs in increments according to the time slots specified for running increments.
+:end
+
+:parity_tune_allops_plug:
+> These are array the operations that involve building new parity or rebuilding a failed disk.
+>
+>This type of check will only be run if there is potentially some issue with your array and action is being taken to get it back into a protected state.
+>
+>**IMPORTANT**: Until this operation completes your array is not fully protected so it is assumed that most people will want this option left at **No**.
+> Do not select **Yes** unless you are absolutely certain that is what you want.
+:end
+
+
+:parity_tune_clear_plug:
+> A disk Clear operation occurs when you add a new drive (that has not been pre-cleared using the Pre-Clear plugin) to an array that is parity protected. The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data.
+>
+>Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at **No**. In addition, a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 :end
 
 :parity_tune_frequency_plug:
-> The frequency at which parity check increments should be run.
+> The frequency at which the increments should be run during an array operation.
 >
->In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default. To support users looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times.  When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview"  target="_blank">crontab</a> utility.   
+> In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default. There is also a **Weekly** option for those who do infrequent checks.
+>
+> To support users looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times. When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> utility.  
 :end
 
 :parity_tune_resume_plug:
@@ -370,25 +400,13 @@ Method used to specify start and stop points=
 :end
 
 :parity_tune_notify_plug:
-> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an array operation.
+> This option is only relevant if you have enabled the Settings->System Notifications option (highly recommended).
+>
+> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an increment during an array operation.
+>
 >If you would rather not get such notifications then leave this option set to **No**.
+>
 >Notifications that are deemed to be just informative are sent as a **Normal** (green) category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*, although more important ones will use the **Warning** (orange) or *Error** (red) type notifications where it seems appropriate.
-:end
-
-:parity_tune_allops_plug:
-> Should operations that involve building new parity or rebuilding a failed disk be run using increments?
->
->This type of check will only be run if there is potentially some issue with your array and action is being taken to get it back into a protected state.
->
->**IMPORTANT**: Until this operation completes your array is not fully protected so it is assumed that most people will want this option left at **No**.
-> Do not select **Yes** unless you are absolutely certain that is what you want.
-:end
-
-
-:parity_tune_clear_plug:
-> Should disk Clear operations be run using increments?<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected. The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data.
->
->Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at **No**. In addition, a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 :end
 
 :parity_tune_restart_plug:
@@ -423,6 +441,8 @@ Method used to specify start and stop points=
 :end
 
 :parity_tune_background_plug:
+> This option is only relevant if you have enabled the Settings->System Notifications option (highly recommended).
+>
 > Setting this option to <strong>Yes</strong> means that you will be sent a notification every
 > time a background task such as Appdata Backup or mover starts or completes. If this option
 > is set then the notification is sent whenever these operations start or stop while an array
@@ -441,7 +461,7 @@ Method used to specify start and stop points=
 >
 >A much better solution is to improve the cooling in your case so that the disks never overheat. In practice this may not always prove practical.
 >
->If the array operation was part of running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
+>If the array operation was paused while running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
 :end
 
 :parity_tune_warn_plug:
@@ -457,7 +477,7 @@ Method used to specify start and stop points=
 :end
 
 :parity_tune_low_plug:
-> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered. If using increments has been set for the type of operation being performed then the time mest be within the increments window or the resume wil be deferred until that window is rezched.
+> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered. If using increments has been set for the type of operation being performed then the time must be within the increments window or the resume will be deferred until that window is reached.
 >
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
@@ -478,7 +498,9 @@ Method used to specify start and stop points=
 >
 >When the server is started up again after such a shutdown then when the array is started you will be notified that a temperature related shutdown happened in case you were not aware of the reason.
 >
->**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning (unless you have enabled the restart option **and** the shutdown is a tidy shutdown).
+>**CAUTION:** If the array is stopped while an array operation is incomplete then the default Unraid behaviour is that progress so far is lost and it can only be restarted from the beginning.  
+>
+>If you have enabled the restart option in this plugin *and* the shutdown is a tidy shutdown) then an attempt will made to restart the array operation from the point it had previously reached.
 :end
 
 :parity_tune_critical_plug:
@@ -493,7 +515,7 @@ Method used to specify start and stop points=
 >
 > This option is only likely to be of use on a server that is powered off most of the time as it is used for something like backup purposes. The idea is that you can initiate the array operation (either manually or via a schedule) and then leave the server to power itself down without having to know how long the array operation will take to complete.
 >
-> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shutdown will happen. As a safety mesure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
+> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shutdown will happen. As a safety measure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
 >
 >**CAUTION:** No check is made to see if there is any other activity running on the server at the time the array operation completes before the shutdown is initiated
 :end
@@ -506,7 +528,7 @@ Method used to specify start and stop points=
 >* **Parity Problems Assistant**  
 >depending on which part of the plugin generated the messages
 >
->With the **Basic** option set these will only be a small number of messages indicating that this plugin has taken some action.
+>With the **Basic** option set these will only be a small number of messages indicating that this plugin has taken some action or an possible error condition has been detected.  This will be what most users want in normal operation.
 >
 >Setting this option to **Debug** will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of how the plugin is functioning. These additional entries are identified by the fact that they will have the word **DEBUG** added to the start of messages. Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running.
 >
@@ -520,10 +542,16 @@ Method used to specify start and stop points=
 
 :parity_tune_defaults_plug:
 > The **Apply** button will save the currently displayed values of the settings.
->
+
 > The **Done** button exits the settings page.
->
-> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed.
+
+> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed and immediately save these as the current settings.
+> You can now make changes to these settings to suit your system and hit the Apply button to save them.
+:end
+
+:parity_tune_history_plug:
+> The **History** button will display the current history of parity checks.  
+> It is identical in function to using the **History** button on the **Main** tab.
 :end
 
 :parityProblems_type_plug:

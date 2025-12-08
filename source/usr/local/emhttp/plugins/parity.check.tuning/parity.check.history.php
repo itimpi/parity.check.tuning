@@ -2,7 +2,7 @@
 <?PHP
 /* Copyright 2005-2022, Lime Technology
  * Copyright 2012-2022, Bergware International.
- * Copyright 2019-2023, Dave Walker (itimpi).
+ * Copyright 2019-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -15,6 +15,8 @@
  * - Handling of extended information in parity history log file added by plugin
  * - Elapsed Time and Increments columns added to displayed information
  * - Extended Operation type information when aailable
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
  */
 ?>
 <?
@@ -57,6 +59,7 @@ if ($lines != false) {
 }
 parityTuningLoggerTesting("Parity History: records with extended format present:$extended");
 ?>
+<div class="TableContainer">
 <table style='margin-top:10px;background-color:inherit'>
 <tr style='font-weight:bold'><td><?=_('Action')?></td><td><?=_('Date')?></td><td><?=_('Size')?></td><td><?=_('Duration')?></td><td><?=_('Speed')?></td><td><?=_('Status')?></td><td><?=_('Errors')?></td>
 <?=($extended?"<td>"._('Elapsed Time')."</td><td>"._('Increments')."</td>":'')
@@ -158,10 +161,6 @@ if (file_exists($log)) {
     // handle both old and new speed notation
     $speed = $speed ? (is_numeric($speed) ? my_scale($speed,$unit,1)." $unit/s" : $speed) : _('Unavailable');
     $status = $status==0 ? _('OK') : ($status==-4 ? _('Canceled') : $status);
-    // $list[] = "<tr><td>$action</td><td>$date</td><td>$size</td><td>$duration</td><td>$speed</td><td>$status</td><td>$error</td></tr>";
-	// $list[] = "<tr><td>$action</td><td>&nbsp;$date</td><td>&nbsp;$size</td><td>&nbsp;$duration</td><td>&nbsp;$speed</td><td>&nbsp;$status</td><td>&nbsp;$error</td>"
-	//		  .($extended?"<td>&nbsp;$elapsed</td><td>&nbsp;$increments</td>":'')
-	//		  ."</tr>";
     array_unshift($list, "<tr><td>$action</td><td>$date</td><td>$size</td><td>&nbsp;$duration</td><td>&nbsp;$speed</td><td>&nbsp;$status</td><td>&nbsp;$error</td>"
 	.($extended?"<td>&nbsp;$elapsed</td><td>&nbsp;$increments</td>":'')."</tr>");
 
@@ -171,4 +170,4 @@ if (file_exists($log)) {
 echo $list ? implode($list) : "<tr><td colspan='7' style='text-align:center;padding-top:12px'>"._('No parity check history present')."!</td></tr>";
 ?>
 </table>
-
+</div>

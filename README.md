@@ -1,12 +1,12 @@
 # Parity Check Tuning  
 
-Fine-tune the execution of long-running array operations on Unraid servers such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.
+Fine-tune the execution of long-running array operations such as Parity Checks, Parity-Sync/Data Rebuild, and Disk Clear so they are automatically run in increments at convenient times rather than having to run to completion uninterrupted.
 
 This will be of particular use to those who have large parity drives which can mean a full scheduled parity check can take a day or more to complete.   By using this plugin the parity check can be run in smaller increments that are scheduled to run when the array would otherwise be idle.  
 
 The plugin records extra information in the parity check history such as the number of increments; the total elapsed time; and the type of check that was run.  Notifications about array operations sent initiated by the plugin will be more detailed than those that are built as standard into unRaid.
 
-The plugin also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds (or alternatively for the server to be shutdown).  The operations can also be set to pause while common background opations such as Mover or an Appdata Backup are running as performance badly degrades if/while these are running in parallrl. 
+The plugin also allows for such operations to be automatically paused (and later resumed) if disk temperatures exceed specified thresholds (or alternatively for the server to be shutdown).
 
 Starting with Unraid 6.9.0 it is also possible for parity checks to be restarted after an array stop/start or a shutdown/reboot.  In addition a Parity Problems Assistamt is introduced that allows for partial parity checks to be used to help with resolving parity check errors.
   

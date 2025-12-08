@@ -2,7 +2,7 @@
 /*
  * Script that is run to display any error parity check related entries from syslog
  *
- * Copyright 2019-2022, Dave Walker (itimpi).
+ * Copyright 2019-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -12,6 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
  */
 ?>
 <?

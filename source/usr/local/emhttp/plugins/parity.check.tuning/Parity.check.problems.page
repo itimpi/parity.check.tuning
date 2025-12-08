@@ -3,7 +3,7 @@ Title="Parity Problems Assistant"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2022-2023, Dave Walker (itimpi).
+/* Copyright 2022-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -13,6 +13,8 @@ Tag="gear"
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
  */
 
 ?>

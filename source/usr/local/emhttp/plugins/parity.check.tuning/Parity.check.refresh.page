@@ -5,7 +5,7 @@ Link="nav-user"
 /*
  * This page is designed to keep the Cancel/Resume parity check buttons updated. 
  *
- * Copyright 2024, Dave Walker (itimpi).
+ * Copyright 2024-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -15,6 +15,8 @@ Link="nav-user"
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
  */
 ?>
 <?if(stripos($path, "main") !== false):?>

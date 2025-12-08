@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tuning plugin
  *
- * Copyright 2019-2024, Dave Walker (itimpi).
+ * Copyright 2019-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -12,27 +12,28 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
  */
 
 // useful for testing outside Gui
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/webGui/include/Helpers.php";
-
-//	See if any experimental options should be active
-$parityTuningExperimental = false;		// Set to true to enable experimental code
+require_once "$docroot/plugins/dynamix/include/Wrappers.php";
 
 // Set up some useful constants used in multiple files
 define('EMHTTP_DIR' ,               '/usr/local/emhttp');
 define('CONFIG_DIR' ,               '/boot/config');
 define('PLUGINS_DIR' ,              CONFIG_DIR . '/plugins');
 define('PARITY_TUNING_PLUGIN',      'parity.check.tuning');
-define('PARITY_TUNING_EMHTTP_DIR',  EMHTTP_DIR . '/plugins/' . PARITY_TUNING_PLUGIN);
+$plugin = PARITY_TUNING_PLUGIN;		// required by security guidelines
+define('PARITY_TUNING_EMHTTP_DIR',  EMHTTP_DIR . '/plugins/' . $plugin);
+define('PARITY_TUNING_VERSION_FILE',PARITY_TUNING_EMHTTP_DIR . "/$plugin.version");
 define('PARITY_TUNING_PHP_FILE',    PARITY_TUNING_EMHTTP_DIR . '/' . PARITY_TUNING_PLUGIN . '.php');  
 define('PARITY_TUNING_BOOT_DIR',    PLUGINS_DIR . '/' . PARITY_TUNING_PLUGIN);
 define('PARITY_TUNING_FILE_PREFIX', PARITY_TUNING_BOOT_DIR . '/' . PARITY_TUNING_PLUGIN . '.');
-define('PARITY_TUNING_VERSION_FILE',PARITY_TUNING_FILE_PREFIX . 'version');
-define('PARITY_TUNING_DEFAULTS_FILE',PARITY_TUNING_EMHTTP_DIR.'/'.PARITY_TUNING_PLUGIN.'.defaults');
+
 define('PARITY_TUNING_CFG_FILE',    PARITY_TUNING_FILE_PREFIX . 'cfg');
 define('PARITY_TUNING_LOG_FILE',    PARITY_TUNING_FILE_PREFIX . 'log');
 define('PARITY_TUNING_PARTIAL_FILE',PARITY_TUNING_FILE_PREFIX . 'partial');  // Create when partial check in progress (contains end sector value)
@@ -54,14 +55,9 @@ define('PARITY_TUNING_LOGGING_TESTING' ,'2');
 define('PARITY_TUNING_LOGGING_SYSLOG' ,'0');
 define('PARITY_TUNING_LOGGING_BOTH' ,'1');
 define('PARITY_TUNING_LOGGING_FLASH' ,'2');
-;
 
 // Configuration information
-
-$parityTuningCfg = parse_ini_file(PARITY_TUNING_DEFAULTS_FILE);
- if (file_exists(PARITY_TUNING_CFG_FILE)) {
-	$parityTuningCfg = array_replace($parityTuningCfg,parse_ini_file(PARITY_TUNING_CFG_FILE));
-}
+$parityTuningCfg = parse_plugin_cfg($plugin);
 
 // Only want this line active while debugging to help clear up all PHP errors.
 if ($parityTuningCfg['parityTuningLogging'] > 1) {
@@ -70,8 +66,8 @@ if ($parityTuningCfg['parityTuningLogging'] > 1) {
 }
 
 $dynamixCfg = @parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg', true);
-$parityTuningTempUnit      = $dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
-
+$parityTuningTempUnit      = @$dynamixCfg['display']['unit'] ?? 'C'; // Use Celsius if not set
+	
 // Multi-Language support code enabler for non-GUI usage
 
 $plugin = PARITY_TUNING_PLUGIN;
@@ -93,22 +89,48 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 	parityTuningLoggerTesting('Legacy Language support active');
 }
 
+// Unraid version dependencies
+
 $parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
-
-// Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
-
 $parityTuningStartStop = version_compare($parityTuningUnraidVersion,'6.10.3','>');
 $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.0','>');
-// parityTuningLoggerTesting ("Size in History: $parityTuningSizeInHistory, randomSleep: $randomSleep");
+
+// Determine if parity drive installed
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
 	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
+	parityTuningLoggerTesting ("No parity disk installed");
 }
 
+
+// Plugin cannot handle increments if standard Unbraid setting set to cumulative
+$parityTuningCumulative = $dynamixCfg['parity']['cumulative'] ?? '0';  // Assume 0 if not set
+if ($parityTuningCumulative) {
+	parityTuningLoggerTesting ("Cumulative option set at Unraid level");
+}
+
+// Decide if backup plugin installed
+
+$parityTuningNoBackup = !(file_exists(PARITY_TUNING_CABACKUP2_FILE)||file_exists(PARITY_TUNING_APPBACKUP_FILE));
+if ($parityTuningNoBackup) {
+	parityTuningLoggerTesting ("No appdata backupo plugin installed");
+}
+
+// Decide if Docker active
+$parityTuningDockerEnabled = (parse_ini_file('/boot/config/docker.cfg')['DOCKER_ENABLED']??"no")=="yes";
+if (!$parityTuningDockerEnabled) {
+	parityTuningLoggerTesting ("Docker not enabled");
+}
+
+// Decide if experimental mode active (for developing features not yet released.
+
 $parityTuningExperimental = file_exists(PARITY_TUNING_FILE_PREFIX . 'experimental');
-if ($parityTuningExperimental) parityTuningLoggerTesting ("Experimental mode active");
+if ($parityTuningExperimental) {
+	parityTuningLoggerTesting ("Experimental mode active");
+}
+
 
 // load some state information into global variables for directly referencing elsewhere.
 // (written as a function to facilitate reloads)
@@ -116,7 +138,7 @@ function loadVars($delay = 0) {
 	global $var;
 	global $parityTuningServer, $parityTuningStarted, $parityTuningPos, $parityTuningSize;
 	global $parityTuningAction, $parityTuningActive, $parityTuningPaused;
-	global $parityTuningCorrecting, $parityTuningErrors;
+	global $parityTuningCorrecting, $parityTuningErrors, $parityTuningDockerEnabled;
 	
 	if (! file_exists(PARITY_TUNING_EMHTTP_VAR_FILE)) {		// Protection against running plugin while system initializing so this file not yet created
 		parityTuningLoggerTesting(sprintf('Trying to populate before %s created so ignored',  PARITY_TUNING_EMHTTP_VAR_FILE));
@@ -153,9 +175,18 @@ if (isset($parityTuningActive) && $parityTuningActive) {
 
 // ----------------------- Support/Utility  Functions ----------------------------
 
+// Tidy up the name of a marker file for logging purposes
+//       ~~~~~~~~~~~~~~~~~~~~~~
+function parityTuningMarkerTidy($name) {
+//       ~~~~~~~~~~~~~~~~~~~~~~
+	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
+		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file';
+	}
+	return $name;
+}
+
 // Set marker file to remember some state information we have detected
 // (put date/time into file so can tie it back to syslog if needed)
-
 //       ~~~~~~~~~~~~~~~~
 function createMarkerFile ($filename) {
 //       ~~~~~~~~~~~~~~~~
@@ -163,7 +194,7 @@ function createMarkerFile ($filename) {
 	if (!file_exists($filename)) {
 		file_put_contents ($filename, date(PARITY_TUNING_DATE_FORMAT, LOCK_EX));
 		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created"); 
-//		parityTuningLoggerTesting(parityTuningMarkerTidy($filename) ." created to indicate " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " state");
+//		parityTuningLoggerTesting(parityTuningMarkerTidy($filename)." created to indicate " . actionDescription($parityTuningAction, $parityTuningCorrecting) . " state");
 	}
 }
 
@@ -182,15 +213,6 @@ function parityTuningDeleteFile($name) {
 	return false;
 }
 
-// Tidy up the name of a marker file for logging purposes
-//       ~~~~~~~~~~~~~~~~~~~~~~
-function parityTuningMarkerTidy($name) {
-//       ~~~~~~~~~~~~~~~~~~~~~~
-	if (startsWith($name, PARITY_TUNING_FILE_PREFIX)) {
-		$name = str_replace(PARITY_TUNING_FILE_PREFIX, '', $name) . ' marker file';
-	}
-	return $name;
-}
 
 // get the type of a check according to which marker files exist
 // (plus apply some consistency checks against scenarios that should not happen)
@@ -314,51 +336,53 @@ function actionDescription($action, $correcting = null, $trigger = null, $active
 //       ~~~~~~~~~~~~~~~~~~~
 function parityTuningPartial() {
 //       ~~~~~~~~~~~~~~~~~~~
-	return file_exists(PARITY_TUNING_PARTIAL_FILE);
+	return ( file_exists(PARITY_TUNING_PARTIAL_FILE));
 }
 
 //	Get a list of docker containers.
 //  If the $status parameter is provided then the list is restricted ones with that status.
 //	Expected values of $status to check for are:
-//		running
+//		running/up
 //		paused
 //  Returns:
 //		false if none found
-//		array of names if found
+//		array of containers found
+//
+//	TODO:  Do we need to check if array started?
 
 //       ~~~~~~~~~~~~~~~~~~~
-function dockerContainerList($status=null) {
+function dockerContainerList($wantedStatus=null) {
 //       ~~~~~~~~~~~~~~~~~~~
-
-	parityTuningLoggerTesting("DockerContainerStatus($status)");
-		// Create list of dockers in json format
-	$containersJson=null;
-	$resultCode=null;
-	exec('/usr/bin/docker ps -a --format \'json\'',$containersJson,$resultCode);
-	parityTuningLoggerTesting("Result Code: $resultCode");
-	file_put_contents (PARITY_TUNING_FILE_PREFIX . 'docker', print_r($containersJson, true));
-	parityTuningLoggerTesting("Json: ".print_r($containersJson,true));
-	$containers=[];
-//	foreach($containersJson as $json) {
-//		parityTuningLoggerTesting("Container: ".print_r($json,true));
-//		$jsonObj = json_encode($json);
-//		containers[]+=$jsonObj.Names;
-//		parityTuningLoggerTesting("Container name: ".print_r(%json,true));
-//	}
-	// load json into PHP associative array 
-		//$containersObj=json_encode($containersJson);
+    global $parityTuningDockerEnabled;
+	$dockerList = [];
+	if ($parityTuningDockerEnabled) {
+		parityTuningLoggerTesting("DockerContainerStatus($wantedStatus)");
+			// Create list of dockers in json format
+		$containersJson=null;
+		$resultCode=null;
+		exec('/usr/bin/docker ps -a --format \'json\'',$containersJson,$resultCode);
+		if ($resultCode != 0) {
+			parityTuningLoggerTesting("dockerContainerList(): failed to get docker list");
+			return false;
+		}
+		file_put_contents (PARITY_TUNING_FILE_PREFIX . 'docker', print_r($containersJson, true));
+		// parityTuningLoggerTesting("containersJson: ".print_r($containersJson,true));
+		parityTuningLoggerTesting("docker count: ".count($containersJson));
+		foreach ($containersJson as $containerJson) {
+			parityTuningLoggerTesting("dockerJson: $containerJson");
+			$container = json_decode($containerJson, true);
+			$name=$container['Names'];
+			$status=$container['Status'];
+			parityTuningLoggerTesting("name: $name, Status:$status");
+			if (is_null($wantedStatus) || $status == $wantedStatus) {
+				// Add to list of dockers to be returned.
+				array_push ($dockerList,$container);
+				// parityTuningLoggerTesting("added docker $name to return value list");
+			}
+		}
 		
-		//$containersArray=[];
-		//$containersArray=json_decode($containersObj,true);
-		//parityTuningLoggerTesting(print_r($containersArray));
-		// work through array finding containers marked as running
-		//parityTuningLoggerTesting("docker count: ".count($containersArray));
-		//foreach ($containersArray as $container) {
-		//  parityTuningLoggerTesting("docker: ".print_r($container));
-		  // $name=$container['Names'];
-		  // echo "\<option value=\"$name\"\>$name\</option>\n";
-		//}
-	//}
+	}
+	return $dockerList;
 }
 
 // Logging functions

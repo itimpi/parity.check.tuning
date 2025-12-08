@@ -3,7 +3,7 @@ Title="Parity Check Tuning"
 Tag="gear"
 ---
 <?PHP
-/* Copyright 2019-2024, Dave Walker (itimpi).
+/* Copyright 2019-2025, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -13,6 +13,9 @@ Tag="gear"
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Useful site for checking php sytax: https://phphub.net/linter/
+ * Useful site for validating HTML: https://codeshack.io/html-validator/
  */
 ?>
 <!--
@@ -22,78 +25,121 @@ Parity.check.tuning.page
 -->
 <?
 require_once "/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php";
-
+  
 // Multi-language support
 $translations = file_exists("/usr/local/emhttp/webGui/include/Translations.php");
 if (!$translations):  eval('?>'.parse_file("/usr/local/emhttp/plugins/parity.check.tuning/Parity.check.tuning.page"));
 else:
 ?>
 <script>
-var noParity = <?=($parityTuningNoParity ? 'true' : 'false')?>;
-var noBackup = <?=((file_exists(PARITY_TUNING_CABACKUP2_FILE)||file_exists(PARITY_TUNING_APPBACKUP_FILE)) ? 'false' : 'true')?>;
-var cumulative = <?= $dynamixCfg['parity']['cumulative']==1 ? 'true' : 'false';?>;
 
-// Preset fields to be enabled/disabled as appropriate
-function presetParityTuning(form) {
-  if (noParity) {
-    form.parityTuningRecon.value = "0";
-    form.parityTuningClear.value = "0";
-    form.parityTuningRecon.disabled = true;
-    form.parityTuningClear.disabled = true;
-  }
-  var parityTuningDisabled = ((form.parityTuningScheduled.value == '0')  
-  			               && (form.parityTuningManual.value == '0')
-                           && (form.parityTuningClear.value == '0')
-                           && (form.parityTuningHeat.value == '0'));
-  form.parityTuningFrequency.disabled    = parityTuningDisabled;
-  form.parityTuningResumeDay.disabled    = parityTuningDisabled;
-  form.parityTuningResumeHour.disabled   = parityTuningDisabled;
-  form.parityTuningResumeMinute.disabled = parityTuningDisabled;
-  form.parityTuningResumeCustom.disabled = parityTuningDisabled;
-  form.parityTuningPauseDay.disabled     = parityTuningDisabled;
-  form.parityTuningPauseHour.disabled    = parityTuningDisabled;
-  form.parityTuningPauseMinute.disabled  = parityTuningDisabled;
-  form.parityTuningPauseCustom.disabled  = parityTuningDisabled;
-  form.parityTuningNotify.disabled       = parityTuningDisabled;
-  form.parityTuningBackup.disabled       = noBackup;
+
+//  Preset field values on initial load that do not change if input values change.
+
+function initialiseParityTuning(form) {
+
+<? parityTuningLoggerTesting("---initialise:  ParityTuning page being displayed---");?>
   
-  // Now the heat related options
-  parityTuningDisabled = (form.parityTuningHeat.value == '0');
-  // form.parityTuningHeatHigh.disabled    = parityTuningDisabled;
-  // form.parityTuningHeatLow.disabled     = parityTuningDisabled;
-  // form.parityTuningHeatNotify.disabled  = parityTuningDisabled;
-  // form.parityTuningHeatCritical.disabled= (form.parityTuningHeatShutdown.value !== '1');
-  
-  switch (form.parityTuningFrequency.value) {
-	case "1": // custom
-		document.getElementById('parityTuningCustomResume').style.display = "inline";
-		document.getElementById('parityTuningCustomPause').style.display  = "inline";
-		document.getElementById('parityTuningNormalResume').style.display = "none";
-		document.getElementById('parityTuningNormalPause').style.display  = "none";
-		break;
-	case "2": // weekly
-	case "0": // daily)
-		if (form.parityTuningFrequency.value == '0') {
-			form.parityTuningResumeDay.style.display="none";
-			form.parityTuningPauseDay.style.display ="none";
-		} else {
-			form.parityTuningResumeDay.style.display="inline";
-			form.parityTuningPauseDay.style.display ="inline";
-		}
-		document.getElementById('parityTuningCustomResume').style.display = "none";
-		document.getElementById('parityTuningCustomPause').style.display  = "none";
-		document.getElementById('parityTuningNormalResume').style.display  = "inline";
-		document.getElementById('parityTuningNormalPause').style.display   = "inline";
-		break;
-		 
-  }
-  <?if($parityTuningExperimental):?>
-  document.getElementById('parityTuningDockersDisplay').style.display = (form.parityTuningHeatDockers.value == '0' ? "none" : "inline");
+  // Force options that require parity to be present to the 'No' valueset to 
+  // or Cumulative at Unraid level as then plugin cannot handle increments
+  // ... and then also hide them
+  <? if ($parityTuningNoParity || $parityTuningCumulative):?>
+	form.parityTuningRecon.value = "0";
+	form.parityTuningClear.value = "0";
+  <?else:?>
+  	document.getElementById('parityTuningClearDisplay').style.display  = "inline";
+	document.getElementById('parityTuningReconDisplay').style.display  = "inline";
+  <?endif;?>
+
+  // Force options that cannot be used if Cumulative set to Yes to 'No'
+  <? if ($parityTuningCumulative):?>  
+    // Give warning if user has just activated Cumulative mode at Unraid level
+	if	(form.parityTuningScheduled.value == "1") {
+		swal({title: "_(Incompatible options)_",
+			  text: "_(The Unraid Cumulative Parity Check setting must be set to No if you want to use the Parity Check Tuning plugin to run Array operations in increments)_",
+			  icon: "Error"});
+	}
+	form.parityTuningScheduled.value="0";
+	form.parityTuningAutomatic.value="0";
+	form.parityTuningManual.value="0";
+  <?else:?>
+	document.getElementById('parityTuningScheduledDisplay').style.display  = "inline";
+	document.getElementById('parityTuningAutomaticDisplay').style.display  = "inline";
+	document.getElementById('parityTuningManualDisplay').style.display  = "inline";
   <?endif;?>
   
-  document.getElementById('parityTuningOverheatDisplay').style.display = (form.parityTuningHeat.value == '0' ? "none" : "inline");
+  // Backup option cannot be used if plugin not installed
+  <? if ($parityTuningNoBackup):?>
+     form.parityTuningBackup.value = "0";
+  <?else:?>
+  	 document.getElementById('parityTuningBackupDisplay').style.display  = "inline";
+  <?endif;?>
+
+  // Docker option cannot be used if docker not enabled
+  <? if (!$parityTuningDockerEnabled):?> 
+    form.parityTuningDocker.value = "0";
+	document.getElementById('parityTuningDockerDisplay').style.display  = "none";
+  <?elseif ($parityTuningExperimental):?> 
+      // and even then if it is only currently in experimental mode
+	  document.getElementById('parityTuningDockerDisplay').style.display  = "inline";
+  <?endif;?>
   
-  document.getElementById('parityTuningHeatShutdownDisplay').style.display = (form.parityTuningHeatShutdown.value == '0' ? "none" : "inline");
+  // Now the fields that vary according to other specific field values
+  presetParityTuning(form)
+}
+
+// Fields to be enabled/disabled or hidden/shown as appropriate and any forced values for fields
+
+function presetParityTuning(form) {
+  if ((form.parityTuningManual.value == '0')
+  && (form.parityTuningScheduled.value == '0')
+  && (form.parityTuningAutomatic.value == '0')
+  && (form.parityTuningClear.value == '0')
+  && (form.parityTuningRecon.value == '0')) {
+    document.getElementById('parityTuningIncrementDisplay').style.display = "none"; 
+  } else {
+    document.getElementById('parityTuningIncrementDisplay').style.display = "inline"; 
+    // Hide show options that depend on frequency selection
+    switch (form.parityTuningFrequency.value) {
+	  case "1": // custom
+		document.getElementById('parityTuningCustomResume').style.display = "inline"; 
+		document.getElementById('parityTuningCustomPause').style.display  = "inline";
+		// document.getElementById('parityTuningDayResume').style.display  = "none";
+		// document.getElementById('parityTuningTimeResume').style.display = "none";
+		// document.getElementById('parityTuningDayPause').style.display   =  "none";
+		document.getElementById('parityTuningPauseDisplay').style.display  = "none";
+	    document.getElementById('parityTuningResumeDisplay').style.display  = "none";
+		break;
+	  case "2": // weekly
+	  case "0": // daily)
+		document.getElementById('parityTuningCustomResume').style.display = "none";
+		document.getElementById('parityTuningCustomPause').style.display  = "none";
+		document.getElementById('parityTuningResumeDisplay').style.display = "inline";
+		document.getElementById('parityTuningPauseDisplay').style.display  = "inline";
+		if (form.parityTuningFrequency.value == '0') {
+			document.getElementById('parityTuningDayResume').style.display = "none";
+			document.getElementById('parityTuningDayPause').style.display  = "none";
+		} else {
+			document.getElementById('parityTuningDayResume').style.display = "inline";
+			document.getElementById('parityTuningDayPause').style.display  = "inline";
+		}
+		break;
+	}	 
+  }
+
+  // Hide Notifications for background tasks unless being monitored
+  document.getElementById('parityTuningBackgroundDisplay').style.display  = 
+  ((form.parityTuningMover.value == "0") && (form.parityTuningBackup.value == "0")) ? "none":"inline";
+
+  // Hide docker containers selection unless docker option set to yes 
+  document.getElementById('parityTuningContainersDisplay').style.display = (form.parityTuningDocker.value == '0' ? "none" : "inline");
+ 
+  // Hide heat temperature setting unless monitoring heat for pause/resume 
+  document.getElementById('parityTuningHeatDisplay').style.display = 
+  (form.parityTuningHeat.value == "0" ? "none" : "inline");
+
+  // Hide crtial heat temperature shutdown setting unless heat for shutdown
+  document.getElementById('parityTuningCriticalDisplay').style.display = (form.parityTuningHeatShutdown.value == "0" ? "none" : "inline");
   
   switch (form.parityTuningLogging.value) {
 	case "0": // Basic
@@ -105,23 +151,11 @@ function presetParityTuning(form) {
   	case "2": // Testing
 		form.parityTuningLogTarget.style.display = "inline";
 		break;
-	}
-	checkCumulative(form);
-}
-
-function checkCumulative(form){
-	if (cumulative) {
-		if	(form.parityTuningScheduled.value == "1") {
-			swal({title: "_(Incompatible options)_",
-				  text: "_(The Unraid 'Cumulative Parity Check' setting must be set to No if you want to use the Parity Check Tuning plugin to handle pause and resume of scheduled Parity Checks)_",
-				  icon: "Error"});
-		}
-		form.parityTuningScheduled.value = "0"
-	}
+  }
 }
 
 function confirmReconYes(form) {
-    if (form.parityTuningRecon.value == '1') {
+    if (form.parityTuningRecon.value == "1") {
         swal({title: "_(This might affect array integrity)_",
               text: "_(Pausing an operation that is building parity or rebuilding a failed disk has a level of risk as your array is not back in a protected state until this operation completes successfully)_.   _(Only enable this option if the operation is adversely affecting system use and you are not worried about the extra time that will elapse before the system is once again in a protected state)_.",
               icon: "Warning"});
@@ -129,7 +163,7 @@ function confirmReconYes(form) {
 }
 
 function confirmClearYes(form) {
-    if (form.parityTuningClear.value == '1') {
+    if (form.parityTuningClear.value == "1") {
         swal({title: "_(Do you really want this)_?",
               text: "_(Pausing an disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage)_.  _(On most systems a disk Clear operation does not adversely affect performance so typically this option is left disabled)_.",
               icon: "Warning"});
@@ -138,6 +172,7 @@ function confirmClearYes(form) {
 
 $(document).ready(function(){
   var oForm = document.getElementById('parityTuningPage');
+  initialiseParityTuning(oForm);
   presetParityTuning(oForm);
 });
 
@@ -156,7 +191,7 @@ function checkCustom(fld) {
 }
 
 function checkCustomOptions(form) {
-	if (form.parityTuningFrequency.value == '1') {
+	if (form.parityTuningFrequency.value == "1") {
 		var fldPause = form.parityTuningPauseCustom;
 		if (checkCustom(fldPause)) {
 			var fldResume = form.parityTuningResumeCustom;
@@ -174,7 +209,7 @@ function checkCustomOptions(form) {
 
 
 function checkNotifications (me) {
-<? if ($dynamixCfg['notify']['system'] == "" ): ?>
+<?if (!isset($dynamixCfg['notify']['system']) || $dynamixCfg['notify']['system'] == "" ): ?>
     swal({title:"_(Notifications not enabled)_ ",
           text:"_('Before you can set this option to Yes you must first have enabled system notifications')_.",
           icon:"Info"});
@@ -201,6 +236,9 @@ function checkTimeRange(form) {
 	}
 }
 
+function DockerListSet(form) {
+}
+
 function checkHeatVeryLarge(value) {
 	if (value > 20) {
 	    swal({title: "_(Unusually large value)_?",
@@ -219,7 +257,7 @@ function checkHeatLow(form) {
 }
 
 function checkAutomaticMode (form) {
-    if (form.parityTuningAutomatic.value == '1') {
+    if (form.parityTuningAutomatic.value == "1") {
         swal({title: "_(Do you really want this)_?",
               text: "_(Pausing an automatic parity check after an unclean shutdown extends the time before the you can be confident that parity is still valid so that recovering from a disabled disk is likely to work without data corruption or data loss)_.  _(Only use this option if you cannot afford the performance penalty of such checks occurring during prime time)_.",
               icon: "Warning"});
@@ -227,11 +265,12 @@ function checkAutomaticMode (form) {
 }
 
 function checkShutdown (form) {
-    if (form.parityTuningShutdown.value == '1') {
+    if (form.parityTuningShutdown.value == "1") {
         swal({title: "_(Do you really want this)_?",
               text: "_(No check is made to see if there is any other activity running on the server at the time the array operation completes)_. _(As a safety measure if you switch off this option while an array operation is running then the shutdown will be aborted)_.",
               icon: "Warning"});
-     }}
+     }
+}
 
 function checkLoggingMode (form) {
     switch (form.parityTuningLogging.value) {
@@ -284,9 +323,10 @@ $(function() {
   }
 });
 
+
 </script>
 
-<div class='pluginUpdate'></div>
+<div class="pluginUpdate"></div>
 
 <form   markdown = "1" 
         id       = "parityTuningPage"
@@ -304,12 +344,16 @@ $(function() {
        name="#arg[1]"
        value="config">
 
+
 :parity_tune_explain_plug:
-> The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.
+> This plugin does not initate array operations - instead it modifies/enhances the behaviour once the array opeation has started.
 >
->If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.
+> The main purpose of this plugin is to allow you to limit array operations such as parity checks to running at times that will not inconvenience you.  You can specify indivdually whether increments should be used for each major type of array operation.
 >
->Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days/weeks.
+>Setting one of these options to **No** means you get the default system behavior of the operation running without a break to completion unless you manually stop/pause/cancel the operation.
+>
+>Setting one of these options to **Yes** specifies that the array operation should be run in increments spread over several days.
+>
 > As an example of what this plugin can do assume
 >You have a parity check you have scheduled to start on the first of every month at midnight  
 >* Your past experience has shown that if the parity check runs uninterrupted it takes 30 hours to complete.  
@@ -319,112 +363,136 @@ $(function() {
 >* You are not worried about this increased elapsed time and will welcome the increased system responsiveness during normal use.  
 >* The rest of the month this plugin will do nothing as there is no active parity check in progress when the start time for an increment comes around.
 >
->**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning.  You can avoid this if you set the plugin option to resume array operations on next array start.
+>**NOTES:**  
+>* The standard Unraid behaviour if the array is stopped while an array operation is incomplete is that the progress so far is lost and it can only be restarted from the beginning.  You can avoid this if you set the plugin option to resume array operations on next array start.  
+>* If you have no parity disk or if the number of failed drives equals the number of disabled drives then a **Read Check** is carried out rather than a **Parity Check** to ensure that all the remaining drive can be read without error.
 :end
 
+<div id="parityTuningScheduledDisplay" markdown="1" style="display:none">
 <?= sprintf(_('Use increments for %s %s'), _('scheduled'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningScheduled" 
-          size='1' class='narrow' 
+          size="1" class="narrow" 
           onChange="presetParityTuning(this.form)">
      <?=mk_option($parityTuningCfg['parityTuningScheduled'], "0", _("No")) . "\n"?>
      <?=mk_option($parityTuningCfg['parityTuningScheduled'], "1", _("Yes")) . "\n"?>
-  </select><span style="float:right"><?=$parityTuningVersion?></span>
-
+  </select>
+ 
 :parity_tune_increments_plug:
->Setting this option to **Yes** specifies that parity checks should be run in increments spread over several days.
+>Scheduled Checks are those that you have configured to run at set times via Settings->Scheduler.
 >
->If you have set this to **No** then you get the default system behavior of parity checks running without a break to completion unless you manually stop/pause/cancel them.  
+>Setting this option to **Yes** specifies that checks should be run in increments spread over several days.  Note that if you want to use the plugin to handle the array operation increments then you must **not** set the Cumnlative Parity Check option to **Yes** in the standard Unraid Parity Check settings.
+>
+>If you have set this to **No** then you get the default system behavior of checks running without a break to completion unless you manually stop/pause/cancel them.  
 :end
+</div> <!-- parityTuningScheduledDisplay -->
 
+<div id="parityTuningManualDisplay" markdown="1" style="display:none">
 <?= sprintf(_('Use increments for %s %s'), _('manual'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningManual" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onChange="presetParityTuning(this.form)">
       <?=mk_option($parityTuningCfg['parityTuningManual'], "0", _("No")) . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningManual'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_manual_plug:
-> Should parity checks that are started manually also be run in increments?
+> Manual Checks are those that you have initiated via the **Check** button the Main tab.
+>
+> Set this to **Yes** if you want checks that are started manually also be run in increments?
 >
 > It is quite likely that you will want such a check to run to completion without interruption and if so leave this option set to **No**.
-> With this option set to **Yes** then if you manually start a Parity Check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the Parity Check completes.
+> With this option set to **Yes** then if you manually start a check from the Main page and then manually Pause the check, this will result in the check being run in increments between the scheduled times until the check completes.
 :end
+</div> <!-- parityTuningManualDisplay -->
 
+<div id="parityTuningAutomaticDisplay" markdown="1" style="display:none">
 <?= sprintf(_('Use increments for %s %s'), _('automatic'), ($parityTuningNoParity ? _('Read Check') : _('Parity Check'))); ?>:
 : <select name="parityTuningAutomatic" 
-          size='1' class='narrow'
-          onChange="checkAutomaticMode(this.form)">
+          size="1" class="narrow"
+          onChange="presetParityTuning(this.form); checkAutomaticMode(this.form)">
       <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "0", _("No")) . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningAutomatic'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_automatic_plug:
-> if the Unraid system is not shutdown cleanly then the next time the array is started Unraid will automatically start a non-correcting parity check (or a read check if you have no parity disk). This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issues. The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
+> Automatic Checks are those that are initiated automatically by Unraid after an unclean shutdown.
+>
+> if the Unraid system is not shutdown cleanly then the next time the array is started Unraid will automatically start a check. This can happen for a wide variety of reasons ranging from power loss; hardware issues; and software issues. The automatic check is run because if there are any parity errors this can compromise the ability to recover from an array drive failure at a later date so you want to get back to having valid parity as soon as is practical.
 > 
-> If this option is set then the check will be allowed to run for a few minutes (as any errors after an unclean shutdown are most likely to be at the start of the disks as they were not unmounted cleanly) and then automatically put the check into a paused state (if outside the time specified for running increments) and then the  remainder of the check subsequently run in increments according to the time slots specified for running increments.
+> If this option is set to **Yes** then the check will alays be allowed to run for a few minutes (as any errors after an unclean shutdown are most likely to be at the start of the disks as they were not unmounted cleanly.  Then if outside the time specified for running increments the check is put into a paused state. The  remainder of the check subsequently runs in increments according to the time slots specified for running increments.
 :end
+</div> <!-- parityTuningAutomaticDisplay -->
 
 
-<?=_('Use increments for Parity-Sync/Data Rebuild operations')?>:
+<div id="parityTuningReconDisplay" markdown="1" style="display:none">
+_(Use increments for Parity-Sync/Data Rebuild operations)_:
 : <select name="parityTuningRecon" 
-          size='1' class='narrow'
-          onchange="confirmReconYes(this.form)">
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); confirmReconYes(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningRecon'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningRecon'], "1", _("Yes")) . "\n"?>
-  </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' ._('You require a parity disk present for this option to be relevant') . '</font>'; ?>
-
+  </select>
+	
 :parity_tune_allops_plug:
-> Should operations that involve building new parity or rebuilding a failed disk be run using increments?
+> These are array the operations that involve building new parity or rebuilding a failed disk.
 >
->This type of check will only be run if there is potentially some issue with your array and action is being taken to get it back into a protected state.
+>This type of check will typically only be run if there is potentially some issue with your array and action is being taken to get it back into a protected state.
 >
 >**IMPORTANT**: Until this operation completes your array is not fully protected so it is assumed that most people will want this option left at **No**.
 > Do not select **Yes** unless you are absolutely certain that is what you want.
 :end
+</div> <!-- parityTuningReconDisplay -->
 
-<?=_('Use increments for Clear operations')?>:
+<div id="parityTuningClearDisplay" markdown="1" style="display:none"> 
+_(Use increments for Clear operations)_:
 : <select name="parityTuningClear" 
-          size='1' class='narrow'
-          onchange="confirmClearYes(this.form)">
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); confirmClearYes(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningClear'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningClear'], "1", _("Yes")) . "\n"?>
-  </select> <? if ($parityTuningNoParity) echo '<font color=#FF8C2F>' . _('You require a parity disk present for this option to be relevant') . '</font>'; ?>
-
+  </select>
+		
 :parity_tune_clear_plug:
-> Should disk Clear operations be run using increments?<br><br>A disk Clear operation occurs when you add a new drive (that has not been pre-cleared (using the Pre-Clear plugin) to an array that is parity protected. The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data.
+> A disk Clear operation occurs when you add a new drive (that has not been pre-cleared using the Pre-Clear plugin) to an array that is parity protected. The Clear process writes zeroes to every sector on the new disk so that it can be added to the array without affecting the existing parity. Until the Clear operation has completed you are not able to format the disk in Unraid and start using it for storing data.
 >
 >Since until the Clear operation completes the disk will not be available for use it is likely that most people will want this option left at **No**. In addition, a Clear operation tends not to put much of a load on the system so is less likely to impact performance in normal daily use.
 :end
+</div> <!-- parityTuningClearDisplay -->
 
+<div id="parityTuningIncrementDisplay" markdown="1" style="display:none"> 
 
-<?=_('Increment frequency')?>:
+_(Increment frequency)_:
 : <select name="parityTuningFrequency" 
-          size='1' class='narrow' 
+          size="1" class="narrow" 
           onchange="presetParityTuning(this.form)">
      <?=mk_option($parityTuningCfg['parityTuningFrequency'], "0", _("Daily")) . "\n"?>
 	 <?=mk_option($parityTuningCfg['parityTuningFrequency'], "2", _("Weekly")) . "\n"?>
      <?=mk_option($parityTuningCfg['parityTuningFrequency'], "1", _("Custom")) . "\n"?>
   </select>
+
   
 :parity_tune_frequency_plug:
-> The frequency at which parity check increments should be run.
+> The frequency at which the increments should be run duraing an array opration.
 >
-> In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default. There is also a **Weekly** option for those who do infrequent checks. To support users looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times. When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> utility.  
+> In normal operation it is expected that the **Daily** option will be the one that most users will want to use so this is the default. There is also a **Weekly** option for those who do infrequent checks.
+>
+> To support users looking for other frequencies there is the option to set up **Custom** schedules which will allow for more complicated schedules for the Pause and Resume times. When you use this option you are given the option to specify the time as used by the Linux <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> utility.  
 :end
 
-<?=_('Increment resume time')?>:
-: <span id="parityTuningCustomResume">
-  <input type="text"
-         size='1' class='narrow'
+<div id="parityTuningCustomResume" markdown="1" style="display:none">
+_(Increment resume time)_:
+: <span><input type="text"
+         size="1" class="narrow"
          name="parityTuningResumeCustom"
          value="<?=$parityTuningCfg['parityTuningResumeCustom']?>"
-         onblur="checkCustom(this)">
-  &nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?>
-</span>
-<span id="parityTuningNormalResume">
+         onblur="checkCustom(this)"><span>&nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?></span>
+</div> <!-- parityTuningCustomResume -->   
+
+<div id="parityTuningResumeDisplay" markdown="1" style="display:none">
+_(Increment resume time)_:
+: <span><span id="parityTuningDayResume" markdown="1">
   <select name="parityTuningResumeDay" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onChange="checkTimeRange(this.form)">
 	  <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 0, 'Sunday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 1, 'Monday') . "\n"?>
@@ -433,23 +501,22 @@ $(function() {
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 4, 'Thursday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 5, 'Friday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 6, 'Saturday') . "\n"?>
-  </select>
+  </select></span>
   <select name="parityTuningResumeHour" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onChange="checkTimeRange(this.form)">
-     <?for ($d=0; $d<=23; $d++):?>
+<?for ($d=0; $d<=23; $d++):?>
          <?=mk_option($parityTuningCfg['parityTuningResumeHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
-     <?endfor;?>
+<?endfor;?>
   </select>
   <select name="parityTuningResumeMinute" 
-          size='1' class='narrow'
+          size="1" class="narrow"
 		  onChange="checkTimeRange(this.form)">
-    <?for ($d=0; $d<=55; $d+=5):?>
+<?for ($d=0; $d<=55; $d+=5):?>
       <?=mk_option($parityTuningCfg['parityTuningResumeMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
-    <?endfor;?>
-  </select>
-  &nbsp;&nbsp;HH:MM
-</span>
+<?endfor;?>
+  </select> &nbsp;&nbsp;HH:MM</span>
+</div> <!-- parityTuningResumeDisplay -->
 
 :parity_tune_resume_plug:
 > The time at which a paused parity check should be resumed.<br>If no parity check is currently paused when this time comes around then no action will be taken.
@@ -459,18 +526,20 @@ $(function() {
 >If the increment period has been set to **Custom** then the hours/minutes fields are hidden and you are instead given the option to set the time in <a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a> format.
 :end
 
-<?=_('Increment pause time')?>:
-: <span id="parityTuningCustomPause">
-   <input type="text"
-          size='1' class='narrow'
+<div id="parityTuningCustomPause" markdown="1" style="display:none">
+_(Increment pause time)_:
+: <span><input type="text"
+          size="1" class="narrow"
           name="parityTuningPauseCustom"
           value="<?=$parityTuningCfg['parityTuningPauseCustom']?>"
-          onblur="checkCustom(this)">
-  &nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?>
-</span>
-<span id="parityTuningNormalPause">
+          onblur="checkCustom(this)"><span>&nbsp; <?=sprintf(_('entry in %s format'),'<a href="https://en.wikipedia.org/wiki/Cron#Overview" target="_blank">crontab</a>')?></span> 
+</div> <!-- parityTuningCustomPause -->
+
+<div id="parityTuningPauseDisplay" markdown="1" style="display:none">
+_(Increment pause time)_:
+:  <span><span id="parityTuningDayPause" markdown="1">
   <select name="parityTuningPauseDay" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onChange="checkTimeRange(this.form)">
 	  <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 0, 'Sunday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 1, 'Monday') . "\n"?>
@@ -479,23 +548,22 @@ $(function() {
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 4, 'Thursday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 5, 'Friday') . "\n"?>
       <?=mk_option($parityTuningCfg['parityTuningResumeDay'] , 6, 'Saturday') . "\n"?>
-  </select>
+  </select></span>
   <select name="parityTuningPauseHour" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onChange="checkTimeRange(this.form)">
       <?for ($d=0; $d<=23; $d++){?>
         <?=mk_option($parityTuningCfg['parityTuningPauseHour'], strval($d), sprintf("%02d", $d)) . "\n"?>
       <?}?>
     </select>
     <select name="parityTuningPauseMinute"
-            size='1' class='narrow'
+            size="1" class="narrow"
 			onChange="checkTimeRange(this.form)">
-      <?for ($d=0; $d<=55; $d+=5):?>
+<?for ($d=0; $d<=55; $d+=5):?>
           <?=mk_option($parityTuningCfg['parityTuningPauseMinute'], strval($d), sprintf("%02d", $d)) . "\n"?>
-      <?endfor;?>
-    </select>
-    &nbsp;&nbsp;HH:MM
-</span>
+<?endfor;?>
+    </select> &nbsp;&nbsp;HH:MM</span>
+</div> <!-- parityTuningPauseDisplay -->
 
 :parity_tune_pause_plug:
 > The time at which a running parity check should be paused. Typically, this would be set to be a time when you want other activity to not be affected by a running parity check.
@@ -508,25 +576,29 @@ $(function() {
 >You also want to make sure that the time allocated to running increments is sufficient to expect the parity check to run to completion before the next check is scheduled to start. Since most people only schedule parity checks to run infrequently (e.g. Monthly or Quarterly) then this is unlikely to be an issue but it is something to take into consideration.  
 :end
 
-<span id="parityTuningPauseResumeDisplay">
-<?=sprintf(_('Send notifications for Pause or Resume of increments'))?>:
+_(Send notifications for Pause or Resume of increments)_:
 : <select name="parityTuningNotify" 
-          size='1' class='narrow'
-          onchange="checkNotifications(this)">
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); checkNotifications(this)">
     <?=mk_option($parityTuningCfg['parityTuningNotify'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningNotify'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_notify_plug:
-> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an array operation.
+> This option is only relevant if you have enabled the Settings->System Notifications option (highly recommended).
+>
+> Setting this option to <strong>Yes</strong> means that you will be sent a notification every time the plugin Pauses or Resumes an increment during an array operation.
+>
 >If you would rather not get such notifications then leave this option set to **No**.
+>
 >Notifications that are deemed to be just informative are sent as a **Normal** (green) category message to the targets specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*, although more important ones will use the **Warning** (orange) or *Error** (red) type notifications where it seems appropriate.
 :end
-</span>
+</div> <!-- parityTuningIncrementDisplay -->
 
-<?=_('Resume array operations on next array start')?>:
+
+_(Resume array operations on next array start)_:
 : <select name="parityTuningRestart" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningRestart'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningRestart'], "1", _("Yes")) . "\n"?>
@@ -548,11 +620,9 @@ $(function() {
 >
 :end
 
-<!-- &nbsp; -->
-
-<?=_('Pause array operations while mover running')?>:
+_(Pause array operations while mover running)_:
 : <select name="parityTuningMover" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningMover'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningMover'], "0", _("No")) . "\n"?>
@@ -566,13 +636,14 @@ $(function() {
 > If you are running the array operation type in increments then the resume will only happen after mover finishes if you are still within the time windows for the increment.
 :end
 
-<?=_('Pause array operations while appdata backup or restore running')?>:
+<div id="parityTuningBackupDisplay" markdown="1" style="display:none">
+_(Pause array operations while appdata backup or restore running)_:
 : <select name="parityTuningBackup"
-          size='1' class='narrow' 
+          size="1" class="narrow" 
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningBackup'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningBackup'], "0", _("No")) . "\n"?>
-  </select><? if (!(file_exists(PARITY_TUNING_CABACKUP2_FILE)||file_exists(PARITY_TUNING_APPBACKUP_FILE))) echo '<font color=#FF8C2F>' . _('This option is only available if Appdata Backup/Restore plugin installed') . '</font>'; ?>
+  </select> 
 
 :parity_tune_backup_plug:
 >Pause an array operation (Parity Check, Read-Check, Parity-Sync,. Disk Rebuild, Disk Clear) if the CA Appdata or Appdata Backup plugins are running a backup or restore of docker container data.  An array operation being run in parallel to the backup or restore adversely affects the performance due to contention on the disk drives so it is more efficient to not have them running at the same time.
@@ -581,18 +652,20 @@ $(function() {
 >
 > If you are running the array operation type in increments then the resume will only happen after the backup or restore finishes if you are still within the time windows for the increment.
 :end
+</div> <!-- parityTuningBackupDisplay -->
 
-<span id="parityTuningBackgroundDisplay">
-
-<?=sprintf(_('Send notifications for mover or backup running'))?>:
+<div id="parityTuningBackgroundDisplay" markdown="1" style="display:none">
+<?= sprintf ($parityTuningNoBackup?"_(Send notifications for mover running)_":"_(Send notifications for mover or backup running)_")?>:
 : <select name="parityTuningBackground" 
-          size='1' class='narrow'
-          onchange="checkNotifications(this)">
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); checkNotifications(this)">
     <?=mk_option($parityTuningCfg['parityTuningBackground'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningBackground'], "1", _("Yes")) . "\n"?>
   </select>
 
 :parity_tune_background_plug:
+> This option is only relevant if you have enabled the Settings->System Notifications option (higly recommended).
+>
 > Setting this option to <strong>Yes</strong> means that you will be sent a notification every
 > time a background task such as Appdata Backup or mover starts or completes. If this option
 > is set then the notification is sent whenever these operations start or stop while an array
@@ -603,49 +676,60 @@ $(function() {
 >If you would rather not get such notifications then leave this option set to **No**.
 >The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
+</div> <!-- parityTuningBackgroundDisplay -->
 
-</span>
+<div id="parityTuningDockerDisplay" markdown="1" display="none">
 
-
-<span id="parityTuningDockersDisplay">
-
-<?=_('Pause Docker Containers while array operations running')?>:
+_(Pause Docker Containers while array operations running)_:
 : <select name="parityTuningDocker" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form)"> 
     <?=mk_option($parityTuningCfg['parityTuningDocker'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningDocker'], "0", _("No")) . "\n"?>
-  </select><?if(!$parityTuningExperimental):?><font color="red">Not yet ready for use</font><?endif;?>
+  </select>
 
 :parity_tune_docker_plug:
->Setting this option allows you to pause docker containers while a parity operation is running.
+>Setting this option allows you to pause specified docker containers while a parity operation is running.
+>
+>You only want to consider doing this for containers that would be accessing the array during the parity operation and which would thus impact performance.
 :end
 
-<?=_('Docker containers to be paused')?>:
-: <select multiple
-	 name="parityTuningContainers" 
-          size='1' class='narrow'
-          onchange="presetParityTuning(this.form)">
-	
-	<? $parityTuningContainers = $parityTuningCfg['parityTuningContainers'];	?>
-	<? parityTuningLoggerTesting("parityTuningDockerList: $parityTuningContainers");	?>
-	<? $dockerContainersInstalled = dockerContainerList();	?>
-	<? if ($dockerContainersInstalled != null) foreach ($dockerContainersInstalled as $container) echo mk_option_check($container, $parityTuningDockers, $container) . "\n";	?>
-  </select><?if(!$parityTuningExperimental):?><font color="red">Not yet ready for use</font><?endif;?>
 
+<div id="parityTuningContainersDisplay" markdown="1" display="none">
+
+_(Docker containers to be paused)_:
+: <select multiple
+	  name="parityTuningContainers"
+      size="1" class="narrow"
+      onchange="presetParityTuning(this.form)"
+      onclick="DockerListSet(this.form)"> 
+	<? //if ($parityTuningDockerEnabled) {
+		//   $parityTuningContainers = $parityTuningCfg['parityTuningContainers'];
+		//   parityTuningLoggerTesting("parityTuningContainers: $parityTuningContainers");
+		//   $parityTuningContainersInstalled = dockerContainerList();
+		//   if ($parityTuningContainersInstalled != false) {
+		//	  foreach ($parityTuningContainersInstalled as $container) { 
+		//		 $name = $container['Names'];
+		//		 parityTuningLoggerTesting("adding option for container: $name");
+		//		 echo mk_option_check($parityTuningContainers, $name, $name) . "\n";
+		//	  }
+		//	}
+		//}
+	?>
+  </select>
+  
 :parity_tune_dockerlist_plug:
 >A list of docker containers to be paused.
->You are only likely to want to pause containers that would be accessing the array.
->The containers will only actually be paused if they have running status at the time.
+>
+>The containers will only actually be paused if they have running status at the time the parity operation is initiated (or resumed).  They will be put back into a running state any time the parity operation is paused or if it completes.
 :end
 
-</span>
+</div></div>
 
-<!-- &nbsp; -->
 
-<?=_('Pause and Resume array operations if disks overheat')?>:
+_(Pause and Resume array operations if disks overheat)_:
 : <select name="parityTuningHeat"
-          size='1' class='narrow'
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form)"> 
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "1", _("Yes")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeat'], "0", _("No")) . "\n"?>
@@ -658,18 +742,18 @@ $(function() {
 >
 >A much better solution is to improve the cooling in your case so that the disks never overheat. In practice this may not always prove practical.
 >
->If the array operation was part of running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
+>If the array operation was paused while running an increment then it will not be resumed outside the time allotted for the increment. If the array operation was initiated for any other reason then the Pause/Resume behavior on temperature is always active.
 :end
 
-<span id="parityTuningOverheatDisplay">
+<div id="parityTuningHeatDisplay" markdown="1" style="display:none">
 
-<?=_('Pause an array operation at')?>:
-: <input name="parityTuningHeatHigh" 
-         size='1' class='narrow'
-         type='text'
-         onchange="checkHeatVeryLarge(this.form.parityTuningHeatHigh.value),checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
-
+_(Pause an array operation at)_:
+: <span><input name="parityTuningHeatHigh" 
+         size="1" class="narrow"
+         type="text"        
+		 onchange="presetParityTuning(this.form); checkHeatVeryLarge(this.form.parityTuningHeatHigh.value),checkHeatLow(this.form)"
+         value="<?=$parityTuningCfg['parityTuningHeatHigh']?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_</span>
+		 
 :parity_tune_warn_plug:
 > This value indicates how close to the value set for the Warning Disk Temperature Threshold a disks temperature is allowed to reach before a **pause** of a running array operation is triggered. If an explicit threshold has been defined for an individual drive then this is the value used. If not the global setting will be used.
 >
@@ -680,15 +764,16 @@ $(function() {
 > If there is no running array operation then no action will be taken.
 :end
 
-<?=_('Resume an array operation at')?>:
-: <input name="parityTuningHeatLow" 
-         size='1' class='narrow'
-         type='text'
-		onchange="checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
-         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below warning disk temperature threshold')?>
+
+_(Resume an array operation at)_:
+: <span><input name="parityTuningHeatLow" 
+         size="1" class="narrow"
+         type="text"	
+		 onchange="presetParityTuning(this.form); checkHeatVeryLarge(this.form.parityTuningHeatLow.value),checkHeatLow(this.form)"
+         value="<?=$parityTuningCfg['parityTuningHeatLow']?>">&deg;<?= $parityTuningTempUnit ?> _(below warning disk temperature threshold)_</span>
 
 :parity_tune_low_plug:
-> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered. If using increments has been set for the type of operation being performed then the time mest be within the increments window or the resume wil be deferred until that window is rezched.
+> This value indicates how much below the Warning temperature threshold of a drive must reach before a **resume** of an array operation is considered. If using increments has been set for the type of operation being performed then the time must be within the increments window or the resume wil be deferred until that window is rezched.
 >
 >You need to get a good balance between array operations being resumed too soon (and thus quickly reaching the level to initiate another pause) and wasting a lot of time.
 >
@@ -697,10 +782,11 @@ $(function() {
 >If there is no paused array operation then no action will be taken. 
 :end
 
-<?=_('Send notifications for temperature related Pause or Resume')?>:
+
+_(Send notifications for temperature related Pause or Resume)_:
 : <select name="parityTuningHeatNotify" 
-          size='1' class='narrow'
-          onchange="checkNotifications(this)"> 
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); checkNotifications(this)"> 
     <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeatNotify'], "1", _("Yes")) . "\n"?>
   </select>
@@ -709,13 +795,11 @@ $(function() {
 > Setting this option to **Yes** means that you will be sent a notification every time the plugin Pauses or Resumes an array operation due to the temperature of your drives.<br>If you would rather not get such notifications then leave this option set to **No**. The notification is sent as a **Notice** category message to the target(s) specified under *<a href="Settings/Notifications">Settings->Notification Settings</a>*.
 :end
 
-</span>
+</div>
 
-<!-- &nbsp; -->
-
-<?=_('High disk temperatures can shutdown server')?>:
+_(High disk temperatures can shutdown server)_:
 : <select name="parityTuningHeatShutdown" 
-          size='1' class='narrow'
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningHeatShutdown'], "1", _("Yes")) . "\n"?>
@@ -729,16 +813,18 @@ $(function() {
 >
 >When the server is started up again after such a shutdown then when the array is started you will be notified that a temperature related shutdown happened in case you were not aware of the reason.
 >
->**CAUTION:** If the array is stopped while an array operation is incomplete then the progress so far is lost and it can only be restarted from the beginning (unless you have enabled the restart option *and* the shutdown is a tidy shutdown).
+>**CAUTION:** If the array is stopped while an array operation is incomplete then the default Unraid behaviour is that progress so far is lost and it can only be restarted from the beginning.  
+>
+>If you have enabled the restart option in this plugin *and* the shutdown is a tidy shutdown) then an attempt will made to restart the array operation from the point it had previously reached.
 :end
 
-<span id="parityTuningHeatShutdownDisplay">
+<div id="parityTuningCriticalDisplay" markdown="1" style="display:none">
 
-<?=_('Shutdown server at')?>:
-  : <input name="parityTuningHeatCritical" 
-           size='1' class='narrow'
-           type='text'
-           value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $parityTuningTempUnit ?> <?=_('below critical disk temperature threshold')?>
+_(Shutdown server at)_:
+: <span><input name="parityTuningHeatCritical" 
+           size="1" class="narrow"
+           type="text"
+           value="<?=$parityTuningCfg['parityTuningHeatCritical']?>">&deg;<?= $parityTuningTempUnit ?> _(below critical disk temperature threshold)_</span>
 		   
 :parity_tune_critical_plug:
 > This value indicates how close to the value set for the Critical Disk Temperature Threshold the temperature is of a disk is allowed to reach before a shutdown of the server is triggered.
@@ -747,13 +833,12 @@ $(function() {
 >If an explicit threshold has been defined for an individual drive then this is the value used.  If not the global setting will be used.
 :end
 
-</span>
-  
-  
-<?=_('Shutdown server when array operation completes')?>:
+</div> <!-- parityTuningCriticalDisplay -->
+
+_(Shutdown server when array operation completes)_:
 : <select name="parityTuningShutdown" 
-          size='1' class='narrow'
-          onchange="checkShutdown(this.form)">
+          size="1" class="narrow"
+          onchange="presetParityTuning(this.form); checkShutdown(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningShutdown'], "0", _("No")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningShutdown'], "1", _("Yes")) . "\n"?>
   </select>
@@ -763,27 +848,27 @@ $(function() {
 >
 > This option is only likely to be of use on a server that is powered off most of the time as it is used for something like backup purposes. The idea is that you can initiate the array operation (either manually or via a schedule) and then leave the server to power itself down without having to know how long the array operation will take to complete.
 >
-> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shutdown will happen. As a safety mesure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
+> When it is detected that you have this option set and an array operation is in progress  then a notification is raised that the shutdown will happen. As a safety measure if this option is initially set at the start of the array operation, but is unset before it finishes then the shutdown will be aborted.
 >
 >**CAUTION:** No check is made to see if there is any other activity running on the server at the time the array operation completes before the shutdown is initiated
 :end
   
 <!-- &nbsp; -->
 
-<?=_('Parity Check Tuning logging')?>:
-: <select name="parityTuningLogging" 
-          size='1' class='narrow'
+_(Parity Check Tuning logging)_:
+: <span><select name="parityTuningLogging" 
+          size="1" class="narrow"
           onchange="presetParityTuning(this.form); checkLoggingMode(this.form)">
     <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_BASIC, _("Basic")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_DEBUG, _("Debug")) . "\n"?>
     <?=mk_option($parityTuningCfg['parityTuningLogging'], PARITY_TUNING_LOGGING_TESTING, _("Testing")) . "\n"?>
   </select>  <select name="parityTuningLogTarget"
-          size='1' class='narrow'
+          size="1" class="narrow"
 		  onchange="presetParityTuning(this.form); checkLoggingTarget(this.form)">
 		  <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_SYSLOG, _("Syslog only")) . "\n"?>
           <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_BOTH, _("Syslog and Flash")) . "\n"?>
           <?=mk_option($parityTuningCfg['parityTuningLogTarget'], PARITY_TUNING_LOGGING_FLASH, _("Flash only")) . "\n"?>
-	  </select>
+	  </select></span>
 	  
 :parity_tune_logging_plug:
 > Control the level of detail in entries. The level of detail can be increased to help with debugging any problems using this plugin might encounter.
@@ -793,7 +878,7 @@ $(function() {
 >* **Parity Problems Assistant**  
 >depending on which part of the plugin generated the messages
 >
->With the **Basic** option set these will only be a small number of messages indicating that this plugin has taken some action.
+>With the **Basic** option set these will only be a small number of messages indicating that this plugin has taken some action or an possible error condition has been detected.  This will be what most users want in normal operation.
 >
 >Setting this option to **Debug** will result in additional entries being written to the syslog that give more information on what is happening when this plugin is running. They show how some of the internal operation of how the plugin is functioning. These additional entries are identified by the fact that they will have the word **DEBUG** added to the start of messages. Some users (particularly those who have not used this plugin before) may like to use it to see more detail on how this plugin operates, but it is not expected that this option will be left enabled in normal running.
 >
@@ -805,12 +890,12 @@ $(function() {
 >To facilitate with debugging problems then in Testing mode you can log the messages to the flash drive either instead of the syslog or in addition to the syslog. The resulting parityTuning.log file will be stored in the plugin's folder on the flash drive and providing this file to the developer will help with diagnosing any unexpected behaviour you encounter.
 :end
 
-&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned --> 
+&nbsp; <!-- Dummy label to get button alignment -->
 
 : <input type="submit" 
         name="#apply" 
         value="_(Apply)_" 
-        id='Apply'
+        id="Apply"
 		onclick="checkCustomOptions(this.form)">
 <input type="button" 
         id="DONE" 
@@ -826,20 +911,27 @@ $(function() {
 
 > The **Done** button exits the settings page.
 
-> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed and immediaely save these as the current settings.
+> The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed and immediately save these as the current settings.
 > You can now make changes to these settings to suit your system and hit the Apply button to save them.
 :end
  
 <?if (file_exists("/boot/config/parity-checks.log")):?>
-&nbsp; <!--  This is to have a dummy field so buttons are correctly aligned -->
-: <input type="button" 
-       name="showHistory" 
-       value="<?=_('History')?>" 
-       onclick="parityTuningHistory()"><?=_('Click to show Array Operations history')?>
-       <a style='float:right' href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target='_blank'><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
+&nbsp; <!-- Dummy label to get button alignment -->
+: <span class="buttons-spaced">
+    <input type="button" 
+       id="showHistory" 
+       value="_(History)_"
+       onclick="parityTuningHistory()">_(Click to show Array Operations history)_
+  </span>
 
+:parity_tune_history_plug:
+> The **History** button will display the current history of parity checks. 
+> It is identical in function to using the **History** button on the **Main** tab.
+:end
 <?endif;?>
+
+<a style="float:right" href='https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=U2FVNHSETTNRG' target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" title="_(Donate to plugin author)_"></a>
+<span style="float:right"><?=$parityTuningVersion?></span>
 
 </form>
-
-<?endif;?>
+<?endif?>
