@@ -38,7 +38,7 @@ else:
 
 function initialiseParityTuning(form) {
 
-<? parityTuningLoggerTesting("---initialise:  ParityTuning page being displayed---");?>
+<? parityTuningLoggerTesting("Parity Tuning settings page being displayed");?>
   
   // Force options that require parity to be present to the 'No' valueset to 
   // or Cumulative at Unraid level as then plugin cannot handle increments
@@ -81,6 +81,7 @@ function initialiseParityTuning(form) {
 	document.getElementById('parityTuningDockerDisplay').style.display  = "none";
   <?elseif ($parityTuningExperimental):?> 
       // and even then if it is only currently in experimental mode
+	  <? parityTuningLoggerTesting("---initialise:  Docker enabled AND Expirmental mode set ---");?>
 	  document.getElementById('parityTuningDockerDisplay').style.display  = "inline";
   <?endif;?>
   
@@ -678,7 +679,7 @@ _(Pause array operations while appdata backup or restore running)_:
 :end
 </div> <!-- parityTuningBackgroundDisplay -->
 
-<div id="parityTuningDockerDisplay" markdown="1" display="none">
+<div id="parityTuningDockerDisplay" markdown="1" style="display:none">
 
 _(Pause Docker Containers while array operations running)_:
 : <select name="parityTuningDocker" 
@@ -695,7 +696,7 @@ _(Pause Docker Containers while array operations running)_:
 :end
 
 
-<div id="parityTuningContainersDisplay" markdown="1" display="none">
+<div id="parityTuningContainersDisplay" markdown="1" style="display:none">
 
 _(Docker containers to be paused)_:
 : <select multiple
@@ -724,7 +725,8 @@ _(Docker containers to be paused)_:
 >The containers will only actually be paused if they have running status at the time the parity operation is initiated (or resumed).  They will be put back into a running state any time the parity operation is paused or if it completes.
 :end
 
-</div></div>
+</div> <!-- parityTuningDockerDisplay -->
+</div> <!-- parityTuningContainersDisplay -->
 
 
 _(Pause and Resume array operations if disks overheat)_:

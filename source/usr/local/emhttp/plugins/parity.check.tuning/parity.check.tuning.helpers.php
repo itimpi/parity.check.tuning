@@ -57,6 +57,7 @@ define('PARITY_TUNING_LOGGING_BOTH' ,'1');
 define('PARITY_TUNING_LOGGING_FLASH' ,'2');
 
 // Configuration information
+// (automatically merge defauls with current settings)
 $parityTuningCfg = parse_plugin_cfg($plugin);
 
 // Only want this line active while debugging to help clear up all PHP errors.
@@ -100,8 +101,11 @@ $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.0'
 
 if (file_exists(PARITY_TUNING_EMHTTP_DISKS_FILE)) {
 	$disks=parse_ini_file(PARITY_TUNING_EMHTTP_DISKS_FILE, true);
-	$parityTuningNoParity = ($disks['parity']['status']=='DISK_NP_DSBL') && ($disks['parity2']['status']=='DISK_NP_DSBL');
-	parityTuningLoggerTesting ("No parity disk installed");
+	$parityTuningParity1=($disks['parity']['status']=='DISK_NP_DSBL')?? false;
+	$parityTuningParity2=($disks['parity2']['status']=='DISK_NP_DSBL')?? false;
+	// parityTuningLoggerTesting ("parityTuningParity1: $parityTuningParity1, parityTuningParity2 : $parityTuningParity2");
+	$parityTuningNoParity =(($parityTuningParity1==false) && ($parityTuningParity2==false));
+	if ($parityTuningNoParity) parityTuningLoggerTesting ("No Parity disk installed");
 }
 
 

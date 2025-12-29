@@ -1089,8 +1089,17 @@ CLI_Status:
 		parityTuningLoggerCLI ('  cancel           ' . _('Cancel a running parity check'));
 		parityTuningLoggerCLI ('  start            ' . _('Start the array'));
 		parityTuningLoggerCLI ('  stop             ' . _('Stop the array'));
-//	    parityTuningLoggerCLI ('  partial          ' . _('Start partial parity check'));
-//		parityTuningLoggerCLI ('  history          ' . _('Display Parity History'));
+
+		if ($parityTuningCfg['parityTuningLogging'] > 1) {
+			parityTuningLoggerCLI ('');
+			parityTuningLoggerCLI ('The following are also available for testing purposes only');
+			parityTuningLoggerCLI ('  updatecron      Update cron table entries');
+			parityTuningLoggerCLI ('  defaults        Reset settings to defaults');
+			parityTuningLoggerCLI ('  config          Write current settings to syslog');
+			parityTuningLoggerCLI ('  partial         Start a partial parity check');
+		    parityTuningLoggerCLI ('  history         Display Parity History');
+		}
+
 		parityTuningLoggerCLI ($parityTuningVersion);
 		if (! $parityTuningCLI) {
         	parityTuningLogger (_('Command Line was') . ':');
@@ -1916,6 +1925,8 @@ function updateCronEntries() {
 	 || $parityTuningCfg['parityTuningClear']
 	 || $parityTuningCfg['parityTuningRecon']) {
 //
+		$pausetime = '0';
+		$resumetime = '0';
 		switch ($parityTuningCfg['parityTuningFrequency']) {
 			case 1: // custom
 				$resumetime = $parityTuningCfg['parityTuningResumeCustom'];
@@ -1941,7 +1952,7 @@ function updateCronEntries() {
 		}
 		$lines[] = "$resumetime " . PARITY_TUNING_PHP_FILE . ' "resume" &> /dev/null' . "\n";
 		$lines[] = "$pausetime " . PARITY_TUNING_PHP_FILE . ' "pause" &> /dev/null' . "\n";
-		parityTuningLoggerDebug (sprintf(_('Created cron entry for %s'),_('scheduled pause ($pausetime) and resume ($resumetime)')));
+	 parityTuningLoggerDebug (sprintf(_('Created cron entry for scheduled pause (%s) and resume (%s)'),$pausetime,$resumetime));
 	}
 
 	

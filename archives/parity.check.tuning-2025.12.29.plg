@@ -2,8 +2,8 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name "parity.check.tuning">
 <!ENTITY author "Dave Walker (itimpi)">
-<!ENTITY version "2024.08.16">
-<!ENTITY md5 "2f51dd48022f3b028797989e11fc4c7b">
+<!ENTITY version "2025.12.29">
+<!ENTITY md5 "b3f26492b2eeb68013a855ec7daf04be">
 <!ENTITY launch "Settings/Scheduler">
 <!ENTITY plugin "parity.check.tuning">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
@@ -31,6 +31,24 @@ The following are under consideration if a sensible method of implementing them 
 ### Planned
  - Update Pause/Resume buttons for array operations on Main page to reflect status
  - Ability to pause nominated docker containers during array operations.
+ - Log details of cron settings when in TESTING mode.
+
+### 2025-12-29
+ - Changes to comply with security guidelines for plugins
+ - Updated Unclean shutdown notifcation to separate crashes from array not stopping 
+ - Correct some spelling mistakes in notification messages
+ - Added some debugging to track reports of history lines going missing.
+ - Added pause reason to Pause notifications.
+ - Improved/updated some of the built-in help text.
+ - Handle built-in parity checks being disabled.
+ - Fixes for conformance to Unraid 7.2 Responsive GUI requirements
+ - Hide options in GUI that are not relevant at the moment.  E.g.
+   - if no parity disk installed
+   - Cumulative mode set at Unraid level
+   - if appdata backup not installed.
+   - Options not relevant unless another option set to Yes
+ - Fix for notifications for mover/backup being displayed when option set to not do so
+ - Fix for array operations allowed to restart even after a disk change.
 
 ### 2024-08-16
  - Fix: Very old entries (prior to 2019) could stop history being displayed.
@@ -564,21 +582,25 @@ The 'post-install' script
     chmod -R 755 /usr/local/emhttp/plugins/&plugin;
     chown -R root /usr/local/emhttp/plugins/&plugin;
     chgrp -R root /usr/local/emhttp/plugins/&plugin;
+	
     # Set up option for CLI usage
 	rm -f /usr/local/bin/parity.check
     ln -s /usr/local/emhttp/plugins/&plugin;/&plugin;.php /usr/local/bin/parity.check
 	echo "Created parity.check" CLI command.
-	# If necesserary set plugin cfg file to defaults
+	
+	# If new install set plugin cfg file to defaults
 	if [ ! -f /boot/config/plugins/&plugin;/&plugin;.cfg ]; then
-		cp /usr/local/emhttp/plugins/&plugin;/&plugin;.defaults /boot/config/plugins/&plugin;/&plugin;.cfg
+		cp /usr/local/emhttp/plugins/&plugin;/default.cfg /boot/config/plugins/&plugin;/&plugin;.cfg
 		echo "Default settings installed"
 	fi
+	
     # Replace the standard mdcmd one with our custom version
     if [ -f /usr/local/sbin/mdcmd ]; then
       mv -f /usr/local/sbin/mdcmd /usr/local/sbin/mdcmd.orig
       cp /usr/local/emhttp/plugins/&plugin;/&plugin;.mdcmd /usr/local/sbin/mdcmd
 	  chmod 754 /usr/local/sbin/mdcmd
     fi
+	
     # Replace the standard parity history display script with our custom version for extra columns
 	chmod 755 /usr/local/emhttp/plugins/&plugin;/parity.check.history.php 
     if [ -f /usr/local/emhttp/plugins/dynamix/scripts/parity_history ]; then

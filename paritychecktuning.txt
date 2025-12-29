@@ -249,11 +249,8 @@ but no parity check was in progress when array stopped=
 Cancel request=
 Configuration=
 cool=
-Created cron entries for %s=
-; where %s will be one of the following 4 values
-default monitoring=
-monitoring disk temperatures=
-monitoring partial parity checks=
+Created cron entry for scheduled pause (%s) and resume (%s)=
+Created cron entry for %s interval monitoring=
 Detected that array has not yet been started=
 Detected that array has just been started=
 detected that mdcmd had been called from %s with command %s=
