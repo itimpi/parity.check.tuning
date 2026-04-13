@@ -1,9 +1,10 @@
-Menu="About"
+Menu="DiskUtilities"
 Title="Parity Problems Assistant"
 Tag="gear"
+Icon="gear"
 ---
 <?PHP
-/* Copyright 2022-2025, Dave Walker (itimpi).
+/* Copyright 2022-2026, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -37,7 +38,7 @@ loadVars(0);
 if ($parityTuningNoParity)     echo "<p class='notice'>" . _('No Parity disk present') . ".</p>";
 if ($parityTuningActive)   echo "<p class='notice'>" . $parityTuningDescription . ' ' .  _('running') . "</p>"; 
 loadVars(0);
-if ($vars['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
+if ($var['mdState'] != 'STARTED') echo "<p class='notice'>" . _('Array must be started to use this assistant') . "</p>";
 
 ?>
 
@@ -101,8 +102,8 @@ function checkStartEnd(form) {
        returnValue = false;
     }
     if (lastSector > totalSectors) {
-        swal({title: "_(End point too large)_",
-              text: "_(The end has been set to more than the size of the disk)_.",
+        swal({title: "<?=('End point too large')?>",
+              text: "<?=('The end point has been set to more than the size of the disk')?>.",
           icon:"Error"});
         returnValue = false;
     }
@@ -192,16 +193,11 @@ This can be much faster than having to run a full parity check or read check to 
 :end
 
 <?=_('Method used to specify start and stop points')?>:
-: <input type="radio" 
-        name="parityProblemType" 
-        value="sector" 
-        <?=($parityTuningCfg['parityProblemType'] == "sector" ? "checked" : "") . "\n"?>
-        onclick="changeProblemType(this.form)"> <?=_('Sector Numbers')?>
-<input type="radio" 
-        name="parityProblemType" 
-        value="percent"
-        <?=($parityTuningCfg['parityProblemType'] == "percent" ? "checked" : "") . "\n"?>
-        onclick="changeProblemType(this.form)"> <?=_('Percentage')?>
+: <select name="parityProblemType" 
+	size='1' class='auto'>
+    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "sector", _('Sector Numbers')) . "\n"?>
+    <?=mk_option($parityTuningCfg['parityProblemCorrect'], "percent", _('Percentage')) . "\n"?>
+  </select>
 
 :parityProblems_type_plug:
 > Select the way you want to specify the start and end points.

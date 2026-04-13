@@ -22,7 +22,7 @@
 require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.helpers.php';
 ?>
 <!DOCTYPE html>
-<html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>">
+<html <?=@$dynamixCfg['display']['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -32,7 +32,9 @@ require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="same-origin">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-fonts.css")?>">
+<!--
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-popup.css")?>">
+-->
 </head>
 <body>
 
@@ -61,6 +63,7 @@ require_once '/usr/local/emhttp/plugins/parity.check.tuning/parity.check.tuning.
 			if (! strpos($line,'TESTING')) {
 				echo "<tr><td>$line</td></tr>";
 			}
+			$entryCount++;
 		}
 	}
 	if ($entryCount == 0) {

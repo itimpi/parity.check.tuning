@@ -7,6 +7,7 @@
 ; (should be translated)
 
 Parity Check Tuning=
+Array not yet started=
 Array operation completed=
 automatic=
 Basic=
@@ -48,9 +49,6 @@ Requires Unraid 6103 or later=Requires Unraid 6.10.3 or later
 Resume an array operation at=
 Resume array operations on next array start=
 Resume running Array operations on next array start=
-Run %s %s in increments=
-; First %s is type (e.g. manual, automatic)
-; Second %s is operation type (e.g Parity-Check, Parity-Sync)
 scheduled=
 section of the Unraid OS Manual in the online documentation to get guidance on resolving this=
 Send notifications for mover running=
@@ -67,42 +65,90 @@ Syslog only=
 Syslog and Flash=
 System crashed=
 Flash only=
-This option is only available if Appdata BackupRestore v2 plugin installed=This option is only available if Appdata Backup/Restore v2 plugin installed
 Unable to stop array=
 unknown=
 Troubleshooting=
+Use increments for Clear operations=
+Use increments for Parity Sync or Data Rebuild operations=
 Unscheduled=
 Use increments for %s %s=
+; First %s is type (e.g. manual, automatic)
+; Second %s is operation type (e.g Parity-Check, Parity-Sync)
 Use increments for Clear operations=
-Use increments for Parity-SyncData Rebuild operations=Use increments for Parity-Sync/Data Rebuild operations
+Use increments for Parity Sync or Data Rebuild operations=
 Version=
 Waiting=
-You require a parity disk present for this option to be relevant=
+
+
+; Swal warnings for Parity Check Tunings Settings page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; (these are popups from the plugin's settings web page as a result of field validation)
+; (translation optional - but probably wanted)
+
+Incompatible options=
+The Unraid Cumulative parity check setting must be set to No if you want to use the Parity Check Tuning plugin to run Array operations in increments=
+
+This might affect array integrity=
+Pausing an operation that is building parity or rebuilding a failed disk has a level of risk as your array is not back in a protected state until this operation completes successfully=
+Only enable this option if the operation is adversely affecting system use and you are not worried about the extra time that will elapse before the system is once again in a protected state=
+
+Do you really want to pause Clear operations=
+Pausing a disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage=
+On most systems a disk Clear operation does not adversely affect performance so typically this option is left disabled=
+
+Error in custom entry=
+A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week=
+Click on the crontab link to get more details on valid formats=
+
+Pause and Resume times=
+The Pause and Resume times cannot be identical=
+The Pause and Resume custom times cannot be identical=
+The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
+Are you sure you these are the right way around=
+
+Notifications not enabled=
+Before you can set this option to Yes you must first have enabled system notifications=
+
+Unusually large value=
+The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the Unraid level=
+
+Temperature Pause and Resume=
+The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
+
+Do you really want to pause Automatic checks=
+Pausing an automatic parity check after an unclean shutdown extends the time before the you can be confident that parity is still valid so that recovering from a disabled disk is likely to work without data corruption or data loss=
+Only use this option if you cannot afford the performance penalty of such checks occurring during prime time=
+
+Do you really want automatic Shutdown=
+No check is made to see if there is any other activity running on the server at the time the array operation completes=
+As a safety measure if you switch off this option while an array operation is running then the shutdown will be aborted=
+
+Do you really want Debug logging mode=
+Debug mode is intended to give users a feel for when the plugin is active=   
+Debug mode can generate frequent additional log entries in the syslog file so do not leave debug mode active if you are not interested in this information=
+
+Do you really want Testing logging mode=
+Testing mode is normally only used by the plugin author or when gathering evidence of a suspected bug in the plugin=
+Testing mode is very verbose and generates a lot of additional log entries so you do not want it enabled unless it is really necessary=
+
+Do you really want to log to the flash drive=
+Logging to the flash drive can cause a lot additional writes thus potentially shortening its lifetime=
+Do not leave this active if you are not interested in this information=
+At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually=
+
+
 
 ; Parity Problems Assistant page
 ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ; (should be translated)
 
 Parity Problems Assistant=
-; page intro text
-:parityProblems_intro_plug:
-The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
-The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
-**(feedback is welcomed on the basic concept and ideas for improvement)**.<p/>
-The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog.  
-In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.<p/>
-It is also not uncommon, particularly on **Ryzen/ThreadRipper** based systems, to get random parity errors if the RAM is overclocked
-(an XMP profile **is** an overclock),  
-and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
-If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
-This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk.<p/>
-**IMPORTANT**: This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
-:end
-; fields
+Array must be started to use this assistant=
 Click to show Parity check entries from syslog=
 End point for check=
 Method used to specify start and stop points=
 Only read checks can be performed=
+Partial=
 percent=
 Percentage=
 sector=
@@ -111,6 +157,19 @@ Show Sector Numbers=
 Start Check=
 Start point for check=
 Write Corrections to Parity=
+
+
+; Swal warnings for Parity Problems Assistant page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-
+; (these are popups from the plugins Parity Problmes Asistant page as a result of field validation)
+; (translation optional - but probably wanted)
+
+End point too small=
+The end point must be larger than the start=
+
+End point too large=
+The end point has been set to more than the size of the disk=
+
 
 ; Notifications
 ; ~~~~~~~~~~~~~
@@ -136,7 +195,7 @@ Resume=
 Resumed=
 Runtime=
 Scheduled pause=
-; The next threeo are used to construct the notification message pointing to 
+; The next three are used to construct the notification message pointing to 
 ; Troubleshooting in online manual after an Unclean shutdown
 See=
 Troubleshooting=
@@ -181,44 +240,7 @@ Unrecognized option=
 Usage=
 where action is one of=
 
-; Swal warnings
-; ~~~~~~~~~~~~~
-; (these are popups from the plugin's settings web page as a result of field validation)
-; (translation optional)
 
-A crontab entry should have 5 space-separated values defining the minutes, hour, day of the month, month, day of the week=
-As a safety measure if you switch off this option while an array operation is running then the shutdown will be aborted=
-At the moment there is no mechanism to stop this file from growing forever so it is up to you to manage this manually=
-Are you sure you these are the right way around=
-Before you can set this option to Yes you must first have enabled system notifications=
-Click on the crontab link to get more details on valid formats=
-Debug mode can generate frequent additional log entries in the syslog file so do not leave debug mode active if you are not interested in this information=
-Debug mode is intended to give users a feel for when the plugin is active=   
-Do not leave this active if you are not interested in this information=
-Do you really want Debug logging mode=
-Do you really want Testing logging mode=
-Do you really want to log to the flash drive=
-Do you really want this=
-Error in custom entry=
-extra time that will elapse before the system is once again in a protected state=
-Logging to the flash drive can cause a lot additional writes thus potentially shortening its lifetime=
-No check is made to see if there is any other activity running on the server at the time the array operation completes=
-Notifications not enabled=
-On most systems a disk Clear operation does not adversely affect performance so typically this option is left disabled=
-Only enable this option if the operation is adversely affecting system use and you are not worried about the extra time that will elapse before the system is once again in a protected state=
-Pause and Resume times=
-Pausing a disk Clear operation extends the time before the disk is successfully added to the array and becomes ready for formatting and then used for data storage=
-Pausing an operation that is building parity or rebuilding a failed disk has a level of risk as your array is not back in a protected state until=
-Temperature Pause and Resume=
-Testing mode is normally only used by the plugin author or when gathering evidence of a suspected bug in the plugin=
-Testing mode is very verbose and generates a lot of additional log entries so you do not want it enabled unless it is really necessary=
-The Pause and Resume times cannot be identical=
-The Pause and Resume times would give an increment length of more than 12 hours which is unusual=
-The Resume value must be greater than the Pause one for the heat related Pause and Resume to work correctly as they are both subtracted from the disk temperature warning value when calculating the desired temperature=
-The Unraid Cumulative parity check setting must be set to No if you want to use the Parity Check Tuning plugin to run Array operations in increments=
-The value you have specified seems unusually large as it is not an absolute value but is relative to the value specified for the drives Temperature Warning level at the Unraid level=
-This might affect array integrity=
-Unusually large value=
 
 ; Syslog messages (with debug logging disabled)
 ; ~~~~~~~~~~~~~~~
@@ -249,7 +271,7 @@ but no parity check was in progress when array stopped=
 Cancel request=
 Configuration=
 cool=
-Created cron entry for scheduled pause (%s) and resume (%s)=
+Created cron entry for scheduled pause and resume=created cron entry for scheduled pause (%s) and resume (%s)=
 Created cron entry for %s interval monitoring=
 Detected that array has not yet been started=
 Detected that array has just been started=
@@ -297,9 +319,6 @@ Shutdown not actioned as running in TESTING mode=
 updated cron settings are in %s=
 
 ; PART 2 - TEXT Blocks and HELP text
-
-End point for check=
-Method used to specify start and stop points=
 
 ; Help text on settings page
 ; ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -539,9 +558,9 @@ Method used to specify start and stop points=
 
 :parity_tune_defaults_plug:
 > The **Apply** button will save the currently displayed values of the settings.
-
+>
 > The **Done** button exits the settings page.
-
+>
 > The **Defaults** button will reset the plugin settings to the default values that are used when the plugin is first installed and immediately save these as the current settings.
 > You can now make changes to these settings to suit your system and hit the Apply button to save them.
 :end
@@ -549,6 +568,25 @@ Method used to specify start and stop points=
 :parity_tune_history_plug:
 > The **History** button will display the current history of parity checks.  
 > It is identical in function to using the **History** button on the **Main** tab.
+:end
+
+
+; Help text on Parity Problems Assistant page
+; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+; These could perhaps be left in English to keep translation task easier)
+; page intro text
+:parityProblems_intro_plug:
+The **Parity Problems Assistant** is part of the **Parity Check Tuning** plugin.<p/>
+The current status is **EXPERIMENTAL** and it is always possible that this assistant may be removed in the future).  
+**(feedback is welcomed on the basic concept and ideas for improvement)**.<p/>
+The idea is that this assistant can be used after a parity check or read check has reported problems and logged the details of any problem sectors to the syslog.  
+In many cases such errors can be due to external factors such as cabling or the power supply rather than the actual disks.<p/>
+It is also not uncommon, particularly on **Ryzen/ThreadRipper** based systems, to get random parity errors if the RAM is overclocked
+(an XMP profile **is** an overclock),  
+and the motherboard/CPU combination may also impose limits that are lower than the RAM is capable of supporting.<p/>
+If you think you have rectified whatever caused the problems to occur then you can use this assistant to run a partial check over a narrow range to see if the problem still occurs.  
+This can be much faster than having to run a full parity check or read check to see if you have resolved the issue or to run a disk extended SMART test to test the actual disk.<p/>
+**IMPORTANT**: This assistant should never be used as an alternative to running a full parity check once you think the problem has been resolved.
 :end
 
 :parityProblems_type_plug:

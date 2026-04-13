@@ -2,7 +2,7 @@
 /*
  * Helper routines used by the parity.check.tuning plugin
  *
- * Copyright 2019-2025, Dave Walker (itimpi).
+ * Copyright 2019-2026, Dave Walker (itimpi).
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -92,7 +92,14 @@ if (file_exists(EMHTTP_DIR . "/webGui/include/Translations.php")) {
 
 // Unraid version dependencies
 
-$parityTuningVersion = _('Version').': '.(file_exists(PARITY_TUNING_VERSION_FILE) ? file_get_contents(PARITY_TUNING_VERSION_FILE) : '<'._('unknown').'>');
+$parityTuningVersion = _('Version').': ';
+if (file_exists(PARITY_TUNING_VERSION_FILE)) {
+  $parityTuningVersion .= file_get_contents(PARITY_TUNING_VERSION_FILE);
+} else {
+  parityTuningLoggerTesting ("Error: Version file not found");
+  $parityTuningVersion .= _('unknown');
+}
+// Handle Unraid version dependencies
 $parityTuningUnraidVersion = parse_ini_file("/etc/unraid-version")['version'];
 $parityTuningStartStop = version_compare($parityTuningUnraidVersion,'6.10.3','>');
 $parityTuningSizeInHistory = version_compare($parityTuningUnraidVersion,'6.11.0','>');
@@ -150,7 +157,7 @@ function loadVars($delay = 0) {
 	}
 
     if ($delay > 0) {
-		parityTuningLoggerTesting ("loadVars($delay)");
+		parityTuningLoggerTesting ("loadVars: Waiting $delay seconds");
 		sleep($delay);
 	} 
 	
@@ -270,7 +277,11 @@ function operationTriggerType($action = null, $active=null) {
 		} else if (file_exists(PARITY_TUNING_MANUAL_FILE)) {
 			parityTuningLoggerTesting ('... ' . _('appears to be manual parity check'));
 			return 'MANUAL';
+		} else if (file_exists(PARITY_TUNING_PARTIAL_FILE)) {
+			parityTuningLoggerTesting ('... ' . _('appears to be partial parity check'));
+			return 'PARTIAL';			
 		} else {
+	
 			parityTuningLoggerTesting ('... ' . _('trigger unknown - assume manual'));
 			createMarkerFile (PARITY_TUNING_MANUAL_FILE);
 			return 'MANUAL';
@@ -315,6 +326,9 @@ function actionDescription($action, $correcting = null, $trigger = null, $active
 								break;
 							case 'SCHEDULED':	
 								$trigger =  _('Scheduled');
+								break;
+							case 'PARTIAL':
+								$trigger = _('Partial');
 								break;
 							default:			
 								$trigger =  '';
