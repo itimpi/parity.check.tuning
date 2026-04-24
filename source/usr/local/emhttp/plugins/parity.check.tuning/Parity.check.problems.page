@@ -102,8 +102,8 @@ function checkStartEnd(form) {
        returnValue = false;
     }
     if (lastSector > totalSectors) {
-        swal({title: "<?=('End point too large')?>",
-              text: "<?=('The end point has been set to more than the size of the disk')?>.",
+        swal({title: "_(End point too large)_",
+              text: "_(The end point has been set to more than the size of the disk)_.",
           icon:"Error"});
         returnValue = false;
     }
@@ -194,7 +194,7 @@ This can be much faster than having to run a full parity check or read check to 
 
 <?=_('Method used to specify start and stop points')?>:
 : <select name="parityProblemType" 
-	size='1' class='auto'>
+	size='1' class='auto' onchange="changeProblemType(this.form)">
     <?=mk_option($parityTuningCfg['parityProblemCorrect'], "sector", _('Sector Numbers')) . "\n"?>
     <?=mk_option($parityTuningCfg['parityProblemCorrect'], "percent", _('Percentage')) . "\n"?>
   </select>
