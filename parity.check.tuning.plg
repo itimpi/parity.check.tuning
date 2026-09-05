@@ -10,6 +10,7 @@
 <!ENTITY github "itimpi/parity.check.tuning">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/master/&plugin;.plg">
 <!ENTITY emhttp "/usr/local/emhttp/plugins/&plugin;">
+<!ENTITY sha256 "f6f6458db47d08c16f29726e958642b09e9cf839d37444ae8ca5f82bb06ae71f">
 ]>
 <PLUGIN name="&name;" 
 	author="&author;" 
@@ -594,6 +595,7 @@ The 'source' file.
   <FILE Name="/boot/config/plugins/&plugin;/&plugin;-&version;.txz" Run="upgradepkg --install-new">
     <!--      <URL>/mnt/cache/Dropbox/Projects/&plugin;/archives/&plugin;-&version;.txz</URL>     --> 
     <URL>https://raw.githubusercontent.com/&github;/master/archives/&plugin;-&version;.txz</URL>
+    <SHA256>&sha256;</SHA256>
   </FILE>
  
 <!--
